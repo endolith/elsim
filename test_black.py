@@ -38,6 +38,16 @@ def test_condorcet_winner():
                          ])
     assert black(election) == 3
 
+    # Table 3.1 from Mackie - Democracy Defended
+    # (Borda and Condorcet results differ)
+    A, B, C, D, E = 0, 1, 2, 3, 4
+    election = [*4*[[A, E, D, C, B]],
+                *3*[[B, C, E, D, A]],
+                *2*[[C, D, E, B, A]],
+                ]
+
+    assert black(election) == C  # "and C is the Condorcet winner"
+
 
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached

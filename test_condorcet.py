@@ -66,6 +66,21 @@ def test_ranked_election_to_matrix_basic():
                         [ 5, 11, 11,  0],
                         ])
 
+    # Table 3.1 from Mackie - Democracy Defended
+    A, B, C, D, E = 0, 1, 2, 3, 4
+    election = [*4*[[A, E, D, C, B]],
+                *3*[[B, C, E, D, A]],
+                *2*[[C, D, E, B, A]],
+                ]
+
+    assert_array_equal(ranked_election_to_matrix(election),
+                       [[0, 4, 4, 4, 4],
+                        [5, 0, 3, 3, 3],
+                        [5, 6, 0, 5, 5],
+                        [5, 6, 4, 0, 2],
+                        [5, 6, 4, 7, 0],
+                        ])
+
 
 def test_condorcet():
     # Example from
@@ -102,6 +117,15 @@ def test_condorcet():
                          [3, 0, 2, 1],
                          ])
     assert condorcet(election) == 3
+
+    # Table 3.1 from Mackie - Democracy Defended
+    A, B, C, D, E = 0, 1, 2, 3, 4
+    election = [*4*[[A, E, D, C, B]],
+                *3*[[B, C, E, D, A]],
+                *2*[[C, D, E, B, A]],
+                ]
+
+    assert condorcet(election) == C  # "and C is the Condorcet winner"
 
 
 def test_condorcet_from_matrix():

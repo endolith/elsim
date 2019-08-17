@@ -55,6 +55,15 @@ def test_basic():
 
     assert borda(election) == w
 
+    # Table 3.1 from Mackie - Democracy Defended
+    A, B, C, D, E = 0, 1, 2, 3, 4
+    election = [*4*[[A, E, D, C, B]],
+                *3*[[B, C, E, D, A]],
+                *2*[[C, D, E, B, A]],
+                ]
+
+    assert borda(election) == E  # "to E the Borda winner"
+
 
 def test_invalid():
     with pytest.raises(ValueError):
