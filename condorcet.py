@@ -20,7 +20,7 @@ def ranked_election_to_matrix(election):
     Converts a ranked election to a pairwise comparison matrix
 
     Each entry in the matrix gives the total number of votes obtained by the
-    row candidate over the column candidate.
+    row candidate over the column candidate.[1]_
 
     Parameters
     ----------
@@ -41,6 +41,10 @@ def ranked_election_to_matrix(election):
         For example, a ``3`` in row 2, column 5, means that 3 voters preferred
         Candidate 2 over Candidate 5.  Candidates are not preferred over
         themselves, so the diagonal is all zeros.
+
+    References
+    ----------
+    .. [1] https://en.wikipedia.org/wiki/Condorcet_method#Pairwise_counting_and_matrices
     """
     election = np.asarray(election)
 
@@ -73,6 +77,7 @@ def ranked_election_to_matrix(election):
     return sum_matrix
 
 
+@njit
 def condorcet_from_matrix(matrix):
     """
     Finds the winner of a ranked ballot election using a Condorcet method
