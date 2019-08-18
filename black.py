@@ -2,7 +2,7 @@ from condorcet import condorcet
 from borda import borda
 
 
-def black(election):
+def black(election, tiebreaker=None):
     """
     Finds the winner of a ranked ballot election using Black's method
 
@@ -19,6 +19,10 @@ def black(election):
 
         For example, if a voter ranks Curie > Avogadro > Bohr, the ballot line
         would read ``[2, 0, 1]`` (with IDs in alphabetical order).
+    tiebreaker : {'random', None}, optional
+        If there is a tie in the Borda tally, and `tiebreaker` is ``'random'``,
+        a random finalist is returned.  By default, ``None`` is returned for
+        ties.
 
     Returns
     -------
@@ -27,7 +31,7 @@ def black(election):
     """
     winner = condorcet(election)
     if winner is None:
-        winner = borda(election)
+        winner = borda(election, tiebreaker)
     return winner
 
 
