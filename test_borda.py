@@ -43,7 +43,7 @@ def test_basic():
 
     assert borda(election) == B
 
-    # Example from
+    # Example from Ques 9
     # http://www.yorku.ca/bucovets/4380/exercises/exercises_1_a.pdf
     v, w, x, y, z = 0, 1, 2, 3, 4
     election = [*11*[[v, w, x, y, z]],

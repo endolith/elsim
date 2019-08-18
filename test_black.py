@@ -58,6 +58,18 @@ def test_condorcet_winner():
 
     assert black(election) == D
 
+    # Example from Ques 9
+    # http://www.yorku.ca/bucovets/4380/exercises/exercises_1_a.pdf
+    v, w, x, y, z = 0, 1, 2, 3, 4
+    election = [*11*[[v, w, x, y, z]],
+                *12*[[w, x, y, z, v]],
+                *13*[[x, v, w, y, z]],
+                *14*[[y, w, v, z, x]],
+                *15*[[z, v, x, w, y]],
+                ]
+
+    assert black(election) == v
+
 
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
