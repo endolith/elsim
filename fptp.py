@@ -1,4 +1,5 @@
 import numpy as np
+from random import choice
 
 
 def fptp(election, tiebreaker=None):
@@ -9,9 +10,11 @@ def fptp(election, tiebreaker=None):
     ----------
     election : array_like
         A collection of ranked ballots.  See `borda` for election format.
-    tiebreaker : {'random', None}, optional
+    tiebreaker : {'random', 'order', None}, optional
         If there is a tie, and `tiebreaker` is ``'random'``, a random finalist
-        is returned.  By default, ``None`` is returned for ties.
+        is returned.
+        If 'order', the lowest-ID tied candidate is returned.
+        By default, ``None`` is returned for ties.
 
     Returns
     -------
@@ -21,15 +24,18 @@ def fptp(election, tiebreaker=None):
     # TODO: It should also accept a 1D array of first preferences
     election = np.asarray(election)
     first_preferences = election[:, 0]
-    tallies = np.bincount(first_preferences)
-    highest_tally = tallies.max()
-    if tiebreaker == 'random':
-        return np.nonzero(tallies == highest_tally)[0][0]
+    tallies = np.bincount(first_preferences).tolist()
+    highest = max(tallies)
+    if tiebreaker == 'order':
+        # Returns first instance in candidate order
+        return tallies.index(highest)
+    elif tiebreaker == 'random':
+        winners = [i for i, x in enumerate(tallies) if x == highest]
+        return choice(winners)
     elif tiebreaker is None:
-        # TODO: bincount should not be used for tallies, it could be huge
-        n_winners = np.bincount(tallies)[highest_tally]
+        n_winners = tallies.count(highest)
         if n_winners == 1:
-            return np.nonzero(tallies == highest_tally)[0][0]
+            return tallies.index(highest)
         elif n_winners > 1:
             # There is a tie
             return None
