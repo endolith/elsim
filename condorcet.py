@@ -43,6 +43,18 @@ def ranked_election_to_matrix(election):
         themselves, so the diagonal is all zeros.
     """
     election = np.asarray(election)
+
+    # Cache results since this is slow and called repeatedly with same input
+    self = ranked_election_to_matrix
+    try:
+        if (self._cache_in == election.tobytes() and
+                self._cache_shape == election.shape):
+            return self._cache_out
+    except AttributeError:
+        self._cache_in = None
+        self._cache_shape = None
+        self._cache_out = None
+
     n_cands = election.shape[1]
     sum_matrix = np.zeros((n_cands, n_cands), dtype=int)
 
@@ -53,6 +65,11 @@ def ranked_election_to_matrix(election):
     # Make a tallying array and then use numba to tally into it
     sum_matrix = np.zeros((n_cands, n_cands), dtype=np.uint)
     _pair_tallier(pairs, sum_matrix)
+
+    self._cache_in = election.tobytes()
+    self._cache_shape = election.shape
+    self._cache_out = sum_matrix
+
     return sum_matrix
 
 
