@@ -48,6 +48,16 @@ def test_condorcet_winner():
 
     assert black(election) == C  # "and C is the Condorcet winner"
 
+    # Table 3 from On_the_Relevance_of_Theoretical_Results_to_Voting_.pdf
+    election = [[D, E, A, B, C],
+                [E, A, C, B, D],
+                [C, D, E, A, B],
+                [D, E, B, C, A],
+                [E, B, A, D, C],
+                ]
+
+    assert black(election) == D
+
 
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
