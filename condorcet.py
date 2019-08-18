@@ -1,5 +1,17 @@
 import numpy as np
 from itertools import combinations
+from numba import njit
+
+
+@njit
+def _pair_tallier(pairs, tally):
+    """
+    Takes an array of pairs and a tallying array and modifies the tallying
+    array to tally the pairs
+    """
+    for i in range(len(pairs)):
+        pair = pairs[i]
+        tally[pair[0], pair[1]] += 1
 
 
 def ranked_election_to_matrix(election):
@@ -36,8 +48,8 @@ def ranked_election_to_matrix(election):
     # Look at every pairwise combination of columns in the election at once
     # All 1st-pref candidates vs 2nd-pref, all 1st-pref vs 3rd-pref, etc.
     pairs = np.concatenate(election[:, tuple(combinations(range(n_cands), 2))])
-    coords, tallies = np.unique(pairs, axis=0, return_counts=True)
-    sum_matrix[tuple(coords.T)] = tallies
+    sum_matrix = np.zeros((n_cands, n_cands), dtype=np.uint)
+    _pair_tallier(pairs, sum_matrix)
     return sum_matrix
 
 
