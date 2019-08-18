@@ -47,7 +47,12 @@ def ranked_election_to_matrix(election):
 
     # Look at every pairwise combination of columns in the election at once
     # All 1st-pref candidates vs 2nd-pref, all 1st-pref vs 3rd-pref, etc.
-    pairs = np.concatenate(election[:, tuple(combinations(range(n_cands), 2))])
+    pairs = election[:, tuple(combinations(range(n_cands), 2))]
+
+    # Convert 3D to 2D "list" (makes a copy)
+    pairs = pairs.reshape((pairs.shape[0] * pairs.shape[1], pairs.shape[2]))
+
+    # Make a tallying array and then use numba to tally into it
     sum_matrix = np.zeros((n_cands, n_cands), dtype=np.uint)
     _pair_tallier(pairs, sum_matrix)
     return sum_matrix
