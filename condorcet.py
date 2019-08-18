@@ -6,12 +6,13 @@ from numba import njit
 @njit
 def _pair_tallier(pairs, tally):
     """
-    Takes an array of pairs and a tallying array and modifies the tallying
-    array to tally the pairs
+    Takes a 3D array of pairs and a 2D tallying array and modifies the tallying
+    array in-place to tally the pairs
     """
-    for i in range(len(pairs)):
-        pair = pairs[i]
-        tally[pair[0], pair[1]] += 1
+    for i in range(pairs.shape[0]):
+        for j in range(pairs.shape[1]):
+            pair = pairs[i][j]
+            tally[pair[0], pair[1]] += 1
 
 
 def ranked_election_to_matrix(election):
@@ -48,9 +49,6 @@ def ranked_election_to_matrix(election):
     # Look at every pairwise combination of columns in the election at once
     # All 1st-pref candidates vs 2nd-pref, all 1st-pref vs 3rd-pref, etc.
     pairs = election[:, tuple(combinations(range(n_cands), 2))]
-
-    # Convert 3D to 2D "list" (makes a copy)
-    pairs = pairs.reshape((pairs.shape[0] * pairs.shape[1], pairs.shape[2]))
 
     # Make a tallying array and then use numba to tally into it
     sum_matrix = np.zeros((n_cands, n_cands), dtype=np.uint)
