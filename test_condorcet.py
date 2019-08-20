@@ -2,6 +2,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 from condorcet import (condorcet, condorcet_from_matrix,
                        ranked_election_to_matrix)
+import pytest
 
 
 def test_ranked_election_to_matrix_basic():
@@ -210,6 +211,13 @@ def test_condorcet_from_matrix():
                        [397, 228, 237,   0, 424],
                        [202,  29,  65,  39,   0]])
     assert condorcet_from_matrix(matrix) == 3
+
+
+def test_invalid():
+    with pytest.raises(TypeError):
+        election = [[0, 1],
+                    [1, 0]]
+        condorcet(election, 'random')
 
 
 if __name__ == "__main__":
