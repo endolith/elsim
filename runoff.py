@@ -1,0 +1,151 @@
+import numpy as np
+import random
+
+
+# https://stackoverflow.com/a/6294205/125507
+def _all_indices(iterable, value):
+    """
+    Return all indices of `iterable` that match `value`.
+    """
+    return [i for i, x in enumerate(iterable) if x == value]
+
+
+def _order_tiebreak(winners, n=1):
+    """
+    Given an iterable of possibly tied `winners`, select the lowest-numbered
+    `n` candidates.
+    """
+    return sorted(winners)[:n]
+
+
+def _random_tiebreak(winners, n=1):
+    """
+    Given an iterable of possibly tied `winners`, select `n` candidates at
+    random.
+    """
+    if len(winners) == 1:
+        return winners
+    else:
+        return random.sample(winners, n)
+
+
+def _no_tiebreak(winners, n=1):
+    """
+    Given an iterable of possibly tied `winners`, return None if there are more
+    than `n` tied.
+    """
+    if len(winners) <= n:
+        return winners
+    else:
+        return [None]
+
+
+_tiebreak_map = {'order': _order_tiebreak,
+                 'random': _random_tiebreak,
+                 None: _no_tiebreak}
+
+
+def get_tiebreak(tiebreaker):
+    try:
+        return _tiebreak_map[tiebreaker]
+    except KeyError:
+        raise ValueError('Tiebreaker not understood')
+
+
+def runoff(election, tiebreaker=None):
+    """
+    Finds the winner of an election using top-two runoff / two-round system
+
+    If any candidate gets a majority of first-preference votes, they win.
+    Otherwise, a runoff election is held between the two highest-voted
+    candidates.[1]_
+
+    The votes in the first and second rounds are calculated from the same set
+    of ranked ballots, so this is actually the contingent vote method.[2]_  If
+    voters are honest and consistent between rounds, then the two methods are
+    equivalent.  It can also be considered "top-two IRV", and is closely
+    related to the supplementary vote (which restricts rankings to two).
+
+    Parameters
+    ----------
+    election : array_like
+        A collection of ranked ballots.  See `borda` for election format.
+        Currently, this must include full rankings for each voter.
+    tiebreaker : {'random', None}, optional
+        If there is a tie, and `tiebreaker` is ``'random'``, a random finalist
+        is returned.
+        If 'order', the lowest-ID tied candidate is returned.
+        By default, ``None`` is returned for ties.
+
+    Returns
+    -------
+    winner : int
+        The ID number of the winner, or ``None`` for an unbroken tie.
+
+    References
+    ----------
+    .. [1] https://en.wikipedia.org/wiki/Two-round_system
+    .. [2] https://en.wikipedia.org/wiki/Contingent_vote
+    """
+    election = np.asarray(election)
+    n_voters = election.shape[0]
+    first_preferences = election[:, 0]
+    tallies = np.bincount(first_preferences).tolist()
+    highest = sorted(tallies)[-2:]
+    high_scorers = _all_indices(tallies, highest[-1])
+
+    tiebreak = get_tiebreak(tiebreaker)
+    finalists = tiebreak(high_scorers, 2)
+    # Handle no tiebreaker case
+    if None in finalists:
+        return None
+
+    if len(finalists) == 1:
+        if tallies[finalists[0]] > n_voters / 2:
+            return finalists[0]
+        second_scorers = _all_indices(tallies, highest[0])
+        finalists += tiebreak(second_scorers)
+
+    # So at this point we should have two finalists who were chosen according
+    # to tiebreaker rules.
+    # Possibly including Nones
+
+    # Handle no tiebreaker case
+    if None in finalists:
+        return None
+
+    # TODO: Can this be vectorized or numbafied?
+    finalist_0 = finalists[0]
+    finalist_1 = finalists[1]
+
+    finalist_0_tally = 0
+    finalist_1_tally = 0
+
+    for ballot in election:
+        ballot_list = ballot.tolist()
+        if ballot_list.index(finalist_0) < ballot_list.index(finalist_1):
+            finalist_0_tally += 1
+        else:
+            finalist_1_tally += 1
+
+    assert finalist_0_tally + finalist_1_tally == n_voters
+
+    if finalist_0_tally == finalist_1_tally:
+        return tiebreak([finalist_0, finalist_1])[0]
+    elif finalist_0_tally > finalist_1_tally:
+        return finalist_0
+    else:
+        return finalist_1
+
+
+if __name__ == "__main__":
+    # Run unit tests, in separate process to avoid warnings about cached
+    # modules, printing output line by line in realtime
+    from subprocess import Popen, PIPE
+    with Popen(['pytest',
+                '--tb=short',  # shorter traceback format
+                '--hypothesis-show-statistics',
+                str('test_runoff.py')], stdout=PIPE, bufsize=1,
+               universal_newlines=True) as p:
+        for line in p.stdout:
+            print(line, end='')
