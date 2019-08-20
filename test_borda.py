@@ -1,8 +1,25 @@
-import pytest
+import numpy as np
+import random
 from borda import borda
+import pytest
 
 
-def test_basic():
+def collect_random_results(method, election):
+    """
+    Run multiple elections with tiebreaker='random' and collect the set of all
+    winners.
+    """
+    random.seed(47)  # Deterministic test
+    winners = set()
+    for trial in range(10):
+        winner = method(election, tiebreaker='random')
+        assert isinstance(winner, int)
+        winners.add(winner)
+    return winners
+
+
+@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
+def test_basic(tiebreaker):
     # Standard Tennessee example
     # https://en.wikipedia.org/wiki/Template:Tenn_voting_example
     Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
@@ -12,7 +29,7 @@ def test_basic():
                 *17*[[Knoxville, Chattanooga, Nashville, Memphis]],
                 ]
 
-    assert borda(election) == Nashville
+    assert borda(election, tiebreaker) == Nashville
 
     # Example from Ques 9
     # http://www.yorku.ca/bucovets/4380/exercises/exercises_1_a.pdf
@@ -24,7 +41,7 @@ def test_basic():
                 *15*[[z, v, x, w, y]],
                 ]
 
-    assert borda(election) == w
+    assert borda(election, tiebreaker) == w
 
     # Manually calculated correct answer
     election = [[0, 1, 4, 3, 2],
@@ -35,7 +52,7 @@ def test_basic():
                 [3, 2, 1, 4, 0],
                 ]
 
-    assert borda(election) == 2
+    assert borda(election, tiebreaker) == 2
 
     # Example from
     # https://www3.nd.edu/~apilking/math10170/information/Lectures/Lecture-2.Borda%20Method.pdf
@@ -46,7 +63,7 @@ def test_basic():
                 *3*[[R, H, K]],
                 ]
 
-    assert borda(election) == H
+    assert borda(election, tiebreaker) == H
 
     # Example from
     # http://jlmartin.faculty.ku.edu/~jlmartin/courses/math105-F11/Lectures/chapter1-part2.pdf
@@ -58,13 +75,13 @@ def test_basic():
                 * 1*[[C, D, B, A]],
                 ]
 
-    assert borda(election) == B
+    assert borda(election, tiebreaker) == B
 
     election = [*60*[[A, B, C, D]],
                 *40*[[B, D, C, A]],
                 ]
 
-    assert borda(election) == B
+    assert borda(election, tiebreaker) == B
 
     # Table 3.1 from Mackie - Democracy Defended
     A, B, C, D, E = 0, 1, 2, 3, 4
@@ -73,7 +90,49 @@ def test_basic():
                 *2*[[C, D, E, B, A]],
                 ]
 
-    assert borda(election) == E  # "to E the Borda winner"
+    assert borda(election, tiebreaker) == E  # "to E the Borda winner"
+
+
+def test_ties():
+    # Two-way tie between candidates 1 and 2
+    election = np.array([[0, 1, 2],
+                         [0, 2, 1],
+                         [1, 2, 0],
+                         [1, 2, 0],
+                         [1, 2, 0],
+                         [2, 1, 0],
+                         [2, 1, 0],
+                         [2, 1, 0],
+                         ])
+    # No tiebreaker:
+    assert borda(election, tiebreaker=None) is None
+
+    # Mode 'order' should always prefer lowest candidate ID
+    assert borda(election, tiebreaker='order') == 1
+
+    # Mode 'random' should choose all tied candidates at random
+    assert collect_random_results(borda, election) == {1, 2}
+
+    # Three-way tie between 0, 1, and 2
+    election = np.array([[0, 1, 2],
+                         [0, 1, 2],
+                         [0, 1, 2],
+                         [1, 2, 0],
+                         [1, 2, 0],
+                         [1, 2, 0],
+                         [2, 0, 1],
+                         [2, 0, 1],
+                         [2, 0, 1],
+                         ])
+
+    # No tiebreaker:
+    assert borda(election, tiebreaker=None) is None
+
+    # Mode 'order' should always prefer lowest candidate ID
+    assert borda(election, tiebreaker='order') == 0
+
+    # Mode 'random' should choose all tied candidates at random
+    assert collect_random_results(borda, election) == {0, 1, 2}
 
 
 def test_invalid():

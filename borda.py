@@ -1,4 +1,49 @@
 import numpy as np
+import random
+
+
+# https://stackoverflow.com/a/6294205/125507
+def _all_indices(iterable, value):
+    """
+    Return all indices of `iterable` that match `value`.
+    """
+    return [i for i, x in enumerate(iterable) if x == value]
+
+
+def _order_tiebreak(winners):
+    """
+    Given an iterable of possibly tied `winners`, select the lowest numbered
+    """
+    return min(winners)
+
+
+def _random_tiebreak(winners):
+    """
+    Given an iterable of possibly tied `winners`, select one at random
+    """
+    return random.choice(winners)
+
+
+def _no_tiebreak(winners):
+    """
+    Given an iterable of possibly tied `winners`, return None if there is a tie
+    """
+    if len(winners) == 1:
+        return winners[0]
+    else:
+        return None
+
+
+_tiebreak_map = {'order': _order_tiebreak,
+                 'random': _random_tiebreak,
+                 None: _no_tiebreak}
+
+
+def _get_tiebreak(tiebreaker):
+    try:
+        return _tiebreak_map[tiebreaker]
+    except KeyError:
+        raise ValueError('Tiebreaker not understood')
 
 
 def borda(election, tiebreaker=None):
@@ -15,9 +60,11 @@ def borda(election, tiebreaker=None):
 
         For example, if a voter ranks Curie > Avogadro > Bohr, the ballot line
         would read ``[2, 0, 1]`` (with IDs in alphabetical order).
-    tiebreaker : {'random', None}, optional
+    tiebreaker : {'random', 'order', None}, optional
         If there is a tie, and `tiebreaker` is ``'random'``, a random finalist
-        is returned.  By default, ``None`` is returned for ties.
+        is returned.
+        If 'order', the lowest-ID tied candidate is returned.
+        By default, ``None`` is returned for ties.
 
     Returns
     -------
@@ -35,21 +82,14 @@ def borda(election, tiebreaker=None):
         total_tally += (ncands - n)*tally
 
     # Python lists are faster than NumPy here
-    total_tally = list(total_tally)
-    highest = max(total_tally)
-    if tiebreaker == 'random':
-        return total_tally.index(highest)
-    elif tiebreaker is None:
-        n_winners = total_tally.count(highest)
-        if n_winners == 1:
-            return total_tally.index(highest)
-        elif n_winners > 1:
-            # There is a tie
-            return None
-        else:
-            raise RuntimeError('Bug in Borda count')
-    else:
-        raise ValueError('Tiebreaker not understood')
+    total_tally = total_tally.tolist()
+
+    # Find the set of candidates who have the highest score (usually only one)
+    winners = _all_indices(total_tally, max(total_tally))
+
+    # Break any ties using specified method
+    tiebreak = _get_tiebreak(tiebreaker)
+    return tiebreak(winners)
 
 
 if __name__ == "__main__":
