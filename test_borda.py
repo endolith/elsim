@@ -3,6 +3,29 @@ from borda import borda
 
 
 def test_basic():
+    # Standard Tennessee example
+    # https://en.wikipedia.org/wiki/Template:Tenn_voting_example
+    Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
+    election = [*42*[[Memphis, Nashville, Chattanooga, Knoxville]],
+                *26*[[Nashville, Chattanooga, Knoxville, Memphis]],
+                *15*[[Chattanooga, Knoxville, Nashville, Memphis]],
+                *17*[[Knoxville, Chattanooga, Nashville, Memphis]],
+                ]
+
+    assert borda(election) == Nashville
+
+    # Example from Ques 9
+    # http://www.yorku.ca/bucovets/4380/exercises/exercises_1_a.pdf
+    v, w, x, y, z = 0, 1, 2, 3, 4
+    election = [*11*[[v, w, x, y, z]],
+                *12*[[w, x, y, z, v]],
+                *13*[[x, v, w, y, z]],
+                *14*[[y, w, v, z, x]],
+                *15*[[z, v, x, w, y]],
+                ]
+
+    assert borda(election) == w
+
     # Manually calculated correct answer
     election = [[0, 1, 4, 3, 2],
                 [4, 2, 3, 1, 0],
@@ -42,18 +65,6 @@ def test_basic():
                 ]
 
     assert borda(election) == B
-
-    # Example from Ques 9
-    # http://www.yorku.ca/bucovets/4380/exercises/exercises_1_a.pdf
-    v, w, x, y, z = 0, 1, 2, 3, 4
-    election = [*11*[[v, w, x, y, z]],
-                *12*[[w, x, y, z, v]],
-                *13*[[x, v, w, y, z]],
-                *14*[[y, w, v, z, x]],
-                *15*[[z, v, x, w, y]],
-                ]
-
-    assert borda(election) == w
 
     # Table 3.1 from Mackie - Democracy Defended
     A, B, C, D, E = 0, 1, 2, 3, 4
