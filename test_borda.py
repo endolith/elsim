@@ -2,6 +2,8 @@ import numpy as np
 import random
 from borda import borda
 import pytest
+from hypothesis import given
+from hypothesis.strategies import integers, lists, permutations
 
 
 def collect_random_results(method, election):
@@ -133,6 +135,35 @@ def test_ties():
 
     # Mode 'random' should choose all tied candidates at random
     assert collect_random_results(borda, election) == {0, 1, 2}
+
+
+def complete_ranked_ballots(min_cands=3, max_cands=25, min_voters=1,
+                            max_voters=100):
+    n_cands = integers(min_value=min_cands, max_value=max_cands)
+    return n_cands.flatmap(lambda n: lists(permutations(range(n)),
+                                           min_size=min_voters,
+                                           max_size=max_voters))
+
+
+@pytest.mark.parametrize("tiebreaker", ['random', 'order'])
+@given(election=complete_ranked_ballots(min_cands=1, max_cands=25,
+                                        min_voters=1, max_voters=100))
+def test_legit_winner(election, tiebreaker):
+    election = np.asarray(election)
+    n_cands = election.shape[1]
+    winner = borda(election, tiebreaker)
+    assert isinstance(winner, int)
+    assert winner in range(n_cands)
+
+
+@given(election=complete_ranked_ballots(min_cands=1, max_cands=25,
+                                        min_voters=1, max_voters=100))
+def test_legit_winner_none(election):
+    election = np.asarray(election)
+    n_cands = election.shape[1]
+    winner = borda(election)
+    assert isinstance(winner, (int, type(None)))
+    assert winner in set(range(n_cands)) | {None}
 
 
 if __name__ == "__main__":

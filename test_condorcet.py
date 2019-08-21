@@ -3,6 +3,8 @@ from numpy.testing import assert_array_equal
 from condorcet import (condorcet, condorcet_from_matrix,
                        ranked_election_to_matrix)
 import pytest
+from hypothesis import given
+from hypothesis.strategies import integers, lists, permutations
 
 
 def test_ranked_election_to_matrix_basic():
@@ -218,6 +220,24 @@ def test_invalid():
         election = [[0, 1],
                     [1, 0]]
         condorcet(election, 'random')
+
+
+def complete_ranked_ballots(min_cands=3, max_cands=25, min_voters=1,
+                            max_voters=100):
+    n_cands = integers(min_value=min_cands, max_value=max_cands)
+    return n_cands.flatmap(lambda n: lists(permutations(range(n)),
+                                           min_size=min_voters,
+                                           max_size=max_voters))
+
+
+@given(election=complete_ranked_ballots(min_cands=1, max_cands=25,
+                                        min_voters=1, max_voters=100))
+def test_legit_winner(election):
+    election = np.asarray(election)
+    n_cands = election.shape[1]
+    winner = condorcet(election)
+    assert isinstance(winner, (int, type(None)))
+    assert winner in set(range(n_cands)) | {None}
 
 
 if __name__ == "__main__":

@@ -2,6 +2,8 @@ import numpy as np
 from runoff import runoff
 import random
 import pytest
+from hypothesis.strategies import integers, permutations, lists
+from hypothesis import given
 
 
 def collect_random_results(method, election):
@@ -153,6 +155,31 @@ def test_two_rounds(tiebreaker):
                 * 1*[[Celery,    Fruit,     Apple_pie, Ice_cream]],
                 ]
     assert runoff(election, tiebreaker) == Ice_cream
+
+
+def complete_ranked_ballots(min_cands=3, max_cands=256, min_voters=1,
+                            max_voters=1000):
+    n_cands = integers(min_value=min_cands, max_value=max_cands)
+    return n_cands.flatmap(lambda n: lists(permutations(range(n)),
+                                           min_size=min_voters,
+                                           max_size=max_voters))
+
+
+@pytest.mark.parametrize("tiebreaker", ['random', 'order'])
+@given(election=complete_ranked_ballots(min_cands=1, max_cands=25,
+                                        min_voters=1, max_voters=100))
+def test_legit_winner_order(election, tiebreaker):
+    election = np.asarray(election)
+    n_cands = election.shape[1]
+    assert runoff(election, tiebreaker) in range(n_cands)
+
+
+@given(election=complete_ranked_ballots(min_cands=1, max_cands=25,
+                                        min_voters=1, max_voters=100))
+def test_legit_winner_none(election):
+    election = np.asarray(election)
+    n_cands = election.shape[1]
+    assert runoff(election) in {None} | set(range(n_cands))
 
 
 if __name__ == "__main__":
