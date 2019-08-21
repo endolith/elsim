@@ -1,8 +1,10 @@
 import numpy as np
 from black import black
+import pytest
 
 
-def test_condorcet_winner():
+@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
+def test_condorcet_winner(tiebreaker):
     # Standard Tennessee example
     # https://en.wikipedia.org/wiki/Template:Tenn_voting_example
     Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
@@ -12,7 +14,7 @@ def test_condorcet_winner():
                 *17*[[Knoxville, Chattanooga, Nashville, Memphis]],
                 ]
 
-    assert black(election) == Nashville
+    assert black(election, tiebreaker) == Nashville
 
     # Example from Ques 9
     # http://www.yorku.ca/bucovets/4380/exercises/exercises_1_a.pdf
@@ -24,7 +26,7 @@ def test_condorcet_winner():
                 *15*[[z, v, x, w, y]],
                 ]
 
-    assert black(election) == v
+    assert black(election, tiebreaker) == v
 
     # Example from
     # https://en.wikipedia.org/wiki/Condorcet_method#Pairwise_counting_and_matrices
@@ -32,14 +34,14 @@ def test_condorcet_winner():
                          [3, 0, 2, 1],
                          [0, 2, 1, 3],
                          ])
-    assert black(election) == 0
+    assert black(election, tiebreaker) == 0
 
     # Example from https://electowiki.org/wiki/Condorcet_Criterion
     election = np.concatenate((np.tile([0, 1, 2], (499, 1)),
                                np.tile([2, 1, 0], (498, 1)),
                                np.tile([1, 2, 0], (3, 1)),
                                ))
-    assert black(election) == 1
+    assert black(election, tiebreaker) == 1
 
     # Example from
     # https://www3.nd.edu/~apilking/Math10170/Information/Lectures/Lecture_3.Head%20To%20Head%20Comparisons.pdf
@@ -50,7 +52,7 @@ def test_condorcet_winner():
                          [Taylor, Colley,  Henry],
                          [Taylor,  Henry, Colley],
                          ])
-    assert black(election) == 1
+    assert black(election, tiebreaker) == 1
 
     # Example from https://www.whydomath.org/node/voting/impossible.html
     election = np.array([[0, 2, 3, 1],
@@ -59,7 +61,7 @@ def test_condorcet_winner():
                          [0, 1, 3, 2],
                          [3, 0, 2, 1],
                          ])
-    assert black(election) == 3
+    assert black(election, tiebreaker) == 3
 
     # Table 3.1 from Mackie - Democracy Defended
     # (Borda and Condorcet results differ)
@@ -69,7 +71,7 @@ def test_condorcet_winner():
                 *2*[[C, D, E, B, A]],
                 ]
 
-    assert black(election) == C  # "and C is the Condorcet winner"
+    assert black(election, tiebreaker) == C  # "and C is the Condorcet winner"
 
     # Table 3 from On_the_Relevance_of_Theoretical_Results_to_Voting_.pdf
     election = [[D, E, A, B, C],
@@ -79,7 +81,7 @@ def test_condorcet_winner():
                 [E, B, A, D, C],
                 ]
 
-    assert black(election) == D
+    assert black(election, tiebreaker) == D
 
 
 if __name__ == "__main__":

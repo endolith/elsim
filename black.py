@@ -19,10 +19,11 @@ def black(election, tiebreaker=None):
 
         For example, if a voter ranks Curie > Avogadro > Bohr, the ballot line
         would read ``[2, 0, 1]`` (with IDs in alphabetical order).
-    tiebreaker : {'random', None}, optional
-        If there is a tie in the Borda tally, and `tiebreaker` is ``'random'``,
-        a random finalist is returned.  By default, ``None`` is returned for
-        ties.
+    tiebreaker : {'random', 'order', None}, optional
+        If there is a tie in the Borda tally, and `tiebreaker` is ``'random'``, a random finalist
+        is returned.
+        If 'order', the lowest-ID tied candidate is returned.
+        By default, ``None`` is returned for ties.
 
     Returns
     -------
