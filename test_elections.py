@@ -1,7 +1,31 @@
 import numpy as np
-from elections import impartial_culture
 from numpy.testing import assert_array_equal, assert_array_less
 import pytest
+from elections import random_utilities, impartial_culture
+
+
+def test_random_utilities():
+    for n_voters in (1, 5, 100):
+        for n_cands in (1, 2, 3, 7, 100):
+            election = random_utilities(n_voters, n_cands)
+
+            # Make sure rows are voters and columns are
+            # candidates
+            assert election.shape == (n_voters, n_cands)
+
+            # Make sure each row is uniformly distributed
+            for row in election:
+                assert row.min() >= 0
+                assert row.max() <= 1
+
+    # Check that utilities are equally distributed
+    np.random.seed(42)
+    n_voters = 10000
+    n_cands = 15
+    bins = 10
+    election = random_utilities(n_voters, n_cands)
+    hist = np.histogram(election.flatten(), bins=bins, range=(0, 1))[0]
+    assert_array_less(hist/(n_voters*n_cands), 0.11)
 
 
 def test_impartial_culture():
