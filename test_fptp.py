@@ -121,6 +121,36 @@ def test_invalid():
         fptp(election, 'dictator')
 
 
+@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
+def test_1d(tiebreaker):
+    # Standard Tennessee example
+    # https://en.wikipedia.org/wiki/Template:Tenn_voting_example
+    Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
+    election = [*42*[Memphis], *26*[Nashville], *15*[Chattanooga],
+                *17*[Knoxville]]
+    assert fptp(election, tiebreaker) == Memphis
+
+    # Example from Ques 9
+    # http://www.yorku.ca/bucovets/4380/exercises/exercises_1_a.pdf
+    v, w, x, y, z = 0, 1, 2, 3, 4
+    election = [*11*[v], *12*[w], *13*[x], *14*[y], *15*[z]]
+    assert fptp(election, tiebreaker) == z
+
+    # 50% plurality but not strictly majority
+    election = np.array([2, 0, 2, 1])
+    assert fptp(election, tiebreaker) == 2
+
+    # 40% plurality, 30% for others
+    election = np.array([2, 0, 2, 1, 0, 2, 1, 2, 1, 0])
+    assert fptp(election, tiebreaker) == 2
+
+    # Example from
+    # http://jlmartin.faculty.ku.edu/~jlmartin/courses/math105-F11/Lectures/chapter1-part2.pdf
+    A, B = 0, 1
+    election = [*60*[A], *40*[B]]
+    assert fptp(election, tiebreaker) == A
+
+
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime

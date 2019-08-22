@@ -48,12 +48,15 @@ def _get_tiebreak(tiebreaker):
 
 def fptp(election, tiebreaker=None):
     """
-    Finds the winner of an election using first-past-the-post/plurality
+    Finds the winner of an election using first-past-the-post / plurality rule
+
+    The candidate with the largest number of first preferences wins.[1]_
 
     Parameters
     ----------
     election : array_like
-        A collection of ranked ballots.  See `borda` for election format.
+        A 2D collection of ranked ballots.  (See `borda` for election format.)
+        Or a 1D array of first preferences only.
     tiebreaker : {'random', 'order', None}, optional
         If there is a tie, and `tiebreaker` is ``'random'``, a random finalist
         is returned.
@@ -64,12 +67,21 @@ def fptp(election, tiebreaker=None):
     -------
     winner : int
         The ID number of the winner, or ``None`` for an unbroken tie.
+
+    References
+    ----------
+    .. [1] https://en.wikipedia.org/wiki/Plurality_voting
     """
-    # TODO: It should also accept a 1D array of first preferences
     election = np.asarray(election)
 
     # Tally all first preferences (with index of tally = candidate ID)
-    first_preferences = election[:, 0]
+    if election.ndim == 2:
+        first_preferences = election[:, 0]
+    elif election.ndim == 1:
+        first_preferences = election
+    else:
+        raise ValueError('Election array must be 2D ranked ballots or 1D'
+                         'list of first preferences')
     tallies = np.bincount(first_preferences).tolist()
 
     # Find the set of candidates who have the highest score (usually only one)
