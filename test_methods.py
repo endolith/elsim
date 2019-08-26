@@ -4,10 +4,11 @@ from borda import borda
 from fptp import fptp
 from runoff import runoff
 from irv import irv
+from coombs import coombs
 from condorcet import condorcet
 
 
-@pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv])
+@pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs])
 def test_invalid_tiebreaker(method):
     with pytest.raises(ValueError):
         election = [[0, 1],
@@ -15,7 +16,7 @@ def test_invalid_tiebreaker(method):
         method(election, tiebreaker='dictator')
 
 
-@pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv])
+@pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs])
 def test_degenerate_case(method):
     election = [[0]]
     assert method(election) == 0
@@ -37,7 +38,7 @@ def test_degenerate_condorcet_case():
     assert condorcet(election) == 0
 
 
-@pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv])
+@pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs])
 def test_unanimity(method):
     election = [[3, 0, 1, 2], [3, 0, 2, 1], [3, 2, 1, 0]]
     assert method(election) == 3
