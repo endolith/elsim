@@ -125,6 +125,16 @@ def condorcet(election):
     winner : int
         The ID number of the winner, or ``None`` for a Condorcet cycle / tie.
     """
+    election = np.asarray(election)
+
+    # Handle special case of 1 candidate
+    if election.shape[1] == 1:
+        if all(election == 0):
+            return 0
+        else:
+            raise ValueError('Election is not a set of complete ranking '
+                             'ballots')
+
     matrix = ranked_election_to_matrix(election)
     return condorcet_from_matrix(matrix)
 
