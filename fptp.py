@@ -1,5 +1,49 @@
 import numpy as np
-from random import choice
+import random
+
+
+# https://stackoverflow.com/a/6294205/125507
+def _all_indices(iterable, value):
+    """
+    Return all indices of `iterable` that match `value`.
+    """
+    return [i for i, x in enumerate(iterable) if x == value]
+
+
+def _order_tiebreak(winners):
+    """
+    Given an iterable of possibly tied `winners`, select the lowest numbered
+    """
+    return min(winners)
+
+
+def _random_tiebreak(winners):
+    """
+    Given an iterable of possibly tied `winners`, select one at random
+    """
+    return random.choice(winners)
+
+
+def _no_tiebreak(winners):
+    """
+    Given an iterable of possibly tied `winners`, return None if there is a tie
+    """
+    if len(winners) == 1:
+        return winners[0]
+    else:
+        return None
+
+
+_tiebreak_map = {'order': _order_tiebreak,
+                 'random': _random_tiebreak,
+                 None: _no_tiebreak}
+
+
+def _get_tiebreak(tiebreaker):
+    try:
+        return _tiebreak_map[tiebreaker]
+    except KeyError:
+        raise ValueError('Tiebreaker not understood')
 
 
 def fptp(election, tiebreaker=None):
@@ -23,26 +67,17 @@ def fptp(election, tiebreaker=None):
     """
     # TODO: It should also accept a 1D array of first preferences
     election = np.asarray(election)
+
+    # Tally all first preferences (with index of tally = candidate ID)
     first_preferences = election[:, 0]
     tallies = np.bincount(first_preferences).tolist()
-    highest = max(tallies)
-    if tiebreaker == 'order':
-        # Returns first instance in candidate order
-        return tallies.index(highest)
-    elif tiebreaker == 'random':
-        winners = [i for i, x in enumerate(tallies) if x == highest]
-        return choice(winners)
-    elif tiebreaker is None:
-        n_winners = tallies.count(highest)
-        if n_winners == 1:
-            return tallies.index(highest)
-        elif n_winners > 1:
-            # There is a tie
-            return None
-        else:
-            raise RuntimeError('Bug in FPTP')
-    else:
-        raise ValueError('Tiebreaker not understood')
+
+    # Find the set of candidates who have the highest score (usually only one)
+    winners = _all_indices(tallies, max(tallies))
+
+    # Break any ties using specified method
+    tiebreak = _get_tiebreak(tiebreaker)
+    return tiebreak(winners)
 
 
 if __name__ == "__main__":
