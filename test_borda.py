@@ -135,12 +135,6 @@ def test_ties():
     assert collect_random_results(borda, election) == {0, 1, 2}
 
 
-def test_invalid():
-    with pytest.raises(ValueError):
-        election = [[0, 1]]
-        borda(election, tiebreaker='dictator')
-
-
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime

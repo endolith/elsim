@@ -115,12 +115,6 @@ def test_ties():
     assert collect_random_results(fptp, election) == {0, 1, 2}
 
 
-def test_invalid():
-    with pytest.raises(ValueError):
-        election = [[0, 1]]
-        fptp(election, 'dictator')
-
-
 @pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
 def test_1d(tiebreaker):
     # Standard Tennessee example
