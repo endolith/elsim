@@ -14,12 +14,16 @@ except ImportError:
     warn('Numba not installed, Condorcet code will run slower')
     numba_enabled = False
 
-    def njit(func):
-        """Identity decorator because Numba not installed"""
-        return func
+    def njit(*args, **kwargs):
+        """
+        Do-nothing dummy decorator for when numba not installed
+        """
+        def decorator(func):
+            return func
+        return decorator
 
 if numba_enabled:
-    @njit
+    @njit(cache=True, nogil=True)
     def _tally_pairs(pairs, tally):
         """
         Takes a 3D array of pairs and a 2D tallying array and modifies the

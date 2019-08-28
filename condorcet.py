@@ -65,7 +65,7 @@ def ranked_election_to_matrix(election):
     return sum_matrix
 
 
-@njit
+@njit(cache=True, nogil=True)
 def condorcet_from_matrix(matrix):
     """
     Finds the winner of a ranked ballot election using a Condorcet method
