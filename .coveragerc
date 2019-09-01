@@ -1,0 +1,17 @@
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if self.debug:
+    if settings.DEBUG
+    raise AssertionError
+    raise NotImplementedError
+    if 0:
+    if __name__ == .__main__.:
+	raise RuntimeError
+	
+[run]
+omit =
+	test_*
+    
+	# TODO: change to positive include of just the source folder after correctly folderizing the project include = */scipy/*
