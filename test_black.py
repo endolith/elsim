@@ -86,6 +86,25 @@ def test_condorcet_winner(tiebreaker):
     assert black(election, tiebreaker) == D
 
 
+@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
+def test_condorcet_cycle(tiebreaker):
+    # Examples from https://rangevoting.org/CondBurial.html
+    A, B, C = 0, 1, 2
+    election = [*46*[[A, B, C]],
+                *44*[[B, C, A]],
+                * 5*[[C, A, B]],
+                * 5*[[C, B, A]],
+                ]
+    assert black(election, tiebreaker) == B  # "Black awards the victory to B"
+
+    election = [*49*[[C, B, A]],
+                *31*[[A, C, B]],
+                *17*[[B, A, C]],
+                * 3*[[A, B, C]],
+                ]
+    assert black(election, tiebreaker) == C
+
+
 def complete_ranked_ballots(min_cands=3, max_cands=25, min_voters=1,
                             max_voters=100):
     n_cands = integers(min_value=min_cands, max_value=max_cands)
