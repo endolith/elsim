@@ -109,6 +109,18 @@ def test_condorcet():
 
     assert condorcet(election) == v
 
+    # Example from Ques 1
+    # http://www.yorku.ca/bucovets/4380/exercises/exercises_1_a.pdf
+    v, w, x, y, z = 0, 1, 2, 3, 4
+    election = [[w, v, x, y, z],
+                [v, x, y, z, w],
+                [x, z, v, w, y],
+                [y, z, v, w, x],
+                [z, w, v, y, x],
+                ]
+
+    assert condorcet(election) is None
+
     # Example from
     # https://en.wikipedia.org/wiki/Condorcet_method#Pairwise_counting_and_matrices
     election = np.array([[1, 2, 0, 3],
@@ -222,6 +234,20 @@ def test_invalid():
         condorcet(election, 'random')
 
 
+def test_unanimity_condorcet():
+    election = [[3, 0, 1, 2], [3, 0, 2, 1], [3, 2, 1, 0]]
+    assert condorcet(election) == 3
+
+
+# No tiebreaker parameter
+def test_degenerate_condorcet_case():
+    election = [[0]]
+    assert condorcet(election) == 0
+
+    election = [[0], [0], [0]]
+    assert condorcet(election) == 0
+
+
 def complete_ranked_ballots(min_cands=3, max_cands=25, min_voters=1,
                             max_voters=100):
     n_cands = integers(min_value=min_cands, max_value=max_cands)
@@ -238,6 +264,17 @@ def test_legit_winner(election):
     winner = condorcet(election)
     assert isinstance(winner, (int, type(None)))
     assert winner in set(range(n_cands)) | {None}
+
+
+@given(election=complete_ranked_ballots(min_cands=2, max_cands=25,
+                                        min_voters=1, max_voters=100))
+def test_ranked_election_to_matrix(election):
+    election = np.asarray(election)
+    matrix = ranked_election_to_matrix(election)
+    assert matrix.shape == (election.shape[1],)*2
+    assert matrix.min() == 0
+    assert matrix.max() <= len(election)
+    assert_array_equal(np.diagonal(matrix), 0)
 
 
 if __name__ == "__main__":

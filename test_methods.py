@@ -5,7 +5,6 @@ from fptp import fptp
 from runoff import runoff
 from irv import irv
 from coombs import coombs
-from condorcet import condorcet
 
 
 @pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs])
@@ -17,7 +16,7 @@ def test_invalid_tiebreaker(method):
 
 
 @pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs])
-def test_degenerate_case(method):
+def test_ranked_method_degenerate_case(method):
     election = [[0]]
     assert method(election) == 0
     assert method(election, 'random') == 0
@@ -27,29 +26,14 @@ def test_degenerate_case(method):
     assert method(election) == 0
     assert method(election, 'random') == 0
     assert method(election, 'order') == 0
-
-
-# No tiebreaker parameter
-def test_degenerate_condorcet_case():
-    election = [[0]]
-    assert condorcet(election) == 0
-
-    election = [[0], [0], [0]]
-    assert condorcet(election) == 0
 
 
 @pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs])
-def test_unanimity(method):
+def test_ranked_method_unanimity(method):
     election = [[3, 0, 1, 2], [3, 0, 2, 1], [3, 2, 1, 0]]
     assert method(election) == 3
     assert method(election, 'random') == 3
     assert method(election, 'order') == 3
-
-
-# No tiebreaker parameter
-def test_unanimity_condorcet():
-    election = [[3, 0, 1, 2], [3, 0, 2, 1], [3, 2, 1, 0]]
-    assert condorcet(election) == 3
 
 
 if __name__ == "__main__":
