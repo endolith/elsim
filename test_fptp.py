@@ -147,6 +147,11 @@ def test_1d(tiebreaker):
     assert fptp(election, tiebreaker) == A
 
 
+def test_invalid():
+    with pytest.raises(ValueError):
+        fptp(np.array([[[0, 1]]]))
+
+
 def complete_ranked_ballots(min_cands=3, max_cands=25, min_voters=1,
                             max_voters=100):
     """

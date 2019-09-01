@@ -233,6 +233,13 @@ def test_invalid():
                     [1, 0]]
         condorcet(election, 'random')
 
+    with pytest.raises(ValueError):
+        condorcet_from_matrix(np.array([[0, 1]]))
+
+    with pytest.raises(ValueError):
+        condorcet(np.array([[0],
+                            [1]]))
+
 
 def test_unanimity_condorcet():
     election = [[3, 0, 1, 2], [3, 0, 2, 1], [3, 2, 1, 0]]
