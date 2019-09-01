@@ -1,5 +1,6 @@
 import random
 import numpy as np
+from ._tally_pairs import njit
 
 
 # https://stackoverflow.com/a/6294205/125507
@@ -50,32 +51,29 @@ def _get_tiebreak(tiebreaker):
         raise ValueError('Tiebreaker not understood')
 
 
-def _count(election, eliminated):
+@njit(cache=True, nogil=True)
+def _tally_at_pointer(tallies, election, pointer):
     """
-    Count votes for each candidate who hasn't been eliminated
+    Tally candidates at the location pointed to, re-using tallies array
+    """
+    # Clear tally array
+    tallies[:] = 0
+    n_voters = election.shape[0]
+    for voter in range(n_voters):
+        cand = election[voter, pointer[voter]]
+        tallies[cand] += 1
+
+
+# TODO: numba will require typedset in the future?
+@njit(cache=True, nogil=True)
+def _update_pointer(election, pointer, eliminated):
+    """
+    Update pointer to point at candidates that haven't been eliminated
     """
     n_voters = election.shape[0]
-    n_cands = election.shape[1]
-    tallies = np.zeros(n_cands, dtype=int)
-    counted = np.zeros(n_voters, dtype=bool)
-    for column in election.T:
-
-        # Count only votes for candidates who haven't been eliminated
-        eligible = ~np.isin(column, eliminated)
-
-        # Count candidates in this column who haven't been eliminated,
-        # in rows that haven't yet been counted
-        tallies += np.bincount(column[eligible & ~counted],
-                               minlength=n_cands)
-
-        # Keep track of which rows have already been counted
-        counted += eligible
-
-        # Quit early if all rows have been counted
-        if np.all(counted):
-            break
-
-    return tallies
+    for voter in range(n_voters):
+        while election[voter, pointer[voter]] in eliminated:
+            pointer[voter] += 1
 
 
 def irv(election, tiebreaker=None):
@@ -143,25 +141,37 @@ def irv(election, tiebreaker=None):
     election = np.asarray(election)
     n_voters = election.shape[0]
     n_cands = election.shape[1]
-    eliminated = list()
+    eliminated = set()
     tiebreak = _get_tiebreak(tiebreaker)
-
-    for iteration in range(n_cands):
-        tallies = _count(election, eliminated).tolist()
+    pointer = np.zeros(n_voters, dtype=np.uint8)
+    tallies = np.empty(n_cands, dtype=np.uint)
+    for round_ in range(n_cands):
+        _tally_at_pointer(tallies, election, pointer)
+        tallies_list = tallies.tolist()  # tolist makes things 2-4x faster
 
         # Did anyone get majority
-        highest = max(tallies)
+        highest = max(tallies_list)
         if highest > n_voters / 2:
-            return tallies.index(highest)
+            return tallies_list.index(highest)
 
         # If not, eliminate lowest
-    #    lowest = min(tallies[np.nonzero(tallies)])  # slower?
-        lowest = min(x for x in tallies if x != 0)  # faster?
-        low_scorers = _all_indices(tallies, lowest)
-
+        lowest = min(x for x in tallies_list if x != 0)  # faster?
+        low_scorers = _all_indices(tallies_list, lowest)
         loser = tiebreak(low_scorers)[0]
+
         # Handle no tiebreaker case
         if loser is None:
             return None
-        eliminated.append(loser)
+
+        # Add candidate with lowest score in this round
+        eliminated.add(loser)
+
+        # Make sure candidates who never got votes are also eliminated
+        # TODO: In the future when round tallies are also output, this should
+        # be its own round
+        eliminated.update(_all_indices(tallies_list, 0))
+
+        # Increment pointers until they point at non-eliminated candidates
+        _update_pointer(election, pointer, eliminated)
+
     raise RuntimeError('Bug in IRV calculation')

@@ -239,6 +239,24 @@ def test_examples(tiebreaker):
     assert irv(election) == r
 
 
+def test_eliminate_no_votes():
+    # First, 0 is eliminated for getting no votes.
+    # Then 1 and 2 are tied.
+    election = [[1, 0, 2],
+                [2, 0, 1]]
+
+    # With no tiebreaker, None is returned because of tie between 1 and 2.
+    assert irv(election) is None
+
+    # With order tiebreaker, 2 is eliminated, because lower IDs preferred.
+    # Then 1 wins unanimously.
+    # If 0 had not been eliminated, 0 would win the tie between 0 and 1.
+    assert irv(election, 'order') == 1
+
+    # With random tiebreaker, 0 should never win.
+    assert collect_random_results(irv, election) == {1, 2}
+
+
 def complete_ranked_ballots(min_cands=3, max_cands=256, min_voters=1,
                             max_voters=1000):
     n_cands = integers(min_value=min_cands, max_value=max_cands)
