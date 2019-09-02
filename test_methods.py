@@ -6,10 +6,11 @@ from runoff import runoff
 from irv import irv
 from coombs import coombs
 from approval import approval
+from utility_winner import utility_winner
 
 
 @pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs,
-                                    approval])
+                                    approval, utility_winner])
 def test_invalid_tiebreaker(method):
     with pytest.raises(ValueError):
         election = [[0, 1],
