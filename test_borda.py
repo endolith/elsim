@@ -1,9 +1,9 @@
-import numpy as np
 import random
-from borda import borda
+import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
+from borda import borda
 
 
 def collect_random_results(method, election):

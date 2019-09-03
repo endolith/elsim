@@ -1,5 +1,5 @@
-import numpy as np
 import random
+import numpy as np
 
 
 # https://stackoverflow.com/a/6294205/125507

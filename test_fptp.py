@@ -1,9 +1,9 @@
-from fptp import fptp
+import random
 import numpy as np
 import pytest
-import random
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
+from fptp import fptp
 
 
 def collect_random_results(method, election):

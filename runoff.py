@@ -1,5 +1,5 @@
-import numpy as np
 import random
+import numpy as np
 
 
 # https://stackoverflow.com/a/6294205/125507
@@ -45,7 +45,7 @@ _tiebreak_map = {'order': _order_tiebreak,
                  None: _no_tiebreak}
 
 
-def get_tiebreak(tiebreaker):
+def _get_tiebreak(tiebreaker):
     try:
         return _tiebreak_map[tiebreaker]
     except KeyError:
@@ -94,7 +94,7 @@ def runoff(election, tiebreaker=None):
     highest = sorted(tallies)[-2:]
     high_scorers = _all_indices(tallies, highest[-1])
 
-    tiebreak = get_tiebreak(tiebreaker)
+    tiebreak = _get_tiebreak(tiebreaker)
     finalists = tiebreak(high_scorers, 2)
     # Handle no tiebreaker case
     if None in finalists:

@@ -1,9 +1,9 @@
-import numpy as np
-from runoff import runoff
 import random
+import numpy as np
 import pytest
 from hypothesis.strategies import integers, permutations, lists
 from hypothesis import given
+from runoff import runoff
 
 
 def collect_random_results(method, election):

@@ -1,8 +1,8 @@
 import numpy as np
-from black import black
 import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
+from black import black
 
 
 @pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])

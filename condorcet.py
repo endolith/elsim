@@ -1,5 +1,5 @@
-import numpy as np
 from itertools import combinations
+import numpy as np
 from _tally_pairs import _tally_pairs, njit
 
 
