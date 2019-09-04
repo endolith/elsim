@@ -94,6 +94,23 @@ def test_basic(tiebreaker):
 
     assert borda(election, tiebreaker) == E  # "to E the Borda winner"
 
+    # Example from
+    # https://medium.com/@t2ee6ydscv/how-ranked-choice-voting-elects-extremists-fa101b7ffb8e
+    r, b, g, o, y = 0, 1, 2, 3, 4
+    election = [*31*[[r, b, g, o, y]],
+                * 5*[[b, r, g, o, y]],
+                * 8*[[b, g, r, o, y]],
+                * 1*[[b, g, o, r, y]],
+                * 6*[[g, b, o, r, y]],
+                * 1*[[g, b, o, y, r]],
+                * 6*[[g, o, b, y, r]],
+                * 2*[[o, g, b, y, r]],
+                * 5*[[o, g, y, b, r]],
+                * 7*[[o, y, g, b, r]],
+                *28*[[y, o, g, b, r]],
+                ]
+    assert borda(election) == g
+
 
 def test_ties():
     # Two-way tie between candidates 1 and 2
