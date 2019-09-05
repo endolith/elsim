@@ -1,5 +1,6 @@
 import random
 import numpy as np
+from ._tally_pairs import njit
 
 
 # https://stackoverflow.com/a/6294205/125507
@@ -50,60 +51,40 @@ def _get_tiebreak(tiebreaker):
         raise ValueError('Tiebreaker not understood')
 
 
-def _count_first(election, eliminated):
+@njit(cache=True, nogil=True)
+def _tally_at_pointer(tallies, election, pointer):
     """
-    Count votes for each candidate who hasn't been eliminated
+    Tally candidates at the location pointed to, re-using tallies array
+    """
+    # Clear tally array
+    tallies[:] = 0
+    n_voters = election.shape[0]
+    for voter in range(n_voters):
+        cand = election[voter, pointer[voter]]
+        tallies[cand] += 1
+
+
+# TODO: numba will require typedset in the future?
+@njit(cache=True, nogil=True)
+def _inc_pointer(election, pointer, eliminated):
+    """
+    Update pointer to point at candidates that haven't been eliminated
     """
     n_voters = election.shape[0]
-    n_cands = election.shape[1]
-    tallies = np.zeros(n_cands, dtype=int)
-    counted = np.zeros(n_voters, dtype=bool)
-    for column in election.T:
-
-        # Count only votes for candidates who haven't been eliminated
-        eligible = ~np.isin(column, eliminated)
-
-        # Count candidates in this column who haven't been eliminated,
-        # in rows that haven't yet been counted
-        tallies += np.bincount(column[eligible & ~counted],
-                               minlength=n_cands)
-
-        # Keep track of which rows have already been counted
-        counted += eligible
-
-        # Quit early if all rows have been counted
-        if np.all(counted):
-            break
-
-    return tallies
+    for voter in range(n_voters):
+        while election[voter, pointer[voter]] in eliminated:
+            pointer[voter] += 1
 
 
-def _count_last(election, eliminated):
+@njit(cache=True, nogil=True)
+def _dec_pointer(election, pointer, eliminated):
     """
-    Count votes for each candidate who hasn't been eliminated
+    Update pointer to point at candidates that haven't been eliminated
     """
     n_voters = election.shape[0]
-    n_cands = election.shape[1]
-    tallies = np.zeros(n_cands, dtype=int)
-    counted = np.zeros(n_voters, dtype=bool)
-    for column in election.T[::-1]:
-
-        # Count only votes for candidates who haven't been eliminated
-        eligible = ~np.isin(column, eliminated)
-
-        # Count candidates in this column who haven't been eliminated,
-        # in rows that haven't yet been counted
-        tallies += np.bincount(column[eligible & ~counted],
-                               minlength=n_cands)
-
-        # Keep track of which rows have already been counted
-        counted += eligible
-
-        # Quit early if all rows have been counted
-        if np.all(counted):
-            break
-
-    return tallies
+    for voter in range(n_voters):
+        while election[voter, pointer[voter]] in eliminated:
+            pointer[voter] -= 1
 
 
 def coombs(election, tiebreaker=None):
@@ -163,25 +144,40 @@ def coombs(election, tiebreaker=None):
     election = np.asarray(election)
     n_voters = election.shape[0]
     n_cands = election.shape[1]
-    eliminated = list()
+    eliminated = set()
     tiebreak = _get_tiebreak(tiebreaker)
+    first_pointer = np.zeros(n_voters, dtype=np.uint8)
+    first_tallies = np.empty(n_cands, dtype=np.uint)
+    last_pointer = np.full(n_voters, n_cands - 1, dtype=np.uint8)
+    last_tallies = np.empty(n_cands, dtype=np.uint)
+    for round_ in range(n_cands):
+        _tally_at_pointer(first_tallies, election, first_pointer)
 
-    for iteration in range(n_cands):
-        tallies = _count_first(election, eliminated).tolist()
+        # tolist makes things 2-4x faster
+        first_tallies_list = first_tallies.tolist()
 
         # Did anyone get majority
-        highest = max(tallies)
+        highest = max(first_tallies_list)
         if highest > n_voters / 2:
-            return tallies.index(highest)
+            return first_tallies_list.index(highest)
 
         # If not, eliminate candidate with highest number of last-preferences
-        tallies = _count_last(election, eliminated).tolist()
-        highest = max(tallies)
-        highly_hated = _all_indices(tallies, highest)
+        _tally_at_pointer(last_tallies, election, last_pointer)
+        highest = max(last_tallies)
+        highly_hated = _all_indices(last_tallies, highest)
 
         loser = tiebreak(highly_hated)[0]
+
         # Handle no tiebreaker case
         if loser is None:
             return None
-        eliminated.append(loser)
+
+        # Add candidate with lowest score in this round
+        eliminated.add(loser)
+
+        # Increment pointers past all eliminated candidates
+        _inc_pointer(election, first_pointer, eliminated)
+        _dec_pointer(election, last_pointer, eliminated)
+
+        # low and high pointer need to increment opposite
     raise RuntimeError("Bug in Coombs' calculation")
