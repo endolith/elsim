@@ -117,6 +117,28 @@ def irv(election, tiebreaker=None):
     ----------
     .. [1] https://en.wikipedia.org/wiki/Instant-runoff_voting
     .. [2] https://en.wikipedia.org/wiki/Exhaustive_ballot
+
+    Examples
+    --------
+    Label some candidates:
+
+    >>> A, B, C = 0, 1, 2
+
+    Specify the ballots for the 5 voters:
+
+    >>> election = [[A, C, B],
+                    [A, C, B],
+                    [B, C, A],
+                    [B, C, A],
+                    [C, A, B],
+                    ]
+
+    In the first round, no candidate gets a majority, so Candidate C (2) is
+    eliminated.  Voter 4's support is transferred to Candidate A (0), causing
+    Candidate A to win, with 3 out of 5 votes:
+
+    >>> irv(election)
+    0
     """
     election = np.asarray(election)
     n_voters = election.shape[0]

@@ -33,6 +33,33 @@ def ranked_election_to_matrix(election):
     References
     ----------
     .. [1] https://en.wikipedia.org/wiki/Condorcet_method#Pairwise_counting_and_matrices
+
+    Examples
+    --------
+    Label some candidates:
+
+    >>> A, B, C = 0, 1, 2
+
+    Specify the ballots for the 5 voters:
+
+    >>> election = [[A, C, B],
+                    [A, C, B],
+                    [B, C, A],
+                    [B, C, A],
+                    [C, A, B],
+                    ]
+
+    Convert to a matrix:
+
+    >>> ranked_election_to_matrix(election)
+    array([[0, 3, 2],
+           [2, 0, 2],
+           [3, 3, 0]], dtype=uint32)
+
+    This shows that Candidate
+    A (row 0) is preferred over B (column 1) by 3 voters.
+    C (row 2) is preferred over A (column 0) by 3 voters.
+    C (row 2) is preferred over B (column 1) by 3 voters.
     """
     election = np.asarray(election)
 
@@ -82,7 +109,29 @@ def condorcet_from_matrix(matrix):
     -------
     winner : int
         The ID number of the winner, or ``None`` for a Condorcet cycle / tie.
+
+    Examples
+    --------
+    Label some candidates:
+
+    >>> A, B, C = 0, 1, 2
+
+    Specify the pairwise comparison matrix for the election:
+
+    >>> matrix = np.array([[0, 3, 2],
+                           [2, 0, 2],
+                           [3, 3, 0]])
+
+    Candidate
+    A (row 0) is preferred over B (column 1) by 3 voters.
+    C (row 2) is preferred over A (column 0) by 3 voters.
+    C (row 2) is preferred over B (column 1) by 3 voters.
+    C is thus the Condorcet winner:
+
+    >>> condorcet_from_matrix(matrix)
+    2
     """
+    # TODO: np.asarray would be nice for accepting array_like, but breaks numba
     if matrix.shape[0] != matrix.shape[1] or len(matrix.shape) != 2:
         raise ValueError('Input must be n by n square sum matrix')
 
@@ -107,7 +156,7 @@ def condorcet(election):
     Finds the winner of a ranked ballot election using a Condorcet method
 
     This does not contain any "tiebreakers"; those will be implemented by
-    other methods' functions.  It is not a Condorcet completion method.
+    other methods' functions.  It is not a Condorcet completion method.[1]_
 
     Parameters
     ----------
@@ -124,6 +173,34 @@ def condorcet(election):
     -------
     winner : int
         The ID number of the winner, or ``None`` for a Condorcet cycle / tie.
+
+    References
+    ----------
+    .. [1] https://en.wikipedia.org/wiki/Condorcet_method
+
+    Examples
+    --------
+    Label some candidates:
+
+    >>> A, B, C = 0, 1, 2
+
+    Specify the ballots for the 5 voters:
+
+    >>> election = [[A, C, B],
+                    [A, C, B],
+                    [B, C, A],
+                    [B, C, A],
+                    [C, A, B],
+                    ]
+
+    Candidate
+    A is preferred over B by 3 voters.
+    C is preferred over A by 3 voters.
+    C is preferred over B by 3 voters.
+    C is thus the Condorcet winner:
+
+    >>> condorcet(election)
+    2
     """
     election = np.asarray(election)
 

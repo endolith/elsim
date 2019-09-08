@@ -71,6 +71,39 @@ def fptp(election, tiebreaker=None):
     References
     ----------
     .. [1] https://en.wikipedia.org/wiki/Plurality_voting
+
+        Examples
+    --------
+    Label some candidates:
+
+    >>> A, B, C = 0, 1, 2
+
+    Specify the ballots for the 5 voters:
+
+    >>> election = [[A, C, B],
+                    [A, C, B],
+                    [B, A, C],
+                    [B, C, A],
+                    [B, C, A],
+                    [C, A, B],
+                    ]
+
+    Candidate B (1) gets the most first-preference votes, and is the winner:
+
+    >>> fptp(election)
+    1
+
+    Single-mark ballots can also be tallied (with ties broken as specified):
+
+    >>> election = [A, B, B, C, C]
+    >>> print(fptp(election))
+    None
+
+    There is a tie between B (1) and C (2).  ``tiebreaker=order`` always
+    prefers the lower-numbered candidate in a tie:
+
+    >>> fptp(election, 'order')
+    1
     """
     election = np.asarray(election)
 

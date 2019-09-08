@@ -136,6 +136,29 @@ def coombs(election, tiebreaker=None):
     References
     ----------
     .. [1] https://en.wikipedia.org/wiki/Coombs%27_method
+
+    Examples
+    --------
+    Label some candidates:
+
+    >>> A, B, C = 0, 1, 2
+
+    Specify the ballots for the 5 voters:
+
+    >>> election = [[A, C, B],
+                    [A, C, B],
+                    [B, C, A],
+                    [B, C, A],
+                    [C, A, B],
+                    ]
+
+    In the first round, no candidate gets a majority, so Candidate B (1) is
+    eliminated, for receiving 3 out of 5 last-place votes.  Voter 2 and 3's
+    support of B is transferred to Candidate C (2), causing Candidate C to win,
+    with 3 out of 5 votes:
+
+    >>> coombs(election)
+    2
     """
     election = np.asarray(election)
     n_voters = election.shape[0]

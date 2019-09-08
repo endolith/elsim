@@ -75,6 +75,23 @@ def approval(election, tiebreaker=None):
     References
     ----------
     .. [1] https://en.wikipedia.org/wiki/Approval_voting
+
+    Examples
+    --------
+    Voter 0 approves Candidate A (index 0) and B (index 1).
+    Voter 1 approves B and C.
+    Voter 2 approves B and C.
+
+    >>> election = [[1, 1, 0],
+                    [0, 1, 1],
+                    [0, 1, 1],
+                    ]
+
+    Candidate B (1) gets the most approvals and wins the election:
+
+    >>> approval(election)
+    1
+
     """
     election = np.asarray(election, dtype=np.uint8)
 
@@ -122,6 +139,28 @@ def approval_optimal(utilities, tiebreaker=None):
     .. [1] S. Merrill III, "A Comparison of Efficiency of Multicandidate
        Electoral Systems", American Journal of Political Science, vol. 28,
        no. 1, p. 26, 1984.  :doi:`10.2307/2110786`
+
+    Examples
+    --------
+    Voter 0 loves Candidates A (index 0) and B (index 1), but hates C (2).
+    Voter 1 dislikes A, likes B, and loves C.
+    Voter 2 hates A, and is lukewarm about B and C.
+
+    >>> utilities = [[1.0, 1.0, 0.0],
+                     [0.1, 0.8, 1.0],
+                     [0.0, 0.5, 0.5],
+                     ]
+
+    Each voter optimally chooses their approval threshold based on their mean
+    utility:
+    Voter 0 approves A and B.
+    Voter 1 approves B and C.
+    Voter 2 approves B and C.
+
+    Candidate B (1) gets the most approvals and wins the election:
+
+    >>> approval_optimal(utilities)
+    1
     """
     means = np.mean(utilities, 1)
     approvals = (utilities > means[:, np.newaxis]).astype(np.uint8)

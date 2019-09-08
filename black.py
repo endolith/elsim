@@ -7,7 +7,7 @@ def black(election, tiebreaker=None):
     Finds the winner of a ranked ballot election using Black's method
 
     If a Condorcet winner exists, it is returned, otherwise, the Borda winner
-    is returned.
+    is returned.[1]_
 
     Parameters
     ----------
@@ -29,6 +29,33 @@ def black(election, tiebreaker=None):
     -------
     winner : int
         The ID number of the winner, or ``None`` for a Borda count tie.
+
+    References
+    ----------
+    .. [1] https://en.wikipedia.org/wiki/Condorcet_method#Two-method_systems
+
+    Examples
+    --------
+    Label some candidates:
+
+    >>> A, B, C = 0, 1, 2
+
+    Specify the ballots for the 5 voters:
+
+    >>> election = [[A, C, B],
+                    [A, C, B],
+                    [B, C, A],
+                    [B, C, A],
+                    [C, A, B],
+                    ]
+
+    A is preferred over B by 3 voters.
+    C is preferred over A by 3 voters.
+    C is preferred over B by 3 voters.
+    C is thus the Condorcet winner and wins under Black's method:
+
+    >>> black(election)
+    2
     """
     winner = condorcet(election)
     if winner is None:

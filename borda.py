@@ -50,6 +50,10 @@ def borda(election, tiebreaker=None):
     """
     Finds the winner of a ranked ballot election using the Borda count method
 
+    A voter's lowest-ranked candidate receives 1 point, second-lowest receives
+    2 points, and so on.  All points are summed, and the highest-scoring
+    candidate wins.[1]_
+
     Parameters
     ----------
     election : array_like
@@ -70,6 +74,34 @@ def borda(election, tiebreaker=None):
     -------
     winner : int
         The ID number of the winner, or ``None`` for an unbroken tie.
+
+    References
+    ----------
+    .. [1] https://en.wikipedia.org/wiki/Borda_count
+
+    Examples
+    --------
+    Label some candidates:
+
+    >>> A, B, C = 0, 1, 2
+
+    Specify the ballots for the 5 voters:
+
+    >>> election = [[A, C, B],
+                    [A, C, B],
+                    [B, C, A],
+                    [B, C, A],
+                    [C, A, B],
+                    ]
+
+    Candidate A gets a total of 3+3+1+1+2 = 10 points.
+    Candidate B gets a total of 1+1+3+3+1 =  9 points.
+    Candidate C gets a total of 2+2+2+2+3 = 11 points.
+    Candidate C is the winner:
+
+    >>> borda(election)
+    2
+
     """
     election = np.asarray(election)
 

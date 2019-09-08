@@ -78,6 +78,22 @@ def utility_winner(utilities, tiebreaker=None):
     .. [1] S. Merrill III, "A Comparison of Efficiency of Multicandidate
        Electoral Systems", American Journal of Political Science, vol. 28,
        no. 1, p. 41, 1984.  :doi:`10.2307/2110786`
+
+    Examples
+    --------
+    Voter 0 loves Candidates A (index 0) and B (index 1), but hates C (2).
+    Voter 1 dislikes A, likes B, and loves C.
+    Voter 2 hates A, and is lukewarm about B and C.
+
+    >>> utilities = [[1.0, 1.0, 0.0],
+                     [0.1, 0.8, 1.0],
+                     [0.0, 0.5, 0.5],
+                     ]
+
+    Candidate B (1) has the highest overall support and is the utility winner:
+
+    >>> utility_winner(election)
+    1
     """
     utilities = np.asarray(utilities)
 
