@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
-from borda import borda
+from elsim.methods import borda
 
 
 def collect_random_results(method, election):

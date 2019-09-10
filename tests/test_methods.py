@@ -1,12 +1,6 @@
 import pytest
-from black import black
-from borda import borda
-from fptp import fptp
-from runoff import runoff
-from irv import irv
-from coombs import coombs
-from approval import approval
-from utility_winner import utility_winner
+from elsim.methods import (black, borda, fptp, runoff, irv, coombs, approval,
+                           utility_winner)
 
 
 @pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs,

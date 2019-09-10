@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from hypothesis.strategies import integers, permutations, lists
 from hypothesis import given
-from coombs import coombs
+from elsim.methods import coombs
 
 
 def collect_random_results(method, election):

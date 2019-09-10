@@ -3,8 +3,8 @@ from numpy.testing import assert_array_equal
 import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
-from condorcet import (condorcet, condorcet_from_matrix,
-                       ranked_election_to_matrix)
+from elsim.methods import (condorcet, condorcet_from_matrix,
+                           ranked_election_to_matrix)
 
 
 def test_ranked_election_to_matrix_basic():

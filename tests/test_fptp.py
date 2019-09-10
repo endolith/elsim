@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
-from fptp import fptp
+from elsim.methods import fptp
 
 
 def collect_random_results(method, election):

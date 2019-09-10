@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_less
 import pytest
-from elections import random_utilities, impartial_culture
+from elsim.elections import random_utilities, impartial_culture
 
 
 def test_random_utilities():

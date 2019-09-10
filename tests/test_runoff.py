@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from hypothesis.strategies import integers, permutations, lists
 from hypothesis import given
-from runoff import runoff
+from elsim.methods import runoff
 
 
 def collect_random_results(method, election):

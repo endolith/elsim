@@ -18,8 +18,8 @@ With iterations = 10_000_000 (which takes forever):
 from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
-from condorcet import condorcet
-from elections import impartial_culture
+from elsim.methods import condorcet
+from elsim.elections import impartial_culture
 
 # Number of voters vs percent of elections with Condorcet paradox.
 WP_table = {3:   5.556,

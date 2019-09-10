@@ -1,5 +1,5 @@
-from condorcet import condorcet
-from borda import borda
+from .condorcet import condorcet
+from .borda import borda
 
 
 def black(election, tiebreaker=None):

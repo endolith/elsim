@@ -4,7 +4,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, tuples
 from hypothesis.extra.numpy import arrays
-from approval import approval, approval_optimal
+from elsim.methods import approval, approval_optimal
 
 
 def collect_random_results(method, election):

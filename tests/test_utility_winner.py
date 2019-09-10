@@ -4,7 +4,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, tuples, floats
 from hypothesis.extra.numpy import arrays
-from utility_winner import utility_winner
+from elsim.methods import utility_winner
 
 
 def collect_random_results(method, election):

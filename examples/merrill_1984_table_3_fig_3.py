@@ -25,15 +25,9 @@ import time
 from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
-from borda import borda
-from fptp import fptp
-from black import black
-from runoff import runoff
-from irv import irv
-from coombs import coombs
-from approval import approval_optimal
-from utility_winner import utility_winner
-from elections import random_utilities, rankings_from_utilities
+from elsim.methods import (fptp, runoff, irv, approval_optimal, borda, coombs,
+                           black, utility_winner)
+from elsim.elections import random_utilities, rankings_from_utilities
 
 n = 10_000
 n_voters = 25
