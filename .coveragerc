@@ -8,10 +8,8 @@ exclude_lines =
     raise NotImplementedError
     if 0:
     if __name__ == .__main__.:
-	raise RuntimeError
-	
+    raise RuntimeError
+
 [run]
 omit =
-	test_*
-    
-	# TODO: change to positive include of just the source folder after correctly folderizing the project include = */scipy/*
+    tests/*
