@@ -214,16 +214,3 @@ def condorcet(election):
 
     matrix = ranked_election_to_matrix(election)
     return condorcet_from_matrix(matrix)
-
-
-if __name__ == "__main__":
-    # Run unit tests, in separate process to avoid warnings about cached
-    # modules, printing output line by line in realtime
-    from subprocess import Popen, PIPE
-    with Popen(['pytest',
-                '--tb=short',  # shorter traceback format
-                '--hypothesis-show-statistics',
-                str('test_condorcet.py')], stdout=PIPE, bufsize=1,
-               universal_newlines=True) as p:
-        for line in p.stdout:
-            print(line, end='')

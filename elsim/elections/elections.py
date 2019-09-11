@@ -174,16 +174,3 @@ def impartial_culture(n_voters, n_cands):
     utilities = random_utilities(n_voters, n_cands)
     rankings = rankings_from_utilities(utilities)
     return rankings
-
-
-if __name__ == "__main__":
-    # Run unit tests, in separate process to avoid warnings about cached
-    # modules, printing output line by line in realtime
-    from subprocess import Popen, PIPE
-    with Popen(['pytest',
-                '--tb=short',  # shorter traceback format
-                '--hypothesis-show-statistics',
-                str('test_elections.py')], stdout=PIPE, bufsize=1,
-               universal_newlines=True) as p:
-        for line in p.stdout:
-            print(line, end='')
