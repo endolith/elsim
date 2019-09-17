@@ -1,6 +1,6 @@
 import random
 import numpy as np
-from ._tally_pairs import njit
+from ._common import njit
 
 
 # https://stackoverflow.com/a/6294205/125507
