@@ -55,6 +55,29 @@ def _tally_at_pointer(tallies, election, pointer):
         tallies[cand] += 1
 
 
+# TODO: numba will require typedset in the future?
+@njit(cache=True, nogil=True)
+def _inc_pointer(election, pointer, eliminated):
+    """
+    Update pointer to point at candidates that haven't been eliminated
+    """
+    n_voters = election.shape[0]
+    for voter in range(n_voters):
+        while election[voter, pointer[voter]] in eliminated:
+            pointer[voter] += 1
+
+
+@njit(cache=True, nogil=True)
+def _dec_pointer(election, pointer, eliminated):
+    """
+    Update pointer to point at candidates that haven't been eliminated
+    """
+    n_voters = election.shape[0]
+    for voter in range(n_voters):
+        while election[voter, pointer[voter]] in eliminated:
+            pointer[voter] -= 1
+
+
 # https://stackoverflow.com/a/6294205/125507
 def _all_indices(iterable, value):
     """

@@ -1,6 +1,6 @@
 import random
 import numpy as np
-from ._common import njit, _all_indices, _tally_at_pointer
+from ._common import _all_indices, _tally_at_pointer, _inc_pointer
 
 
 def _order_tiebreak(winners, n=1):
@@ -41,18 +41,6 @@ def _get_tiebreak(tiebreaker):
         return _tiebreak_map[tiebreaker]
     except KeyError:
         raise ValueError('Tiebreaker not understood')
-
-
-# TODO: numba will require typedset in the future?
-@njit(cache=True, nogil=True)
-def _inc_pointer(election, pointer, eliminated):
-    """
-    Update pointer to point at candidates that haven't been eliminated
-    """
-    n_voters = election.shape[0]
-    for voter in range(n_voters):
-        while election[voter, pointer[voter]] in eliminated:
-            pointer[voter] += 1
 
 
 def irv(election, tiebreaker=None):
