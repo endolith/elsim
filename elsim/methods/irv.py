@@ -45,7 +45,7 @@ def _get_tiebreak(tiebreaker):
 
 # TODO: numba will require typedset in the future?
 @njit(cache=True, nogil=True)
-def _update_pointer(election, pointer, eliminated):
+def _inc_pointer(election, pointer, eliminated):
     """
     Update pointer to point at candidates that haven't been eliminated
     """
@@ -151,6 +151,6 @@ def irv(election, tiebreaker=None):
         eliminated.update(_all_indices(tallies_list, 0))
 
         # Increment pointers until they point at non-eliminated candidates
-        _update_pointer(election, pointer, eliminated)
+        _inc_pointer(election, pointer, eliminated)
 
     raise RuntimeError('Bug in IRV calculation')
