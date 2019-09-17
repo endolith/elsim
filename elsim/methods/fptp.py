@@ -1,13 +1,6 @@
 import random
 import numpy as np
-
-
-# https://stackoverflow.com/a/6294205/125507
-def _all_indices(iterable, value):
-    """
-    Return all indices of `iterable` that match `value`.
-    """
-    return [i for i, x in enumerate(iterable) if x == value]
+from ._common import _all_indices
 
 
 def _order_tiebreak(winners):

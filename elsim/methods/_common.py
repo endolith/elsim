@@ -40,3 +40,11 @@ else:
         tallying array in-place to tally the pairs
         """
         np.add.at(tally, tuple(pairs.T), 1)
+
+
+# https://stackoverflow.com/a/6294205/125507
+def _all_indices(iterable, value):
+    """
+    Return all indices of `iterable` that match `value`.
+    """
+    return [i for i, x in enumerate(iterable) if x == value]
