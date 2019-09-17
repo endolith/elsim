@@ -42,6 +42,19 @@ else:
         np.add.at(tally, tuple(pairs.T), 1)
 
 
+@njit(cache=True, nogil=True)
+def _tally_at_pointer(tallies, election, pointer):
+    """
+    Tally candidates at the location pointed to, re-using tallies array
+    """
+    # Clear tally array
+    tallies[:] = 0
+    n_voters = election.shape[0]
+    for voter in range(n_voters):
+        cand = election[voter, pointer[voter]]
+        tallies[cand] += 1
+
+
 # https://stackoverflow.com/a/6294205/125507
 def _all_indices(iterable, value):
     """

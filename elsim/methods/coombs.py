@@ -1,6 +1,6 @@
 import random
 import numpy as np
-from ._common import njit, _all_indices
+from ._common import njit, _all_indices, _tally_at_pointer
 
 
 def _order_tiebreak(winners, n=1):
@@ -41,19 +41,6 @@ def _get_tiebreak(tiebreaker):
         return _tiebreak_map[tiebreaker]
     except KeyError:
         raise ValueError('Tiebreaker not understood')
-
-
-@njit(cache=True, nogil=True)
-def _tally_at_pointer(tallies, election, pointer):
-    """
-    Tally candidates at the location pointed to, re-using tallies array
-    """
-    # Clear tally array
-    tallies[:] = 0
-    n_voters = election.shape[0]
-    for voter in range(n_voters):
-        cand = election[voter, pointer[voter]]
-        tallies[cand] += 1
 
 
 # TODO: numba will require typedset in the future?
