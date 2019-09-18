@@ -39,6 +39,6 @@ setup(
         'hypothesis',
     ],
     extras_require={
-        'fast':  ['numba'],
+        'fast':  ['numba<0.47'],  # reflected set will be removed in 0.47
     }
 )

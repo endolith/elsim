@@ -4,15 +4,18 @@ slow, so I made this numba solution, but then discovered np.add.at, which is
 faster than the previous solutions, but still slower than numba.  So I'm using
 numba as a "soft" dependency, falling back on numpy if not installed.
 """
-from warnings import warn
+import warnings
 import numpy as np
 
 try:
-    from numba import njit
+    from numba import njit, NumbaPendingDeprecationWarning
+
+    # Reflected set will be replaced in numba 0.46 and removed in 0.47.
+    warnings.simplefilter("ignore", category=NumbaPendingDeprecationWarning)
+
     numba_enabled = True
 except ImportError:
-    warn('Numba not installed, Condorcet code will run slower')
-    numba_enabled = False
+    warnings.warn('Numba not installed, Condorcet code will run slower')
 
     def njit(*args, **kwargs):
         """
@@ -21,6 +24,9 @@ except ImportError:
         def decorator(func):
             return func
         return decorator
+
+    numba_enabled = False
+
 
 if numba_enabled:
     @njit(cache=True, nogil=True)
@@ -55,7 +61,6 @@ def _tally_at_pointer(tallies, election, pointer):
         tallies[cand] += 1
 
 
-# TODO: numba will require typedset in the future?
 @njit(cache=True, nogil=True)
 def _inc_pointer(election, pointer, eliminated):
     """
