@@ -6,4 +6,5 @@ These are some example scripts to demonstrate the various simulations that can b
   - [wikipedia_condorcet_paradox_likelihood.py](wikipedia_condorcet_paradox_likelihood.py)
 - Condorcet efficiency and social utility efficiency tables and figures from Merrill 1984 *[A Comparison of Efficiency of Multicandidate Electoral Systems](https://www.jstor.org/stable/2110786)*
   - CE random society: [merrill_1984_table_1_fig_1.py](merrill_1984_table_1_fig_1.py)
+  - CE spatial model: [merrill_1984_table_2.py](merrill_1984_table_2.py)
   - SUE random society: [merrill_1984_table_3_fig_3.py](merrill_1984_table_3_fig_3.py)
