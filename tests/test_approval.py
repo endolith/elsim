@@ -4,7 +4,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, tuples
 from hypothesis.extra.numpy import arrays
-from elsim.methods import approval, approval_optimal
+from elsim.methods import approval
 
 
 def collect_random_results(method, election):
@@ -97,18 +97,10 @@ def test_ties():
     assert collect_random_results(approval, election) == {0, 1, 2}
 
 
-@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
-def test_approval_optimal(tiebreaker):
-    utilities = np.array([[0.0, 0.4, 1.0],
-                          [1.0, 0.5, 1.0],
-                          [0.0, 0.2, 0.0],
-                          [0.0, 1.0, 0.7],
-                          [0.3, 0.4, 0.6],
-                          ])
-    assert approval_optimal(utilities, tiebreaker) == 2
-
-
 def approval_ballots(min_cands=1, max_cands=25, min_voters=1, max_voters=100):
+    """
+    Strategy to generate approval voting ballot elections
+    """
     n_cands = integers(min_value=min_cands, max_value=max_cands)
     n_voters = integers(min_value=min_voters, max_value=max_voters)
     return arrays(np.uint, tuples(n_voters, n_cands), integers(0, 1))

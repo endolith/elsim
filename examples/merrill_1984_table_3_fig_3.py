@@ -25,9 +25,10 @@ import time
 from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
-from elsim.methods import (fptp, runoff, irv, approval_optimal, borda, coombs,
+from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
                            black, utility_winner)
-from elsim.elections import random_utilities, rankings_from_utilities
+from elsim.elections import random_utilities
+from elsim.strategies import honest_rankings, approval_optimal
 
 n = 10_000
 n_voters = 25
@@ -36,7 +37,8 @@ n_cands_list = (2, 3, 4, 5, 7, 10)
 ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
                   'Borda': borda, 'Coombs': coombs, 'Black': black}
 
-rated_methods = {'Approval': approval_optimal}
+rated_methods = {'Approval': lambda utilities, tiebreaker:
+                 approval(approval_optimal(utilities), tiebreaker)}
 
 count = {key: Counter() for key in (ranked_methods.keys() |
                                     rated_methods.keys() | {'UW'})}
@@ -64,7 +66,7 @@ for iteration in range(n):
             winner = func(utilities, tiebreaker='random')
             count[name][n_cands] += utilities.sum(0)[winner]
 
-        rankings = rankings_from_utilities(utilities)
+        rankings = honest_rankings(utilities)
         for name, func in ranked_methods.items():
             winner = func(rankings, tiebreaker='random')
             count[name][n_cands] += utilities.sum(0)[winner]
