@@ -12,16 +12,16 @@ no. 1, pp. 23-48, 1984.  :doi:`10.2307/2110786`
 
 Typical result:
 
-          2      3       4       5       7       10
-Plurality 100.0   79.1    68.4    61.8    51.4    41.1
-Runoff    100.0   96.2    89.6    83.4    72.3    60.3
-Hare      100.0   96.2    92.5    89.1    83.7    77.0
-Approval  100.0   75.6    70.0    67.4    63.8    61.2
-Borda     100.0   90.9    87.4    85.9    84.6    83.9
-Coombs    100.0   96.9    93.4    91.0    86.4    81.7
-Black     100.0  100.0   100.0   100.0   100.0   100.0
-SU max    100.0   84.1    79.6    78.4    77.3    77.5
-CW        100.0   91.7    83.1    75.6    64.3    52.9
+                  2     3       4       5       7      10
+    Plurality 100.0  79.1    68.4    61.8    51.4    41.1
+    Runoff    100.0  96.2    89.6    83.4    72.3    60.3
+    Hare      100.0  96.2    92.5    89.1    83.7    77.0
+    Approval  100.0  75.6    70.0    67.4    63.8    61.2
+    Borda     100.0  90.9    87.4    85.9    84.6    83.9
+    Coombs    100.0  96.9    93.4    91.0    86.4    81.7
+    Black     100.0 100.0   100.0   100.0   100.0   100.0
+    SU max    100.0  84.1    79.6    78.4    77.3    77.5
+    CW        100.0  91.7    83.1    75.6    64.3    52.9
 """
 import time
 from collections import Counter
@@ -103,7 +103,7 @@ for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
 plt.gca().set_prop_cycle(None)
 
 # Number of candidates
-print('', *n_cands_list, sep='\t')
+print('         ', '\t'.join(f'{v: >5}' for v in n_cands_list))
 
 # Of those elections with CW, likelihood that method chooses CW
 x_cw, y_cw = zip(*sorted(count['CW'].items()))
@@ -111,14 +111,15 @@ for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
     x, y = zip(*sorted(count[method].items()))
     plt.plot(x, np.array(y)/y_cw*100, '-', label=method)
-    print(method + '\t', '\t'.join(f'{v:.1f}' for v in np.array(y)/y_cw*100))
+    print(f'{method: <9}', '\t'.join(f'{v: >5.1f}'
+          for v in np.array(y)/y_cw*100))
 
 # Likelihood that social utility maximizer is Condorcet Winner
 x, y = zip(*sorted(count['SU max'].items()))
-print('SU max\t', '\t'.join(f'{v:.1f}' for v in np.array(y)/y_cw*100))
+print('SU max   ', '\t'.join(f'{v: >5.1f}' for v in np.array(y)/y_cw*100))
 
 # Likelihood of Condorcet Winner (normalized by n iterations)
-print('CW\t', '\t'.join(f'{v:.1f}' for v in np.asarray(y_cw)/n*100))
+print('CW       ', '\t'.join(f'{v: >5.1f}' for v in np.asarray(y_cw)/n*100))
 
 plt.plot([], [], 'k.', label='Merrill')  # Dummy plot for label
 plt.legend()
