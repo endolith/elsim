@@ -10,3 +10,4 @@ These are some example scripts to demonstrate the various simulations that can b
   - Spatial model scatter plots: [merrill_1984_fig_2a_2b.py](merrill_1984_fig_2a_2b.py)
   - CE spatial model: [merrill_1984_fig_2c_2d.py](merrill_1984_fig_2c_2d.py)
   - SUE random society: [merrill_1984_table_3_fig_3.py](merrill_1984_table_3_fig_3.py)
+  - SUE spatial model [merrill_1984_fig_4a_4b.py](merrill_1984_fig_4a_4b.py)
