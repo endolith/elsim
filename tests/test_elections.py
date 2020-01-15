@@ -1,7 +1,9 @@
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_less
+from numpy.testing import (assert_array_equal, assert_array_less,
+                           assert_allclose)
 import pytest
-from elsim.elections import random_utilities, impartial_culture
+from elsim.elections import (random_utilities, impartial_culture,
+                             normal_electorate, normed_dist_utilities)
 
 
 def test_random_utilities():
@@ -55,6 +57,45 @@ def test_impartial_culture():
 def test_invalid():
     with pytest.raises(ValueError):
         impartial_culture(1, 257)
+
+
+def test_normal_electorate():
+    np.random.seed(42)
+    n_voters = 10000
+    n_cands = 10000
+    dims = 2
+    corr = 0.3
+    disp = 0.2
+
+    voters, cands = normal_electorate(n_voters, n_cands, dims, corr, disp)
+
+    # Check dimensions
+    assert voters.shape == (n_voters, dims)
+    assert cands.shape == (n_cands, dims)
+
+    # Check dispersion
+    assert_allclose(np.std(voters[:, 0])*disp,
+                    np.std(cands[:, 0]), rtol=0.1)
+    assert_allclose(np.std(voters[:, 1])*disp,
+                    np.std(cands[:, 1]), rtol=0.1)
+
+
+def test_normed_dist_utilities():
+    voters = [[1, 1],
+              [6, 3],
+              [1, 7]]
+    cands = [[2, 3],
+             [5, 1],
+             [4, 6]]
+
+    utilities = normed_dist_utilities(voters, cands)
+
+    # Calculated in spreadsheet
+    assert_allclose(utilities,
+                    [[1.000000000000000, 0.509321562793963, 0.000000000000000],
+                     [0.000000000000000, 1.000000000000000, 0.223619005440422],
+                     [0.762689671355725, 0.000000000000000, 1.000000000000000]]
+                    )
 
 
 if __name__ == "__main__":

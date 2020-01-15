@@ -12,7 +12,7 @@ Goals:
 - Able to reproduce peer-reviewed research
 
 # Requirements
-Current dependencies are [`numpy`](https://numpy.org/).
+Current dependencies are [`numpy`](https://numpy.org/) and [`scipy`](https://www.scipy.org/).
 
 Optionally, `elsim` can use [`numba`](http://numba.pydata.org/) for speed.  If not available, the code will still run, just more slowly.
 

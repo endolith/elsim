@@ -33,6 +33,7 @@ setup(
     packages=find_packages(exclude=('tests', 'docs', 'examples')),
     install_requires=[
         'numpy',
+        'scipy',
     ],
     tests_require=[
         'pytest',

@@ -1,4 +1,5 @@
 numpy
+scipy
 pytest[tests]
 hypothesis[tests]
 pytest-cov[tests]
