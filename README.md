@@ -1,5 +1,6 @@
 # Election Simulator 3000
 ![CircleCI](https://circleci.com/gh/endolith/elsim.svg?style=shield)
+[![Actions Status](https://github.com/endolith/elsim/workflows/Python%20package/badge.svg)](https://github.com/endolith/elsim/actions)
 
 This is a library of functions for running many simulations of different elections ([Impartial Culture](https://en.wikipedia.org/wiki/Impartial_culture), spatial model, ...) held using different [voting methods](https://en.wikipedia.org/wiki/Electoral_system) ([Borda count](https://en.wikipedia.org/wiki/Borda_count), [Approval voting](https://en.wikipedia.org/wiki/Approval_voting), ...).
 
