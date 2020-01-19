@@ -1,6 +1,5 @@
 numpy
 scipy
-pytest[tests]
-hypothesis[tests]
-pytest-cov[tests]
-numba[fast]<0.47
+pytest
+hypothesis
+pytest-cov
