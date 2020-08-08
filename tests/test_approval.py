@@ -103,7 +103,7 @@ def approval_ballots(min_cands=1, max_cands=25, min_voters=1, max_voters=100):
     """
     n_cands = integers(min_value=min_cands, max_value=max_cands)
     n_voters = integers(min_value=min_voters, max_value=max_voters)
-    return arrays(np.uint, tuples(n_voters, n_cands), integers(0, 1))
+    return arrays(np.uint, tuples(n_voters, n_cands), elements=integers(0, 1))
 
 
 @pytest.mark.parametrize("tiebreaker", ['random', 'order'])
