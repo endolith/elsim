@@ -87,6 +87,7 @@ merrill_table_1 = {
     }
 
 plt.figure(f'Figure 3. {n_voters} voters, {n} iterations')
+plt.title('Figure 3: Efficiencies for Social Utility for a Random Society')
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
     x, y = zip(*sorted(merrill_table_1[method].items()))
