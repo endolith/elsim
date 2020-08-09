@@ -6,7 +6,7 @@ This is a library of functions for running many simulations of different electio
 
 Goals:
 
-- Fast
+- Fast (~25,000 elections per second)
 - Flexible
 - Well-documented, easily-used and improved upon by other people
 - Well-tested and bug-free
@@ -54,12 +54,20 @@ Tests can be run by installing [`pytest`](https://docs.pytest.org/en/latest/), [
 # Bugs / Requests
 File issues on the [Github issue tracker](https://github.com/endolith/elsim/issues).
 
-# See also
+# Similar projects
+
+## Election simulators
+
 - 1D:
-  - http://zesty.ca/voting/voteline/
+  - http://zesty.ca/voting/voteline/ (Flash, 5 candidates, normal/uniform/bimodal distribution)
+  - https://demonstrations.wolfram.com/ComparingVotingSystemsForANormalDistributionOfVoters/
 - 2D:
   - http://bolson.org/voting/sim_one_seat/www/spacegraph.html
   - http://zesty.ca/voting/sim/
   - http://rangevoting.org/IEVS/Pictures.html
 - ND:
   - https://github.com/electology/vse-sim
+
+## Voting system implementations
+
+* [See Electowiki](https://electowiki.org/wiki/Voting_links#Election_calculators)
