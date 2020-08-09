@@ -120,6 +120,7 @@ print('SU max\t', '\t'.join(f'{v:.1f}' for v in np.array(y)/y_cw*100))
 # Likelihood of Condorcet Winner (normalized by n iterations)
 print('CW\t', '\t'.join(f'{v:.1f}' for v in np.asarray(y_cw)/n*100))
 
+plt.plot([], [], 'k.', label='Merrill')  # Dummy plot for label
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')

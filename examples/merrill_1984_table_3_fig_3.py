@@ -107,6 +107,7 @@ for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
     plt.plot(x, SUE*100, '-', label=method)
     print(method + '\t', '\t'.join(f'{v:.1f}' for v in SUE*100))
 
+plt.plot([], [], 'k.', label='Merrill')  # Dummy plot for label
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
