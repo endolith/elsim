@@ -33,7 +33,7 @@ Results with 500_000 iterations:
     Plurality 100.0	 55.9	 34.7	 21.5	 13.5	  8.5
 
 These look generally like Merrill's, but are smoother, and there are some
-discrepancies, as great as 7%. This may just be be random variation from not
+discrepancies, as great as 7%. This may just be random variation from not
 running as many simulations, however the Coombs results are consistently
 high.
 """
