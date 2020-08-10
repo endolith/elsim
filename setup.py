@@ -23,7 +23,7 @@ setup(
 
         'Operating System :: OS Independent',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.6',  # f strings and underscore literals
     keywords='elections voting social choice theory',
     author_email='endolith@gmail.com',
     url='https://github.com/endolith/elsim',
