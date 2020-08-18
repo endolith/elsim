@@ -59,7 +59,7 @@ rated_methods = {'SU max': utility_winner,
                  'Approval': lambda utilities, tiebreaker:
                      approval(approval_optimal(utilities), tiebreaker)}
 
-# Plot Merrill's results as dots for comparison (traced from plots)
+# Plot Merrill's results as dotted lines for comparison (traced from plots)
 merrill_fig_2c = {
     'Black':     {2: 100.0, 3: 100.0, 4: 100.0, 5: 100.0, 7: 100.0},
     'Coombs':    {2: 100.0, 3: 99.1,  4: 98.1,  5: 97.1,  7: 93.1},
@@ -121,7 +121,7 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
     for method in ('Black', 'Coombs', 'Borda', 'Approval', 'Hare', 'Runoff',
                    'Plurality'):
         x, y = zip(*sorted(orig[method].items()))
-        plt.plot(x, y, '.')
+        plt.plot(x, y, ':', lw=0.8)
 
     # Restart color cycle, so result colors match
     plt.gca().set_prop_cycle(None)
@@ -138,7 +138,7 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
         print(f'{method: <9}', '\t'.join(f'{v: >5.1f}'
               for v in np.array(y)/y_cw*100))
 
-    plt.plot([], [], 'k.', label='Merrill')  # Dummy plot for label
+    plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
     plt.legend()
     plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
     plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')

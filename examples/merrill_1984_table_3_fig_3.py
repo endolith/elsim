@@ -75,7 +75,7 @@ for iteration in range(n):
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
-# Plot Merrill's results as dots for comparison
+# Plot Merrill's results as dotted lines for comparison
 merrill_table_1 = {
     'Plurality': {2: 100.0, 3: 83.0, 4: 75.0, 5: 69.2, 7: 62.8, 10: 53.3},
     'Runoff':    {2: 100.0, 3: 89.5, 4: 83.8, 5: 80.5, 7: 75.6, 10: 67.6},
@@ -91,7 +91,7 @@ plt.title('Figure 3: Efficiencies for Social Utility for a Random Society')
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
     x, y = zip(*sorted(merrill_table_1[method].items()))
-    plt.plot(x, y, '.')
+    plt.plot(x, y, ':', lw=0.8)
 
 # Restart color cycle, so result colors match
 plt.gca().set_prop_cycle(None)
@@ -108,7 +108,7 @@ for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
     plt.plot(x, SUE*100, '-', label=method)
     print(f'{method: <9}', '\t'.join(f'{v: >5.1f}' for v in SUE*100))
 
-plt.plot([], [], 'k.', label='Merrill')  # Dummy plot for label
+plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')

@@ -80,7 +80,7 @@ for iteration in range(n):
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
-# Plot Merrill's results as dots for comparison
+# Plot Merrill's results as dotted lines for comparison
 merrill_table_1 = {
     'Plurality': {2: 100.0, 3:  79.1, 4:  69.4, 5:  62.1, 7:  52.0, 10:  42.6},
     'Runoff':    {2: 100.0, 3:  96.2, 4:  90.1, 5:  83.6, 7:  73.5, 10:  61.3},
@@ -98,7 +98,7 @@ plt.title('Figure 1: Condorcet Efficiencies for a Random Society')
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
     x, y = zip(*sorted(merrill_table_1[method].items()))
-    plt.plot(x, y, '.')
+    plt.plot(x, y, ':', lw=0.8)
 
 # Restart color cycle, so result colors match
 plt.gca().set_prop_cycle(None)
@@ -122,7 +122,7 @@ print('SU max   ', '\t'.join(f'{v: >5.1f}' for v in np.array(y)/y_cw*100))
 # Likelihood of Condorcet Winner (normalized by n iterations)
 print('CW       ', '\t'.join(f'{v: >5.1f}' for v in np.asarray(y_cw)/n*100))
 
-plt.plot([], [], 'k.', label='Merrill')  # Dummy plot for label
+plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
