@@ -48,11 +48,12 @@ def honest_rankings(utilities):
            [1, 2, 0],
            [0, 1, 2]], dtype=uint8)
     """
-    # 256 candidates is plenty for real elections, so we'll limit it there and
-    # use uint8 to save memory.
     n_cands = utilities.shape[1]
-    if n_cands > 256:
-        raise ValueError('Maximum number of candidates is 256')
+
+    # 255 candidates is plenty for real elections, so we'll limit it there and
+    # use uint8 to save memory.
+    if n_cands > 255:
+        raise ValueError('Maximum number of candidates is 255')
 
     # Higher utilities for a voter are  ranked first (earlier in row)
     return np.argsort(utilities)[:, ::-1].astype(np.uint8)
