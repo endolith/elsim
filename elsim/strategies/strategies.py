@@ -42,7 +42,7 @@ def honest_rankings(utilities):
                            [0.392, 0.416, 0.898],
                            [0.008, 0.702, 0.107],
                            [0.663, 0.575, 0.174]])
-    >>> rankings_from_utilities(utilities)
+    >>> honest_rankings(utilities)
     array([[2, 0, 1],
            [2, 1, 0],
            [1, 2, 0],
