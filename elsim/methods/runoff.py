@@ -47,7 +47,7 @@ def _get_tiebreak(tiebreaker):
 
 def runoff(election, tiebreaker=None):
     """
-    Finds the winner of an election using top-two runoff / two-round system
+    Find the winner of an election using top-two runoff / two-round system.
 
     If any candidate gets a majority of first-preference votes, they win.
     Otherwise, a runoff election is held between the two highest-voted

@@ -5,7 +5,7 @@ from ._common import _tally_pairs, njit
 
 def ranked_election_to_matrix(election):
     """
-    Converts a ranked election to a pairwise comparison matrix
+    Convert a ranked election to a pairwise comparison matrix.
 
     Each entry in the matrix gives the total number of votes obtained by the
     row candidate over the column candidate.[1]_
@@ -32,7 +32,8 @@ def ranked_election_to_matrix(election):
 
     References
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Condorcet_method#Pairwise_counting_and_matrices
+    .. [1] Wikipedia, “Condorcet method: Pairwise counting and matrices”,
+       https://en.wikipedia.org/wiki/Condorcet_method#Pairwise_counting_and_matrices
 
     Examples
     --------
@@ -95,7 +96,7 @@ def ranked_election_to_matrix(election):
 @njit(cache=True, nogil=True)
 def condorcet_from_matrix(matrix):
     """
-    Finds the winner of a ranked ballot election using a Condorcet method
+    Find the winner of a ranked ballot election using a Condorcet method.
 
     This does not contain any "tiebreakers"; those will be implemented by
     other methods' functions.  It is not a Condorcet completion method.
@@ -153,7 +154,7 @@ def condorcet_from_matrix(matrix):
 
 def condorcet(election):
     """
-    Finds the winner of a ranked ballot election using a Condorcet method
+    Find the winner of a ranked ballot election using a Condorcet method.
 
     This does not contain any "tiebreakers"; those will be implemented by
     other methods' functions.  It is not a Condorcet completion method.[1]_

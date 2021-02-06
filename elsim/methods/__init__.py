@@ -1,7 +1,8 @@
 """
-Implements various election methods, which take collections of
-ballots (elections) as inputs and return the winner according
-to the rules of that method.
+Implements various election methods.
+
+These take collections of ballots (elections) as inputs and return the winner
+according to the rules of that method.
 """
 from .approval import approval
 from .black import black

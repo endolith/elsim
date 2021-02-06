@@ -19,7 +19,7 @@ except ImportError:
 
     def njit(*args, **kwargs):
         """
-        Do-nothing dummy decorator for when numba not installed
+        Do-nothing dummy decorator for when numba not installed.
         """
         def decorator(func):
             return func
@@ -51,7 +51,7 @@ else:
 @njit(cache=True, nogil=True)
 def _tally_at_pointer(tallies, election, pointer):
     """
-    Tally candidates at the location pointed to, re-using tallies array
+    Tally candidates at the location pointed to, re-using tallies array.
     """
     # Clear tally array
     tallies[:] = 0
@@ -64,7 +64,7 @@ def _tally_at_pointer(tallies, election, pointer):
 @njit(cache=True, nogil=True)
 def _inc_pointer(election, pointer, eliminated):
     """
-    Update pointer to point at candidates that haven't been eliminated
+    Update pointer to point at candidates that haven't been eliminated.
     """
     n_voters = election.shape[0]
     for voter in range(n_voters):
@@ -75,7 +75,7 @@ def _inc_pointer(election, pointer, eliminated):
 @njit(cache=True, nogil=True)
 def _dec_pointer(election, pointer, eliminated):
     """
-    Update pointer to point at candidates that haven't been eliminated
+    Update pointer to point at candidates that haven't been eliminated.
     """
     n_voters = election.shape[0]
     for voter in range(n_voters):

@@ -4,7 +4,7 @@ from .borda import borda
 
 def black(election, tiebreaker=None):
     """
-    Finds the winner of a ranked ballot election using Black's method
+    Find the winner of a ranked ballot election using Black's method.
 
     If a Condorcet winner exists, it is returned, otherwise, the Borda winner
     is returned.[1]_

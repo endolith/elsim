@@ -5,21 +5,21 @@ from ._common import _all_indices
 
 def _order_tiebreak(winners):
     """
-    Given an iterable of possibly tied `winners`, select the lowest numbered
+    Given an iterable of possibly tied `winners`, select the lowest numbered.
     """
     return min(winners)
 
 
 def _random_tiebreak(winners):
     """
-    Given an iterable of possibly tied `winners`, select one at random
+    Given an iterable of possibly tied `winners`, select one at random.
     """
     return random.choice(winners)
 
 
 def _no_tiebreak(winners):
     """
-    Given an iterable of possibly tied `winners`, return None if there is a tie
+    Given an iterable of `winners`, return None if there is a tie.
     """
     if len(winners) == 1:
         return winners[0]
@@ -41,7 +41,7 @@ def _get_tiebreak(tiebreaker):
 
 def approval(election, tiebreaker=None):
     """
-    Finds the winner of an election using approval voting
+    Find the winner of an election using approval voting.
 
     The candidate with the largest number of approvals wins.[1]_
 

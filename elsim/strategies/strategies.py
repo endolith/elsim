@@ -3,7 +3,7 @@ import numpy as np
 
 def honest_rankings(utilities):
     """
-    Convert utilities into rankings using honest strategy
+    Convert utilities into rankings using honest strategy.
 
     Parameters
     ----------
@@ -38,10 +38,10 @@ def honest_rankings(utilities):
     Here, Voter 2 prefers Candidate 1, then 2, then 0, as we can see when
     converted to rankings:
 
-    >>> utilities = array([[0.805, 0.759, 0.969],
-                           [0.392, 0.416, 0.898],
-                           [0.008, 0.702, 0.107],
-                           [0.663, 0.575, 0.174]])
+    >>> utilities = np.array([[0.805, 0.759, 0.969],
+                              [0.392, 0.416, 0.898],
+                              [0.008, 0.702, 0.107],
+                              [0.663, 0.575, 0.174]])
     >>> honest_rankings(utilities)
     array([[2, 0, 1],
            [2, 1, 0],
@@ -55,13 +55,13 @@ def honest_rankings(utilities):
     if n_cands > 255:
         raise ValueError('Maximum number of candidates is 255')
 
-    # Higher utilities for a voter are  ranked first (earlier in row)
+    # Higher utilities for a voter are ranked first (earlier in row)
     return np.argsort(utilities)[:, ::-1].astype(np.uint8)
 
 
 def approval_optimal(utilities):
     """
-    Convert utilities to optimal approval voting ballots
+    Convert utilities to optimal approval voting ballots.
 
     Given a set of utilities for each voter-candidate pair, each voter is
     modeled as maximizing their expected utility, by approving any candidate

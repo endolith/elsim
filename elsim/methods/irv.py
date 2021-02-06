@@ -5,15 +5,16 @@ from ._common import _all_indices, _tally_at_pointer, _inc_pointer
 
 def _order_tiebreak(winners, n=1):
     """
-    Given an iterable of possibly tied `winners`, select the highest numbered
-    (since they are to be eliminated)
+    Given an iterable of possibly tied `winners`, select the highest numbered.
+
+    (Since they are to be eliminated.)
     """
     return sorted(winners)[-n:]
 
 
 def _random_tiebreak(winners, n=1):
     """
-    Given an iterable of possibly tied `winners`, select one at random
+    Given an iterable of possibly tied `winners`, select one at random.
     """
     if len(winners) == 1:
         return winners
@@ -23,7 +24,7 @@ def _random_tiebreak(winners, n=1):
 
 def _no_tiebreak(winners, n=1):
     """
-    Given an iterable of possibly tied `winners`, return None if there is a tie
+    Given an iterable of `winners`, return None if there is a tie.
     """
     if len(winners) <= n:
         return winners
@@ -45,7 +46,7 @@ def _get_tiebreak(tiebreaker):
 
 def irv(election, tiebreaker=None):
     """
-    Finds the winner of an election using instant-runoff voting
+    Find the winner of an election using instant-runoff voting.
 
     If any candidate gets a majority of first-preference votes, they win.
     Otherwise, the candidate(s) with the least number of votes is eliminated,

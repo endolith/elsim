@@ -5,21 +5,21 @@ from ._common import _all_indices
 
 def _order_tiebreak(winners):
     """
-    Given an iterable of possibly tied `winners`, select the lowest numbered
+    Given an iterable of possibly tied `winners`, select the lowest numbered.
     """
     return min(winners)
 
 
 def _random_tiebreak(winners):
     """
-    Given an iterable of possibly tied `winners`, select one at random
+    Given an iterable of possibly tied `winners`, select one at random.
     """
     return random.choice(winners)
 
 
 def _no_tiebreak(winners):
     """
-    Given an iterable of possibly tied `winners`, return None if there is a tie
+    Given an iterable of `winners`, return None if there is a tie.
     """
     if len(winners) == 1:
         return winners[0]
@@ -41,7 +41,7 @@ def _get_tiebreak(tiebreaker):
 
 def utility_winner(utilities, tiebreaker=None):
     """
-    Dummy election method that finds the utilitarian winner of an election
+    Find the utilitarian winner of an election. (Dummy "election method").
 
     Given a set of utilities for each voter-candidate pair, find the candidate
     who maximizes summed utility across all voters.[1]_
