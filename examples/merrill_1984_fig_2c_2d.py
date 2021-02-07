@@ -13,24 +13,28 @@ no. 1, pp. 23-48, 1984.  :doi:`10.2307/2110786`
 Results with 500_000 iterations:
 
 2.c
-                  2	    3	    4	    5	    6	    7
-    Black     100.0	100.0	100.0	100.0	100.0	100.0
-    Coombs    100.0	 99.4	 98.6	 97.8	 96.9	 96.0
-    Borda     100.0	 91.4	 89.2	 87.1	 85.7	 84.6
-    Approval  100.0	 85.9	 79.8	 73.9	 70.1	 66.8
-    Hare      100.0	 94.1	 86.6	 78.9	 71.7	 65.2
-    Runoff    100.0	 94.1	 87.1	 79.7	 72.8	 66.1
-    Plurality 100.0	 80.6	 67.6	 57.4	 49.3	 42.6
+
+| Method    |     2 |     3 |     4 |     5 |     6 |     7 |
+|:----------|------:|------:|------:|------:|------:|------:|
+| Black     | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 |
+| Coombs    | 100.0 |  99.4 |  98.6 |  97.8 |  96.9 |  96.0 |
+| Borda     | 100.0 |  91.4 |  89.2 |  87.1 |  85.7 |  84.6 |
+| Approval  | 100.0 |  85.9 |  79.8 |  73.9 |  70.1 |  66.8 |
+| Hare      | 100.0 |  94.1 |  86.6 |  78.9 |  71.7 |  65.2 |
+| Runoff    | 100.0 |  94.1 |  87.1 |  79.7 |  72.8 |  66.1 |
+| Plurality | 100.0 |  80.6 |  67.6 |  57.4 |  49.3 |  42.6 |
 
 2.d
-                  2	    3	    4	    5	    6	    7
-    Black     100.0	100.0	100.0	100.0	100.0	100.0
-    Coombs    100.0	 98.2	 95.9	 93.4	 90.9	 88.4
-    Borda     100.0	 89.2	 86.3	 83.8	 82.1	 80.8
-    Approval  100.0	 84.0	 76.9	 71.5	 67.8	 64.7
-    Hare      100.0	 72.2	 50.3	 35.8	 26.0	 19.7
-    Runoff    100.0	 72.2	 50.6	 35.3	 24.4	 16.9
-    Plurality 100.0	 55.9	 34.7	 21.5	 13.5	  8.5
+
+| Method    |     2 |     3 |     4 |     5 |     6 |     7 |
+|:----------|------:|------:|------:|------:|------:|------:|
+| Black     | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 |
+| Coombs    | 100.0 |  98.2 |  95.9 |  93.4 |  90.9 |  88.4 |
+| Borda     | 100.0 |  89.2 |  86.3 |  83.8 |  82.1 |  80.8 |
+| Approval  | 100.0 |  84.0 |  76.9 |  71.5 |  67.8 |  64.7 |
+| Hare      | 100.0 |  72.2 |  50.3 |  35.8 |  26.0 |  19.7 |
+| Runoff    | 100.0 |  72.2 |  50.6 |  35.3 |  24.4 |  16.9 |
+| Plurality | 100.0 |  55.9 |  34.7 |  21.5 |  13.5 |   8.5 |
 
 These look generally like Merrill's, but are smoother, and there are some
 discrepancies, as great as 7%. This may just be random variation from not
@@ -41,6 +45,7 @@ import time
 from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
+from tabulate import tabulate
 from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
                            black, utility_winner, condorcet)
 from elsim.elections import normal_electorate, normed_dist_utilities
@@ -126,8 +131,7 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
     # Restart color cycle, so result colors match
     plt.gca().set_prop_cycle(None)
 
-    # Number of candidates
-    print('         ', '\t'.join(f'{v: >5}' for v in n_cands_list))
+    table = []
 
     # Of those elections with CW, likelihood that method chooses CW
     x_cw, y_cw = zip(*sorted(count['CW'].items()))
@@ -135,8 +139,10 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
                    'Plurality'):
         x, y = zip(*sorted(count[method].items()))
         plt.plot(x, np.array(y)/y_cw*100, '-', label=method)
-        print(f'{method: <9}', '\t'.join(f'{v: >5.1f}'
-              for v in np.array(y)/y_cw*100))
+        table.append([method, *np.array(y)/y_cw*100])
+
+    print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
+    print()
 
     plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
     plt.legend()

@@ -12,19 +12,21 @@ no. 1, pp. 23-48, 1984.  :doi:`10.2307/2110786`
 
 Typical result:
 
-                  2     3       4       5       7      10
-    Plurality 100.0  83.3    75.1    69.5    62.5    54.9
-    Runoff    100.0  89.1    83.9    80.4    75.1    69.1
-    Hare      100.0  89.0    84.8    82.5    79.9    77.3
-    Approval  100.0  95.5    91.3    89.3    87.8    86.8
-    Borda     100.0  94.7    94.3    94.4    95.3    96.2
-    Coombs    100.0  90.2    86.8    85.2    84.0    82.9
-    Black     100.0  92.9    92.0    92.1    93.2    94.6
+| Method    |     2 |    3 |    4 |    5 |    7 |   10 |
+|:----------|------:|-----:|-----:|-----:|-----:|-----:|
+| Plurality | 100.0 | 83.3 | 75.1 | 69.5 | 62.5 | 54.9 |
+| Runoff    | 100.0 | 89.1 | 83.9 | 80.4 | 75.1 | 69.1 |
+| Hare      | 100.0 | 89.0 | 84.8 | 82.5 | 79.9 | 77.3 |
+| Approval  | 100.0 | 95.5 | 91.3 | 89.3 | 87.8 | 86.8 |
+| Borda     | 100.0 | 94.7 | 94.3 | 94.4 | 95.3 | 96.2 |
+| Coombs    | 100.0 | 90.2 | 86.8 | 85.2 | 84.0 | 82.9 |
+| Black     | 100.0 | 92.9 | 92.0 | 92.1 | 93.2 | 94.6 |
 """
 import time
 from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
+from tabulate import tabulate
 from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
                            black, utility_winner)
 from elsim.elections import random_utilities
@@ -96,8 +98,7 @@ for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
 # Restart color cycle, so result colors match
 plt.gca().set_prop_cycle(None)
 
-# Number of candidates
-print('         ', '\t'.join(f'{v: >5}' for v in n_cands_list))
+table = []
 
 # Calculate Social Utility Efficiency from summed utilities
 x_uw, y_uw = zip(*sorted(count['UW'].items()))
@@ -106,7 +107,9 @@ for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
     x, y = zip(*sorted(count[method].items()))
     SUE = (np.array(y) - n_voters * n / 2)/(np.array(y_uw) - n_voters * n / 2)
     plt.plot(x, SUE*100, '-', label=method)
-    print(f'{method: <9}', '\t'.join(f'{v: >5.1f}' for v in SUE*100))
+    table.append([method, *(SUE*100)])
+
+print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
 
 plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
 plt.legend()

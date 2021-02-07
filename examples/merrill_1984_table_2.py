@@ -13,19 +13,19 @@ no. 1, pp. 23-48, 1984.  :doi:`10.2307/2110786`
 
 Typical result:
 
-    Disp:       1.0	  1.0	  1.0	  1.0	  0.5	  0.5	  0.5	  0.5
-    Corr:       0.5	  0.5	  0.0	  0.0	  0.5	  0.5	  0.0	  0.0
-    D:          2.0	  4.0	  2.0	  4.0	  2.0	  4.0	  2.0	  4.0
-    ---------------------------------------------------------------------
-    Plurality  57.5	 65.8	 62.2	 78.4	 21.7	 24.4	 27.2	 41.3
-    Runoff     80.1	 87.3	 81.6	 93.6	 35.4	 42.2	 41.5	 61.5
-    Hare       79.2	 86.7	 84.0	 95.4	 35.9	 46.8	 41.0	 69.9
-    Approval   73.8	 77.8	 76.9	 85.4	 71.5	 76.4	 73.8	 82.7
-    Borda      87.1	 89.3	 88.2	 92.3	 83.7	 86.3	 85.2	 89.4
-    Coombs     97.8	 97.3	 97.9	 98.2	 93.5	 92.3	 93.8	 94.5
-    Black     100.0	100.0	100.0	100.0	100.0	100.0	100.0	100.0
-    SU max     82.9	 85.8	 85.3	 90.8	 78.1	 81.5	 80.8	 87.1
-    CW         99.7	 99.7	 99.7	 99.6	 98.9	 98.6	 98.7	 98.5
+| Disp      |   1.0 |   1.0 |   1.0 |   1.0 |   0.5 |   0.5 |   0.5 |   0.5 |
+| Corr      |   0.5 |   0.5 |   0.0 |   0.0 |   0.5 |   0.5 |   0.0 |   0.0 |
+| Dims      |     2 |     4 |     2 |     4 |     2 |     4 |     2 |     4 |
+|:----------|------:|------:|------:|------:|------:|------:|------:|------:|
+| Plurality |  57.5 |  65.8 |  62.2 |  78.4 |  21.7 |  24.4 |  27.2 |  41.3 |
+| Runoff    |  80.1 |  87.3 |  81.6 |  93.6 |  35.4 |  42.2 |  41.5 |  61.5 |
+| Hare      |  79.2 |  86.7 |  84.0 |  95.4 |  35.9 |  46.8 |  41.0 |  69.9 |
+| Approval  |  73.8 |  77.8 |  76.9 |  85.4 |  71.5 |  76.4 |  73.8 |  82.7 |
+| Borda     |  87.1 |  89.3 |  88.2 |  92.3 |  83.7 |  86.3 |  85.2 |  89.4 |
+| Coombs    |  97.8 |  97.3 |  97.9 |  98.2 |  93.5 |  92.3 |  93.8 |  94.5 |
+| Black     | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 |
+| SU max    |  82.9 |  85.8 |  85.3 |  90.8 |  78.1 |  81.5 |  80.8 |  87.1 |
+| CW        |  99.7 |  99.7 |  99.7 |  99.6 |  98.9 |  98.6 |  98.7 |  98.5 |
 
 Many of these values match the paper closely, but some are consistently off by
 up to 4%.
@@ -33,6 +33,7 @@ up to 4%.
 import time
 from collections import Counter
 import numpy as np
+from tabulate import tabulate
 from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
                            black, utility_winner, condorcet)
 from elsim.elections import normal_electorate, normed_dist_utilities
@@ -104,17 +105,19 @@ for disp, corr, D in conditions:
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
-print('Disp:    ', '\t'.join(f'{v: >5.1f}' for v in np.array(conditions).T[0]))
-print('Corr:    ', '\t'.join(f'{v: >5.1f}' for v in np.array(conditions).T[1]))
-print('D:       ', '\t'.join(f'{v: >5.1f}' for v in np.array(conditions).T[2]))
-print('-'*69)
+# Neither Tabulate nor Markdown support column span or multiple headers, but
+# at least this prints to plain text in a readable way.
+header = ['Disp\nCorr\nDims'] + [f'{x}\n{y}\n{z}' for x, y, z in conditions]
 
 # Of those elections with CW, likelihood that method chooses CW
+table = []
 y_cw = np.array([c['CW'] for c in results])
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black', 'SU max'):
     y = np.array([c[method] for c in results])
-    print(f'{method: <9}', '\t'.join(f'{v: >5.1f}' for v in y/y_cw*100))
+    table.append([method, *(y/y_cw*100)])
 
 # Likelihood of Condorcet Winner (normalized by n iterations)
-print('CW       ', '\t'.join(f'{v: >5.1f}' for v in y_cw/n*100))
+table.append(['CW', *(y_cw/n*100)])
+
+print(tabulate(table, header, tablefmt="pipe", floatfmt='.1f'))

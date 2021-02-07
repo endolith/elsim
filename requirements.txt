@@ -3,3 +3,4 @@ scipy
 pytest
 hypothesis
 pytest-cov
+tabulate
