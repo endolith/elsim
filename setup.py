@@ -14,7 +14,7 @@ setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     classifiers=[
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.6.2',
         'License :: OSI Approved :: MIT License',
 
         # Social choice theory
@@ -23,7 +23,7 @@ setup(
 
         'Operating System :: OS Independent',
     ],
-    python_requires='>=3.6',  # f strings and underscore literals
+    python_requires='>=3.6.2',  # f strings and underscore literals
     keywords='elections voting social choice theory',
     author_email='endolith@gmail.com',
     url='https://github.com/endolith/elsim',
