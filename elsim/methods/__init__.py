@@ -4,7 +4,7 @@ Implements various election methods.
 These take collections of ballots (elections) as inputs and return the winner
 according to the rules of that method.
 """
-from .approval import approval
+from .approval import approval, combined_approval
 from .black import black
 from .borda import borda
 from .condorcet import (condorcet, condorcet_from_matrix,
