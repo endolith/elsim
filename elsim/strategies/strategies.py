@@ -267,3 +267,259 @@ def vote_for_k(utilities, k):
     # TODO: Not sure if this is the most efficient way
     approvals[np.arange(len(approvals))[:, np.newaxis], top_k] = 1
     return approvals
+
+
+def vote_for_or_against_k(utilities, k):
+    """
+    Convert utilities to combined approval voting ballots, with `k` marks.
+
+    Given a set of utilities for each voter-candidate pair, if the candidates'
+    average utilities for a voter are closer to 0, they are modeled as voting
+    for the top `k` candidates.  If the average is closer to 1, they are
+    modeled as voting against their least favorite `k` candidates.  With a
+    random society (IC) model, these two strategies will be equally likely.[1]_
+
+    Parameters
+    ----------
+    utilities : array_like
+        A 2D collection of utilities.
+
+        Rows represent voters, and columns represent candidate IDs.
+        Higher utility numbers mean greater approval of that candidate by that
+        voter.
+    k : int
+        The number of candidates approved or disapproved of by each voter.
+
+    Returns
+    -------
+    election : ndarray
+        A 2D collection of approval ballots.
+
+        Rows represent voters, and columns represent candidate IDs.
+        A cell contains 1 if that voter approves of that candidate, a -1 if
+        the voter disapproves of that candidate, or a 0 if they are neutral.
+
+    References
+    ----------
+    .. [1] Weber, Robert J. (1978). "Comparison of Public Choice Systems".
+       Cowles Foundation Discussion Papers. Cowles Foundation for Research in
+       Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
+
+    Examples
+    --------
+    Voter 0 loves Candidates A (index 0) and B (index 1), but hates C, D, and
+    E (2, 3, 4).
+    Voter 1 dislikes A and E, likes B and D, and loves C.
+    Voter 2 hates A, dislikes C and E, and is lukewarm about B and D.
+
+    >>> utilities = [[1.0, 1.0, 0.0, 0.0, 0.0],
+                     [0.1, 0.8, 1.0, 0.9, 0.2],
+                     [0.0, 0.5, 0.1, 0.5, 0.1],
+                     ]
+
+    If `k` = 2, voters are required to vote for or against 2 candidates.
+
+    Since Voter 0 likes 2 candidates and hates 3, they choose to vote *for*
+    their two favorites.
+
+    Since Voter 1 likes 3 candidates and dislikes 2, they choose to vote
+    *against* their two least favorites.
+
+    Since Voter 2 dislikes 3 candidates, they choose to vote *for* the two
+    candidates they are lukewarm about:
+
+    >>> vote_for_or_against_k(utilities, 2)
+    array([[+1, +1, 0,  0,  0],
+           [-1,  0, 0,  0, -1],
+           [ 0, +1, 0, +1,  0]], dtype=int8)
+
+    If `k` were 3, however, Voters 0 and 2 would choose to vote *against* their
+    three disliked candidates instead, while Voter 1 would switch to voting
+    *for* their 3 liked candidates:
+
+    >>> vote_for_or_against_k(utilities, 3)
+    array([[ 0,  0, -1, -1, -1],
+           [ 0, +1, +1, +1,  0],
+           [-1,  0, -1,  0, -1]], dtype=int8)
+
+    """
+    utilities = np.asarray(utilities)
+    n_cands = utilities.shape[1]
+    if k <= 0 or k > n_cands - 1:
+        raise ValueError(f'k of {k} not possible with {n_cands} candidates')
+
+    # TODO: Does Weber model them as setting their threshold to 0.5, or the
+    # midpoint of their range?  For general use it should be midpoint of range
+
+    # Measure min and max for each voter, and then check if it's above THEIR OWN average utility
+    # For each voter, calculate average utility and midpoint utility
+    # TODO: Make a utility funciont for this
+    def mid(utilities):
+        return (utilities.max(axis=1) + utilities.min(axis=1)) / 2      # or np.mean of the two values?
+    voter_mid = mid(utilities)
+
+    voter_mean = utilities.mean(axis=1)
+
+    # TODO: Simplify all this
+    if k < n_cands / 2:
+        # If average utility < mid, then do approve of top k
+        # If average utility > mid, then do disapprove of bottom k
+        approving_voters = np.where(voter_mean < voter_mid)[0]
+        disapproving_voters = np.where(voter_mean >= voter_mid)[0]
+    else:
+        approving_voters = np.where(voter_mean >= voter_mid)[0]
+        disapproving_voters = np.where(voter_mean < voter_mid)[0]
+
+    # Create blank ballots
+    approvals = np.zeros(utilities.shape, np.int8)
+
+    # slice utilities to get just approving voters?  then find top k of that slice
+    approving_utilities = utilities[approving_voters]
+
+    # slice utilities to get just disapproving voters, then find bottom k of that slice?
+    disapproving_utilities = utilities[disapproving_voters]
+
+    # https://stackoverflow.com/a/23734295/125507
+    top_k = np.argpartition(approving_utilities, -k, axis=1)[:, -k:]
+    bot_k = np.argpartition(disapproving_utilities, k, axis=1)[:, :k]
+
+    """
+    img
+    Out[55]:
+    array([[  0., 255.,   0.,   0.,   0.],
+           [  0.,   0., 255.,   0.,   0.],
+           [  0.,   0.,   0., 255.,   0.],
+           [  0.,   0.,   0.,   0., 255.],
+           [  0.,   0.,   0.,   0.,   0.]])
+
+    img[((0, 1, 2, 3), (1, 2, 3, 4))]
+
+
+    so if I have
+        approving_voters = [0, 2]
+
+    and
+        top_k = [[1, 0],
+                 [1, 3]]
+
+    Then I want to feed these indices to the assignment:
+        ((0, 0, 2, 2), (1, 0, 1, 3))
+
+    and for
+        disapproving_voters = [1]
+
+    and
+        bot_k = [[0, 4]]
+
+    I want
+        ((1, 1), (0, 4))
+
+
+    Likewise, for
+        approving_voters = [1]
+    and
+        top_k = [[1, 3, 2]]
+    I want
+        ((1, 1, 1), (1, 3, 2))
+
+    and for
+        disapproving_voters = [0, 2]
+    and
+        bot_k = [[3, 2, 4],
+                 [0, 2, 4]]
+    I want
+        (0, 0, 0, 2, 2, 2), (3, 2, 4, 0, 2, 4)
+
+    Why can I not figure this out
+
+    0    3 2 4
+    2    0 2 4
+
+    chain([0 for x in [3, 2, 4]], [2 for x in [0, 2, 4]])
+
+    try this:
+        x[row_indices,:][:,col_indices]
+
+    utilities[disapproving_voters, :][:, bot_k]
+
+    nope.
+
+    IS THIS WHAT I WANT?
+        utilities[disapproving_voters][:,bot_k]
+        no.
+
+        utilities[disapproving_voters][bot_k]
+        no.
+
+        utilities[disapproving_voters,:][bot_k]
+        no.
+
+        utilities[disapproving_voters][bot_k,:]
+        no.
+
+        utilities[:,disapproving_voters][bot_k]
+        no.
+
+        utilities[:,disapproving_voters][bot_k,:]
+        no.
+
+    WAIT
+
+    disapproving voters isinside a tuple.  added a [0] to get it out
+
+    utilities[np.ix_(approving_voters, top_k)]
+    nope.
+
+
+    Just do it explicitly
+
+    rows = []
+    cols = []
+    for r in range(len(bot_k)):
+        for c in range(len(bot_k[0])):
+            print(disapproving_voters[r], bot_k[r][c])
+            rows.append(disapproving_voters[r])
+            cols.append(bot_k[r][c])
+
+    that works!
+
+    so as a comprehension:
+
+    [disapproving_voters[r] for r in range(len(bot_k)) for c in range(len(bot_k[0]))]
+    [bot_k[r][c] for r in range(len(bot_k)) for c in range(len(bot_k[0]))]
+
+    found through stupefying trial and error
+
+    [disapproving_voters[r] for r in range(len(bot_k)) for c in range(len(bot_k[0]))]
+    [bot_k[r][c] for r in range(len(bot_k)) for c in range(len(bot_k[0]))]
+
+    [(r, c) for r in range(len(bot_k)) for c in range(len(bot_k[0]))]
+
+    ok whatever it works.  deal with simplifying it some other day
+
+    """
+
+    # TODO there must be a simpler way to do this, ask on stackoverflow
+    rows = []
+    cols = []
+    for r in range(len(top_k)):
+        for c in range(len(top_k[0])):
+            rows.append(approving_voters[r])
+            cols.append(top_k[r][c])
+
+    # assign +1 for approving voters
+    approvals[rows, cols] = 1
+
+    rows = []
+    cols = []
+    for r in range(len(bot_k)):
+        for c in range(len(bot_k[0])):
+            rows.append(disapproving_voters[r])
+            cols.append(bot_k[r][c])
+
+    # and -1 for disapproving voters
+    approvals[rows, cols] = -1
+
+    #TODO THIS IS UGLY CLEAN IT UP AND COMMENT IT
+
+    return approvals
