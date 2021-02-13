@@ -26,9 +26,11 @@ from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
 from tabulate import tabulate
-from elsim.methods import (fptp, borda, utility_winner, approval)
+from elsim.methods import (fptp, borda, utility_winner, approval,
+                           combined_approval)
 from elsim.elections import random_utilities
-from elsim.strategies import honest_rankings, approval_optimal, vote_for_k
+from elsim.strategies import (honest_rankings, approval_optimal, vote_for_k,
+                              vote_for_or_against_k)
 from weber_1977_expressions import eff_standard, eff_vote_for_half, eff_borda
 
 n = 2_000  # Roughly 60 seconds
@@ -37,12 +39,17 @@ n_cands_list = (2, 3, 4, 5, 6, 10, 255)
 
 ranked_methods = {'Standard': fptp, 'Borda': borda}
 
-rated_methods = {'Vote-for-1': lambda utilities, tiebreaker:
-                 approval(vote_for_k(utilities, 1), tiebreaker),  # delete me
+rated_methods = {
+                # 'Vote-for-1': lambda utilities, tiebreaker:
+                #  approval(vote_for_k(utilities, 1), tiebreaker),  # delete me
                  'Vote-for-half': lambda utilities, tiebreaker:
                  approval(vote_for_k(utilities, 'half'), tiebreaker),
-                 'Approval': lambda utilities, tiebreaker:
-                 approval(approval_optimal(utilities), tiebreaker)}
+                 'Vfoak1': lambda utilities, tiebreaker:
+                 combined_approval(vote_for_or_against_k(utilities, 1),
+                                   tiebreaker),
+                 # 'Approval': lambda utilities, tiebreaker:
+                 # approval(approval_optimal(utilities), tiebreaker),
+                 }
 
 count = {key: Counter() for key in (ranked_methods.keys() |
                                     rated_methods.keys() | {'UW'})}
@@ -84,7 +91,7 @@ table = {}
 # Calculate Social Utility Efficiency from summed utilities
 x_uw, y_uw = zip(*sorted(count['UW'].items()))
 average_utility = n_voters * n / 2
-for method in ('Standard', 'Vote-for-1', 'Vote-for-half', 'Borda', 'Approval'):
+for method in ('Standard', 'Vote-for-half', 'Vfoak1', 'Borda'):
     x, y = zip(*sorted(count[method].items()))
     SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
     plt.plot(x, SUE*100, '-', label=method)
