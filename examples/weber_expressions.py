@@ -155,4 +155,20 @@ def test_cases():
     assert_almost_equal(eff_borda(6), 92.58/100, decimal=4)
 
 
-test_cases()
+if __name__ == '__main__':
+    test_cases()
+
+    from tabulate import tabulate
+    from collections import defaultdict
+
+    table = defaultdict(list)
+
+    m_cands_list = (2, 3, 4, 5, 6, 10, 1e30)
+    for m in m_cands_list:
+        for name, method in (('Standard', eff_standard),
+                             ('Vote-for-half', eff_vote_for_half),
+                             ('Borda', eff_borda)):
+            table[name].append(method(m))
+
+    print(tabulate(table, 'keys', showindex=m_cands_list[:-1] + ('∞',),
+                   tablefmt="pipe", floatfmt='.2%'))
