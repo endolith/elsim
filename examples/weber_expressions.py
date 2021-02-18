@@ -65,14 +65,8 @@ def eff_vote_for_half(m):
         Effectiveness of "vote-for-half", with `m` candidates and infinite
         number of random voters.
     """
-    if not m % 2:  # m is even
-        return sqrt(3)/2 * m/(m+1) * sqrt(m/(m-1))
-    else:  # m is odd
-        return sqrt(3)/2 *           sqrt(m/(m+1))
-
-
-# TODO: Or implement this by using the vote for k function
-# Or use that as a test
+    k = m // 2
+    return eff_vote_for_k(m, k)
 
 
 def eff_vote_for_or_against_k(m, k):
