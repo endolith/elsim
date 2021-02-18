@@ -8,7 +8,7 @@ Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 These all use the impartial culture / random society model and an infinite
 number of voters.
 """
-from math import sqrt
+from numpy import sqrt
 from numpy.testing import assert_, assert_almost_equal
 
 
@@ -89,11 +89,8 @@ def eff_vote_for_or_against_k(m, k):
         Effectiveness of "vote-for-or-against-`k`", with `m` candidates and
         infinite number of random voters.
     """
-    if m % 2:  # m is odd
-        return (5*m**2 + 1 - 6*m*k) / (4*(m+1)) * sqrt(3*k/(m * (m-1) * (m-k)))
-    else:  # m is even
-        return (5*m**2     - 6*m*k) / (4*(m+1)) * sqrt(3*k/(m * (m-1) * (m-k)))
-
+    # m % 2 handles the +1 if odd, +0 if even condition
+    return (5*m**2 + m % 2 - 6*m*k) / (4*(m+1)) * sqrt(3*k/(m * (m-1) * (m-k)))
 
 def eff_borda(m):
     """
@@ -153,16 +150,15 @@ if __name__ == '__main__':
     test_cases()
 
     from tabulate import tabulate
-    from collections import defaultdict
+    from numpy import array
 
-    table = defaultdict(list)
-
+    table = {}
     m_cands_list = (2, 3, 4, 5, 6, 10, 1e30)
     for m in m_cands_list:
         for name, method in (('Standard', eff_standard),
                              ('Vote-for-half', eff_vote_for_half),
                              ('Borda', eff_borda)):
-            table[name].append(method(m))
+            table.update({name: method(array(m_cands_list))})
 
     print(tabulate(table, 'keys', showindex=m_cands_list[:-1] + ('∞',),
                    tablefmt="pipe", floatfmt='.2%'))
