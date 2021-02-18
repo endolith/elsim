@@ -8,7 +8,7 @@ Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 These all use the impartial culture / random society model and an infinite
 number of voters.
 """
-from numpy import sqrt
+from numpy import sqrt, round
 from numpy.testing import assert_, assert_almost_equal
 
 
@@ -92,6 +92,51 @@ def eff_vote_for_or_against_k(m, k):
     # m % 2 handles the +1 if odd, +0 if even condition
     return (5*m**2 + m % 2 - 6*m*k) / (4*(m+1)) * sqrt(3*k/(m * (m-1) * (m-k)))
 
+
+def best_vote_for_or_against_k(m):
+    """
+    Find `k` that maximizes effectiveness of "vote-for-or-against-k" system.
+
+    This `k` is the value that maximizes the effectiveness of this system for
+    a given `m`, when every voter uses it.
+
+    Parameters
+    ----------
+    m : int
+        Total number of candidates.
+
+    Returns
+    -------
+    k : float
+        Number of candidates for every voter to approve or disapprove.
+    """
+    alpha = (9 - sqrt(21))/12
+    return round(alpha * m)
+
+
+def eff_best_vote_for_or_against_k(m):
+    """
+    Calculate effectiveness of the best "vote-for-or-against-k" voting system.
+
+    This is a variant of combined approval voting (CAV) in which every voter
+    approves or disapproves of `k` candidates.  In this "best" case, `k` is the
+    chosen to maximize the effectiveness for a given `m`.
+
+    Parameters
+    ----------
+    m : int
+        Total number of candidates.
+
+    Returns
+    -------
+    eff : float
+        Effectiveness of "vote-for-or-against-`k`", with `m` candidates and
+        infinite number of random voters.
+    """
+    k = best_vote_for_or_against_k(m)
+    return eff_vote_for_or_against_k(m, k)
+
+
 def eff_borda(m):
     """
     Calculate effectiveness of the Borda count voting system.
@@ -157,6 +202,8 @@ if __name__ == '__main__':
     for m in m_cands_list:
         for name, method in (('Standard', eff_standard),
                              ('Vote-for-half', eff_vote_for_half),
+                             ('Best Vote-for-or-against-k',
+                              eff_best_vote_for_or_against_k),
                              ('Borda', eff_borda)):
             table.update({name: method(array(m_cands_list))})
 
