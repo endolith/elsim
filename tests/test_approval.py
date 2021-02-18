@@ -132,6 +132,57 @@ def test_legit_winner_none(election, method):
     assert winner in set(range(n_cands)) | {None}
 
 
+@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
+def test_cav_basic(tiebreaker):
+    # Standard Tennessee example
+    #                 Memphis Nashville Chattanooga Knoxville
+    election = [*42*[[+1,     0,        0,         -1]],
+                *26*[[-1,    +1,        0,          0]],
+                *15*[[-1,     0,       +1,         +1]],
+                *17*[[-1,     0,        0,         +1]],
+                ]
+
+    assert combined_approval(election, tiebreaker) == 1  # Nashville
+
+
+def combined_approval_ballots(min_cands=1, max_cands=25, min_voters=1,
+                              max_voters=100):
+    """
+    Strategy to generate approval voting ballot elections
+    """
+    n_cands = integers(min_value=min_cands, max_value=max_cands)
+    n_voters = integers(min_value=min_voters, max_value=max_voters)
+    return arrays(np.int, tuples(n_voters, n_cands), elements=integers(-1, 1))
+
+
+@pytest.mark.parametrize("tiebreaker", ['random', 'order'])
+@given(election=combined_approval_ballots(min_cands=1, max_cands=25,
+                                          min_voters=1, max_voters=100))
+def test_cav_legit_winner(election, tiebreaker):
+    election = np.asarray(election)
+    n_cands = election.shape[1]
+    winner = combined_approval(election, tiebreaker)
+    assert isinstance(winner, int)
+    assert winner in range(n_cands)
+
+
+@given(election=combined_approval_ballots(min_cands=1, max_cands=25,
+                                          min_voters=1, max_voters=100))
+def test_cav_legit_winner_none(election):
+    election = np.asarray(election)
+    n_cands = election.shape[1]
+    winner = combined_approval(election)
+    assert isinstance(winner, (int, type(None)))
+    assert winner in set(range(n_cands)) | {None}
+
+
+@pytest.mark.parametrize("method", [approval, combined_approval])
+def test_invalid(method):
+    with pytest.raises(ValueError):
+        method([[-2, -2, -2],
+                [0, +1, -1]])
+
+
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime
