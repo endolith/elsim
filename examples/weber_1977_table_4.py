@@ -50,13 +50,13 @@ for iteration in range(n):
     for n_voters in n_voters_list:
         utilities = random_utilities(n_voters, n_cands)
 
-        for name, func in rated_methods.items():
-            winner = func(utilities, tiebreaker='random')
+        for name, method in rated_methods.items():
+            winner = method(utilities, tiebreaker='random')
             count[name][n_voters] += utilities.sum(axis=0)[winner]
 
         rankings = honest_rankings(utilities)
-        for name, func in ranked_methods.items():
-            winner = func(rankings, tiebreaker='random')
+        for name, method in ranked_methods.items():
+            winner = method(rankings, tiebreaker='random')
             count[name][n_voters] += utilities.sum(axis=0)[winner]
 
 elapsed_time = time.monotonic() - start_time

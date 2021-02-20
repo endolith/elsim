@@ -104,12 +104,12 @@ for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
             RW = randint(0, n_cands - 1)
             count['RW'][n_cands] += utilities.sum(axis=0)[RW]
 
-            for name, func in rated_methods.items():
-                winner = func(utilities, tiebreaker='random')
+            for name, method in rated_methods.items():
+                winner = method(utilities, tiebreaker='random')
                 count[name][n_cands] += utilities.sum(axis=0)[winner]
 
-            for name, func in ranked_methods.items():
-                winner = func(rankings, tiebreaker='random')
+            for name, method in ranked_methods.items():
+                winner = method(rankings, tiebreaker='random')
                 count[name][n_cands] += utilities.sum(axis=0)[winner]
 
     elapsed_time = time.monotonic() - start_time

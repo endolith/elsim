@@ -92,12 +92,12 @@ for disp, corr, D in conditions:
         if CW is not None:
             count['CW'] += 1
 
-            for name, func in ranked_methods.items():
-                if func(rankings, tiebreaker='random') == CW:
+            for name, method in ranked_methods.items():
+                if method(rankings, tiebreaker='random') == CW:
                     count[name] += 1
 
-            for name, func in rated_methods.items():
-                if func(utilities, tiebreaker='random') == CW:
+            for name, method in rated_methods.items():
+                if method(utilities, tiebreaker='random') == CW:
                     count[name] += 1
 
     results.append(count)

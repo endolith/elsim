@@ -104,12 +104,12 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
             if CW is not None:
                 count['CW'][n_cands] += 1
 
-                for name, func in ranked_methods.items():
-                    if func(rankings, tiebreaker='random') == CW:
+                for name, method in ranked_methods.items():
+                    if method(rankings, tiebreaker='random') == CW:
                         count[name][n_cands] += 1
 
-                for name, func in rated_methods.items():
-                    if func(utilities, tiebreaker='random') == CW:
+                for name, method in rated_methods.items():
+                    if method(utilities, tiebreaker='random') == CW:
                         count[name][n_cands] += 1
 
     elapsed_time = time.monotonic() - start_time

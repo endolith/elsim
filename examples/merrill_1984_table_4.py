@@ -90,12 +90,12 @@ for disp, corr, D in conditions:
         RW = randint(0, n_cands - 1)
         count['RW'] += utilities.sum(axis=0)[RW]
 
-        for name, func in rated_methods.items():
-            winner = func(utilities, tiebreaker='random')
+        for name, method in rated_methods.items():
+            winner = method(utilities, tiebreaker='random')
             count[name] += utilities.sum(axis=0)[winner]
 
-        for name, func in ranked_methods.items():
-            winner = func(rankings, tiebreaker='random')
+        for name, method in ranked_methods.items():
+            winner = method(rankings, tiebreaker='random')
             count[name] += utilities.sum(axis=0)[winner]
 
     results.append(count)

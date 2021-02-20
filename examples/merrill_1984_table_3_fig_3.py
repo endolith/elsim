@@ -64,13 +64,13 @@ for iteration in range(n):
         UW = utility_winner(utilities)
         count['UW'][n_cands] += utilities.sum(axis=0)[UW]
 
-        for name, func in rated_methods.items():
-            winner = func(utilities, tiebreaker='random')
+        for name, method in rated_methods.items():
+            winner = method(utilities, tiebreaker='random')
             count[name][n_cands] += utilities.sum(axis=0)[winner]
 
         rankings = honest_rankings(utilities)
-        for name, func in ranked_methods.items():
-            winner = func(rankings, tiebreaker='random')
+        for name, method in ranked_methods.items():
+            winner = method(rankings, tiebreaker='random')
             count[name][n_cands] += utilities.sum(axis=0)[winner]
 
 
