@@ -62,16 +62,16 @@ for iteration in range(n):
 
         # Find the social utility winner and accumulate utilities
         UW = utility_winner(utilities)
-        count['UW'][n_cands] += utilities.sum(0)[UW]
+        count['UW'][n_cands] += utilities.sum(axis=0)[UW]
 
         for name, func in rated_methods.items():
             winner = func(utilities, tiebreaker='random')
-            count[name][n_cands] += utilities.sum(0)[winner]
+            count[name][n_cands] += utilities.sum(axis=0)[winner]
 
         rankings = honest_rankings(utilities)
         for name, func in ranked_methods.items():
             winner = func(rankings, tiebreaker='random')
-            count[name][n_cands] += utilities.sum(0)[winner]
+            count[name][n_cands] += utilities.sum(axis=0)[winner]
 
 
 elapsed_time = time.monotonic() - start_time

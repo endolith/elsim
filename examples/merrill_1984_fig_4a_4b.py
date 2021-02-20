@@ -102,15 +102,15 @@ for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
 
             # Pick a random winner and accumulate utilities
             RW = randint(0, n_cands - 1)
-            count['RW'][n_cands] += utilities.sum(0)[RW]
+            count['RW'][n_cands] += utilities.sum(axis=0)[RW]
 
             for name, func in rated_methods.items():
                 winner = func(utilities, tiebreaker='random')
-                count[name][n_cands] += utilities.sum(0)[winner]
+                count[name][n_cands] += utilities.sum(axis=0)[winner]
 
             for name, func in ranked_methods.items():
                 winner = func(rankings, tiebreaker='random')
-                count[name][n_cands] += utilities.sum(0)[winner]
+                count[name][n_cands] += utilities.sum(axis=0)[winner]
 
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),

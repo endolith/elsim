@@ -88,15 +88,15 @@ for disp, corr, D in conditions:
 
         # Pick a random winner and accumulate utilities
         RW = randint(0, n_cands - 1)
-        count['RW'] += utilities.sum(0)[RW]
+        count['RW'] += utilities.sum(axis=0)[RW]
 
         for name, func in rated_methods.items():
             winner = func(utilities, tiebreaker='random')
-            count[name] += utilities.sum(0)[winner]
+            count[name] += utilities.sum(axis=0)[winner]
 
         for name, func in ranked_methods.items():
             winner = func(rankings, tiebreaker='random')
-            count[name] += utilities.sum(0)[winner]
+            count[name] += utilities.sum(axis=0)[winner]
 
     results.append(count)
 
