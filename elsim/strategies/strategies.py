@@ -182,15 +182,18 @@ def vote_for_k(utilities, k):
         # voting systems are equally effective."
         # So for 7 candidates, we could use either k=4 or k=3 (= 7//2)
         k = n_cands // 2
-    elif k <= 0 or k > n_cands:
+    elif k <= 0 or k > n_cands - 1:
         raise ValueError(f'k of {k} not possible with {n_cands} candidates')
 
     # Efficiently get indices of top k candidates for each voter
     # https://stackoverflow.com/a/23734295/125507
     # TODO: How are tied utilities handled, such as top 2 with 3 tied? Random?
     top_k = np.argpartition(utilities, -k, axis=1)[:, -k:]
+
+    # Create blank ballots
     approvals = np.zeros(utilities.shape, np.uint8)
 
+    # Fill in approvals
     # TODO: Not sure if this is the most efficient way
     approvals[np.arange(len(approvals))[:, np.newaxis], top_k] = 1
     return approvals
