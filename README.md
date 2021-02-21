@@ -13,7 +13,7 @@ Goals:
 - Able to reproduce peer-reviewed research
 
 # Requirements
-Current dependencies are [`numpy`](https://numpy.org/) and [`scipy`](https://www.scipy.org/).
+See `requirements.txt`.  As of this README, it includes  [`numpy`](https://numpy.org/) and [`scipy`](https://www.scipy.org/)for the simulations, `tabulate` for printing example tables,  and  [`pytest`](https://docs.pytest.org/en/latest/), [`hypothesis`](https://hypothesis.readthedocs.io/en/latest/), and `pytest-cov` for running the tests.  All should be installable through `conda`.
 
 Optionally, `elsim` can use [`numba`](http://numba.pydata.org/) for speed.  If not available, the code will still run, just more slowly.
 
@@ -49,7 +49,7 @@ Candidate 2 is the Condorcet winner, and wins under Black's method.
 See [/examples](/examples) folder for more on what it can do.
 
 # Tests
-Tests can be run by installing [`pytest`](https://docs.pytest.org/en/latest/), [`hypothesis`](https://hypothesis.readthedocs.io/en/latest/), and then running `pytest` in the project folder.
+Tests can be run by installing the testing dependencies and then running `pytest` in the project folder.
 
 # Bugs / Requests
 File issues on the [Github issue tracker](https://github.com/endolith/elsim/issues).

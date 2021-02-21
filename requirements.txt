@@ -1,6 +1,11 @@
+# Simulations
 numpy
 scipy
+
+# Examples
+tabulate
+
+# Testing
 pytest
 hypothesis
 pytest-cov
-tabulate
