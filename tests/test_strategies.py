@@ -50,6 +50,13 @@ def test_vote_for_k(tiebreaker):
                                                   [0, 0, 1],
                                                   ])
 
+    assert_array_equal(vote_for_k(utilities, 'half'), [[0, 0, 1],
+                                                       [1, 0, 0],
+                                                       [0, 1, 0],
+                                                       [0, 1, 0],
+                                                       [0, 0, 1],
+                                                       ])
+
     assert_array_equal(vote_for_k(utilities, 2), [[0, 1, 1],
                                                   [1, 0, 1],
                                                   [0, 1, 1],
