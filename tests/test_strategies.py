@@ -2,7 +2,7 @@ import random
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
-from elsim.strategies import approval_optimal
+from elsim.strategies import approval_optimal, vote_for_k
 
 
 def collect_random_results(method, election):
@@ -33,6 +33,37 @@ def test_approval_optimal(tiebreaker):
                                                      [0, 1, 1],
                                                      [0, 0, 1],
                                                      ])
+
+
+@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
+def test_vote_for_k(tiebreaker):
+    utilities = np.array([[0.0, 0.4, 1.0],
+                          [1.0, 0.5, 0.9],
+                          [0.0, 0.2, 0.1],
+                          [0.0, 1.0, 0.7],
+                          [0.3, 0.4, 0.6],
+                          ])
+    assert_array_equal(vote_for_k(utilities, 1), [[0, 0, 1],
+                                                  [1, 0, 0],
+                                                  [0, 1, 0],
+                                                  [0, 1, 0],
+                                                  [0, 0, 1],
+                                                  ])
+
+    assert_array_equal(vote_for_k(utilities, 2), [[0, 1, 1],
+                                                  [1, 0, 1],
+                                                  [0, 1, 1],
+                                                  [0, 1, 1],
+                                                  [0, 1, 1],
+                                                  ])
+
+
+@pytest.mark.parametrize("k", [0, 3, -1])
+def test_invalid_k(k):
+    with pytest.raises(ValueError):
+        election = [[0, 1],
+                    [1, 0]]
+        vote_for_k(election, k)
 
 
 if __name__ == "__main__":
