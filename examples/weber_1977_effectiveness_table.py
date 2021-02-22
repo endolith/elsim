@@ -26,24 +26,24 @@ from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
 from tabulate import tabulate
-from elsim.methods import (fptp, borda, utility_winner, approval,
+from elsim.methods import (fptp, utility_winner,
                            combined_approval)
 from elsim.elections import random_utilities
-from elsim.strategies import (honest_rankings, approval_optimal, vote_for_k,
+from elsim.strategies import (honest_rankings,
                               vote_for_or_against_k)
-from weber_1977_expressions import eff_standard, eff_vote_for_half, eff_borda
+from weber_1977_expressions import eff_standard, eff_vote_for_or_against_k
 
 n = 2_000  # Roughly 60 seconds
 n_voters = 1_000
 n_cands_list = (2, 3, 4, 5, 6, 10, 255)
 
-ranked_methods = {'Standard': fptp, 'Borda': borda}
+ranked_methods = {}#'Standard': fptp}
 
 rated_methods = {
                 # 'Vote-for-1': lambda utilities, tiebreaker:
                 #  approval(vote_for_k(utilities, 1), tiebreaker),  # delete me
-                 'Vote-for-half': lambda utilities, tiebreaker:
-                 approval(vote_for_k(utilities, 'half'), tiebreaker),
+                 # 'Vote-for-half': lambda utilities, tiebreaker:
+                 # approval(vote_for_k(utilities, 'half'), tiebreaker),
                  'Vfoak1': lambda utilities, tiebreaker:
                  combined_approval(vote_for_or_against_k(utilities, 1),
                                    tiebreaker),
@@ -78,9 +78,13 @@ print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
 plt.figure(f'Effectiveness, {n_voters} voters, {n} iterations')
 plt.title('The Effectiveness of Several Voting Systems')
-for name, method in (('Standard', eff_standard),
-                     ('Vote-for-half', eff_vote_for_half),
-                     ('Borda', eff_borda)):
+for name, method in (#('Standard', eff_standard),
+                     #('Vote-for-half', eff_vote_for_half),
+                     ('Vote-for-or-against-1',
+                      lambda m:eff_vote_for_or_against_k(m, 1
+                                                         )),
+                     #('Borda', eff_borda)
+                     ):
     plt.plot(n_cands_list, method(np.array(n_cands_list))*100, ':', lw=0.8)
 
 # Restart color cycle, so result colors match
@@ -91,10 +95,10 @@ table = {}
 # Calculate Social Utility Efficiency from summed utilities
 x_uw, y_uw = zip(*sorted(count['UW'].items()))
 average_utility = n_voters * n / 2
-for method in ('Standard', 'Vote-for-half', 'Vfoak1', 'Borda'):
+for method in ('Vfoak1',):
     x, y = zip(*sorted(count[method].items()))
     SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
-    plt.plot(x, SUE*100, '-', label=method)
+    plt.plot(x, SUE*100, '-', label='Vfoak1')
     table.update({method: SUE*100})
 
 print(tabulate(table, 'keys', showindex=n_cands_list,
