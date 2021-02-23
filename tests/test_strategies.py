@@ -5,7 +5,22 @@ from hypothesis import given
 from hypothesis.strategies import integers, tuples, floats
 from hypothesis.extra.numpy import arrays
 from elsim.strategies import (approval_optimal, vote_for_k,
-                              honest_normed_scores)
+                              honest_normed_scores,
+                              vote_for_or_against_k)
+
+
+def collect_random_results(method, election):
+    """
+    Run multiple elections with tiebreaker='random' and collect the set of all
+    winners.
+    """
+    random.seed(47)  # Deterministic test
+    winners = set()
+    for trial in range(10):
+        winner = method(election, tiebreaker='random')
+        assert isinstance(winner, int)
+        winners.add(winner)
+    return winners
 
 
 def test_approval_optimal():
@@ -64,6 +79,30 @@ def test_vote_for_k():
     assert_array_equal(vote_for_k(utilities, -1), b)
 
 
+
+def test_vote_for_or_against_k():
+    utilities = np.array([[0.0, 0.4, 1.0],
+                          [1.0, 0.5, 0.9],
+                          [0.0, 0.2, 0.3],
+                          [0.0, 1.0, 0.7],
+                          [0.3, 0.4, 0.6],
+                          ])
+    assert_array_equal(vote_for_or_against_k(utilities, 1), [[0,   0, +1],
+                                                             [0,  -1,  0],
+                                                             [-1,  0,  0],
+                                                             [-1,  0,  0],
+                                                             [0,   0, +1],
+                                                             ])
+
+    assert_array_equal(vote_for_or_against_k(utilities, 2), [[-1, -1,  0],
+                                                             [+1,  0, +1],
+                                                             [0,  +1, +1],
+                                                             [0,  +1, +1],
+                                                             [-1, -1,  0],
+                                                             ])
+
+
+@pytest.mark.parametrize("method", [vote_for_k, vote_for_or_against_k])
 @pytest.mark.parametrize("k", [0, 3, -3, -4, 4])
 def test_invalid_k(k):
     with pytest.raises(ValueError):
