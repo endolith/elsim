@@ -367,21 +367,21 @@ def vote_for_or_against_k(utilities, k):
     # disapprove at random?
 
 
-    # TODO: Simplify all this
-    # Actually, Weber specifies k < m/2
-    if k < n_cands / 2:
-        # If average utility < mid, then do approve of top k
-        # If average utility > mid, then do disapprove of bottom k
-        approving_voters = np.where(voter_mean < voter_mid)[0]
-        disapproving_voters = np.where(voter_mean >= voter_mid)[0]
-    else:
-        approving_voters = np.where(voter_mean >= voter_mid)[0]
-        disapproving_voters = np.where(voter_mean < voter_mid)[0]
+    # # TODO: Simplify all this
+    # # Actually, Weber specifies k < m/2
+    # if k < n_cands / 2:
+    #     # If average utility < mid, then do approve of top k
+    #     # If average utility > mid, then do disapprove of bottom k
+    #     approving_voters = np.where(voter_mean < voter_mid)[0]
+    #     disapproving_voters = np.where(voter_mean >= voter_mid)[0]
+    # else:
+    #     approving_voters = np.where(voter_mean >= voter_mid)[0]
+    #     disapproving_voters = np.where(voter_mean < voter_mid)[0]
 
 
-    # # "a voter is equally likely to be of either type."
-    # approving_voters = np.arange(len(utilities)//2)
-    # disapproving_voters = np.arange(len(utilities)//2, len(utilities))
+    # "a voter is equally likely to be of either type."
+    approving_voters = np.arange(len(utilities)//2)
+    disapproving_voters = np.arange(len(utilities)//2, len(utilities))
 
     # Create blank ballots
     approvals = np.zeros(utilities.shape, np.int8)
@@ -395,6 +395,7 @@ def vote_for_or_against_k(utilities, k):
     # https://stackoverflow.com/a/23734295/125507
     top_k = np.argpartition(approving_utilities, -k, axis=1)[:, -k:]
     bot_k = np.argpartition(disapproving_utilities, k, axis=1)[:, :k]
+    # function this, used in multiple
 
     """
     img

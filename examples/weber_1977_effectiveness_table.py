@@ -33,7 +33,7 @@ from elsim.strategies import (honest_rankings,
                               vote_for_or_against_k)
 from weber_1977_expressions import eff_standard, eff_vote_for_or_against_k
 
-n = 2_000  # Roughly 60 seconds
+n = 20_000
 n_voters = 1_000
 n_cands_list = (2, 3, 4, 5, 6, 10, 255)
 
