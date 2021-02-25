@@ -4,6 +4,7 @@ scipy
 
 # Examples
 tabulate
+joblib
 
 # Testing
 pytest

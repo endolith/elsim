@@ -27,10 +27,11 @@ it matches Weber's results (which used an infinite number of voters), but this
 takes a very long time to simulate.
 """
 import time
-from collections import Counter
+from collections import Counter, defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
 from tabulate import tabulate
+from joblib import Parallel, delayed
 from elsim.methods import utility_winner, approval
 from elsim.elections import random_utilities
 from elsim.strategies import vote_for_k
@@ -49,26 +50,43 @@ rated_methods = {'Vote-for-1': lambda utilities, tiebreaker:
                  'Vote-for-4': lambda utilities, tiebreaker:
                  approval(vote_for_k(utilities, 4), tiebreaker),
                  'Vote-for-half': lambda utilities, tiebreaker:
-                 approval(vote_for_k(utilities, 'half'), tiebreaker)}
+                 approval(vote_for_k(utilities, 'half'), tiebreaker),
+                 }
 
 count = {key: Counter() for key in (rated_methods.keys() | {'UW'})}
 
+print(f'Doing {n:,} iterations, {n_voters:,} voters, '
+      f'{n_cands_list} candidates')
+
 start_time = time.monotonic()
 
-for iteration in range(n):
+
+def func():
+    count = defaultdict(dict)
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
 
         # Find the social utility winner and accumulate utilities
         UW = utility_winner(utilities)
-        count['UW'][n_cands] += utilities.sum(axis=0)[UW]
+        count['UW'][n_cands] = utilities.sum(axis=0)[UW]
 
         for name, method in rated_methods.items():
             try:
                 winner = method(utilities, tiebreaker='random')
-                count[name][n_cands] += utilities.sum(axis=0)[winner]
+                count[name][n_cands] = utilities.sum(axis=0)[winner]
             except ValueError:
                 count[name][n_cands] = np.nan
+
+    return count
+
+
+p = Parallel(n_jobs=-2, prefer="threads",
+             verbose=5)(delayed(func)() for i in range(n))
+
+for result in p:
+    for method, d in result.items():
+        for n_cands, value in d.items():
+            count[method][n_cands] += value
 
 
 elapsed_time = time.monotonic() - start_time
