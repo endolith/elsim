@@ -1,9 +1,34 @@
+import numbers
 import numpy as np
 from scipy.spatial.distance import cdist
 from elsim.strategies import honest_rankings
 
+elections_rng = np.random.default_rng()
 
-def random_utilities(n_voters, n_cands):
+
+def check_random_state(seed):
+    """
+    Turn seed into a np.random.Generator instance.
+
+    Parameters
+    ----------
+    seed : None, int or instance of Generator
+        If seed is None, return the elsim.elections Generator.
+        If seed is an int, return a new Generator instance seeded with it.
+        If seed is already a Generator instance, return it.
+        Otherwise raise ValueError.
+    """
+    if seed is None:
+        return elections_rng
+    if isinstance(seed, (numbers.Integral, np.integer)):
+        return np.random.default_rng(seed)
+    if isinstance(seed, np.random.Generator):
+        return seed
+    raise ValueError(f'{seed} cannot be used to seed a '
+                     'numpy.random.Generator instance')
+
+
+def random_utilities(n_voters, n_cands, random_state=None):
     """
     Generate utilities using the impartial culture / random society model.
 
@@ -20,6 +45,13 @@ def random_utilities(n_voters, n_cands):
         Number of voters
     n_cands : int
         Number of candidates
+    random_state : {None, int, np.random.Generator}, optional
+        Initializes the random number generator.  If `random_state` is int, a
+        new Generator instance is used, seeded with its value.  (If the same
+        int is given twice, the function will return the same values.)
+        If None (default), an existing Generator is used.
+        If `random_state` is already a Generator instance, then
+        that object is used.
 
     Returns
     -------
@@ -51,12 +83,14 @@ def random_utilities(n_voters, n_cands):
     Here, Voter 1 prefers Candidate 2, and considers Candidate 0 and 1 roughly
     similar.
     """
+    rng = check_random_state(random_state)
+
     # Generate utilities from a uniform distribution over [0, 1).
     # Merrill uses [0, 1], but that shouldn't make any difference.
-    return np.random.rand(n_voters, n_cands)
+    return rng.random((n_voters, n_cands))
 
 
-def impartial_culture(n_voters, n_cands):
+def impartial_culture(n_voters, n_cands, random_state=None):
     """
     Generate ranked ballots using the impartial culture / random society model.
 
@@ -72,6 +106,13 @@ def impartial_culture(n_voters, n_cands):
         Number of voters
     n_cands : int
         Number of candidates
+    random_state : {None, int, np.random.Generator}, optional
+        Initializes the random number generator.  If `random_state` is int, a
+        new Generator instance is used, seeded with its value.  (If the same
+        int is given twice, the function will return the same values.)
+        If None (default), an existing Generator is used.
+        If `random_state` is already a Generator instance, then
+        that object is used.
 
     Returns
     -------
@@ -116,12 +157,13 @@ def impartial_culture(n_voters, n_cands):
     """
     # This method is much faster than generating integer sequences and then
     # shuffling them.
-    utilities = random_utilities(n_voters, n_cands)
+    utilities = random_utilities(n_voters, n_cands, random_state)
     rankings = honest_rankings(utilities)
     return rankings
 
 
-def normal_electorate(n_voters, n_cands, dims=2, corr=0.0, disp=1.0):
+def normal_electorate(n_voters, n_cands, dims=2, corr=0.0, disp=1.0,
+                      random_state=None):
     """
     Generate normally distributed voters and candidates in issue space.
 
@@ -140,6 +182,13 @@ def normal_electorate(n_voters, n_cands, dims=2, corr=0.0, disp=1.0):
         standard deviations.  For example, 1.0 means they are distributed by
         the same amount, while 0.5 means that candidates are more tightly
         concentrated than voters.
+    random_state : {None, int, np.random.Generator}, optional
+        Initializes the random number generator.  If `random_state` is int, a
+        new Generator instance is used, seeded with its value.  (If the same
+        int is given twice, the function will return the same values.)
+        If None (default), an existing Generator is used.
+        If `random_state` is already a Generator instance, then
+        that object is used.
 
     Returns
     -------
@@ -187,6 +236,8 @@ def normal_electorate(n_voters, n_cands, dims=2, corr=0.0, disp=1.0):
            Electoral Systems", American Journal of Political Science, vol. 28,
            no. 1, p. 26, 1984.  :doi:`10.2307/2110786`
     """
+    rng = check_random_state(random_state)
+
     A = 1 + (dims - 1)*corr
     B = 1 - corr
 
@@ -194,10 +245,10 @@ def normal_electorate(n_voters, n_cands, dims=2, corr=0.0, disp=1.0):
     # proportional to standard deviation, and SD = √(variance)
     scale = np.sqrt(A/B)
 
-    voters = np.random.standard_normal((n_voters, dims))
+    voters = rng.standard_normal((n_voters, dims))
     voters[:, 0] *= scale
 
-    candidates = np.random.standard_normal((n_cands, dims))
+    candidates = rng.standard_normal((n_cands, dims))
     candidates[:, 0] *= scale
 
     # Scale all coordinates relative to voter distribution
