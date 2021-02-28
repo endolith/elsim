@@ -13,11 +13,10 @@ def test_random_utilities():
         for n_cands in (1, 2, 3, 7, 100):
             election = random_utilities(n_voters, n_cands, random_state=rng)
 
-            # Make sure rows are voters and columns are
-            # candidates
+            # Make sure rows are voters and columns are candidates
             assert election.shape == (n_voters, n_cands)
 
-            # Make sure each row is uniformly distributed
+            # Make sure each row is within [0, 1]
             for row in election:
                 assert row.min() >= 0
                 assert row.max() <= 1
