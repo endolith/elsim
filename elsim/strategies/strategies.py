@@ -136,7 +136,8 @@ def vote_for_k(utilities, k):
         voter.
     k : int or 'half'
         The number of candidates approved of by each voter, or 'half' to make
-        the number dependent on the number of candidates.
+        the number dependent on the number of candidates.  If a negative int,
+        then vote for ``n - k`` candidates, where ``n`` is the total number.
 
     Returns
     -------
@@ -178,11 +179,14 @@ def vote_for_k(utilities, k):
     utilities = np.asarray(utilities)
     n_cands = utilities.shape[1]
     if k == 'half':
-        # "It is interesting to observe that the vote-for-k and vote-for-(m-k)
+        # "It is interesting to observe that the vote-for-k and vote-for-(n-k)
         # voting systems are equally effective."
         # So for 7 candidates, we could use either k=4 or k=3 (= 7//2)
+        # TODO: Though this seems only true with infinite voters?
         k = n_cands // 2
-    elif k <= 0 or k > n_cands - 1:
+    elif -n_cands < k < 0:
+        k = n_cands + k
+    elif not 0 < k < n_cands:
         raise ValueError(f'k of {k} not possible with {n_cands} candidates')
 
     # Efficiently get indices of top k candidates for each voter

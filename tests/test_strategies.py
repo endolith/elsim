@@ -46,33 +46,30 @@ def test_vote_for_k(tiebreaker):
                           [0.0, 1.0, 0.7],
                           [0.3, 0.4, 0.6],
                           ])
-    assert_array_equal(vote_for_k(utilities, 1), [[0, 0, 1],
-                                                  [1, 0, 0],
-                                                  [0, 1, 0],
-                                                  [0, 1, 0],
-                                                  [0, 0, 1],
-                                                  ])
 
-    assert_array_equal(vote_for_k(utilities, 'half'), [[0, 0, 1],
-                                                       [1, 0, 0],
-                                                       [0, 1, 0],
-                                                       [0, 1, 0],
-                                                       [0, 0, 1],
-                                                       ])
+    a = [[0, 0, 1],
+         [1, 0, 0],
+         [0, 1, 0],
+         [0, 1, 0],
+         [0, 0, 1]]
+    assert_array_equal(vote_for_k(utilities, 1), a)
+    assert_array_equal(vote_for_k(utilities, -2), a)
+    assert_array_equal(vote_for_k(utilities, 'half'), a)
 
-    assert_array_equal(vote_for_k(utilities, 2), [[0, 1, 1],
-                                                  [1, 0, 1],
-                                                  [0, 1, 1],
-                                                  [0, 1, 1],
-                                                  [0, 1, 1],
-                                                  ])
+    b = [[0, 1, 1],
+         [1, 0, 1],
+         [0, 1, 1],
+         [0, 1, 1],
+         [0, 1, 1]]
+    assert_array_equal(vote_for_k(utilities, 2), b)
+    assert_array_equal(vote_for_k(utilities, -1), b)
 
 
-@pytest.mark.parametrize("k", [0, 3, -1])
+@pytest.mark.parametrize("k", [0, 3, -3, -4, 4])
 def test_invalid_k(k):
     with pytest.raises(ValueError):
-        election = [[0, 1],
-                    [1, 0]]
+        election = [[0.0, 0.5, 1.0],
+                    [1.0, 0.0, 0.1]]
         vote_for_k(election, k)
 
 
