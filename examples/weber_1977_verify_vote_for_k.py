@@ -44,8 +44,12 @@ for iteration in range(n):
         count['UW'][n_cands] += utilities.sum(axis=0)[UW]
 
         for name, method in rated_methods.items():
-            winner = method(utilities, tiebreaker='random')
-            count[name][n_cands] += utilities.sum(axis=0)[winner]
+            try:
+                winner = method(utilities, tiebreaker='random')
+                count[name][n_cands] += utilities.sum(axis=0)[winner]
+            except ValueError:
+                count[name][n_cands] = np.nan
+
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
