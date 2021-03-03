@@ -92,7 +92,7 @@ def approval(election, tiebreaker=None):
         raise ValueError
 
     # Tally all approvals
-    tallies = election.sum(0)
+    tallies = election.sum(axis=0)
 
     # Find the set of candidates who have the highest score (usually only one)
     winners = _all_indices(tallies, max(tallies))
@@ -156,7 +156,7 @@ def combined_approval(election, tiebreaker=None):
         raise ValueError
 
     # Tally all approvals
-    tallies = election.sum(0)
+    tallies = election.sum(axis=0)
 
     # Find the set of candidates who have the highest score (usually only one)
     winners = _all_indices(tallies, max(tallies))
