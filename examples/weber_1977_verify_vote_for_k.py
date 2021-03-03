@@ -5,6 +5,26 @@ Weber, Robert J. (1978). "Comparison of Public Choice Systems".
 Cowles Foundation Discussion Papers. Cowles Foundation for Research in
 Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 
+50k iterations required for smooth lines.  Typical results with 1k voters:
+
+|    |    1 |     2 |     3 |     4 |   half |
+|---:|-----:|------:|------:|------:|-------:|
+|  2 | 81.7 | nan   | nan   | nan   |   81.6 |
+|  3 | 74.8 |  74.9 | nan   | nan   |   74.8 |
+|  4 | 69.3 |  79.9 |  68.8 | nan   |   79.9 |
+|  5 | 64.9 |  79.0 |  78.7 |  63.6 |   79.0 |
+|  6 | 61.4 |  77.1 |  81.3 |  76.6 |   81.3 |
+|  7 | 57.9 |  74.3 |  80.9 |  80.8 |   80.9 |
+|  8 | 54.9 |  71.6 |  79.8 |  82.3 |   82.3 |
+|  9 | 52.9 |  69.2 |  78.1 |  82.2 |   82.2 |
+| 10 | 51.0 |  67.1 |  76.3 |  81.6 |   82.9 |
+
+But the smooth lines are inaccurate, diverging slightly higher as the
+number of candidates increases.
+
+Increasing the number of voters to 100_000 improves the accuracy so that
+it matches Weber's results (which used an infinite number of voters), but this
+takes a very long time to simulate.
 """
 import time
 from collections import Counter
@@ -16,8 +36,8 @@ from elsim.elections import random_utilities
 from elsim.strategies import vote_for_k
 from weber_1977_expressions import eff_vote_for_k, eff_vote_for_half
 
-n = 2_000
-n_voters = 1000
+n = 50_000
+n_voters = 1_000
 n_cands_list = np.arange(2, 11)
 
 rated_methods = {'Vote-for-1': lambda utilities, tiebreaker:
