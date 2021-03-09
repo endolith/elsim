@@ -68,6 +68,8 @@ rated_methods = {'Vote-for-1': lambda utilities, tiebreaker:
                  approval(vote_for_k(utilities, 4), tiebreaker),
                  'Vote-for-half': lambda utilities, tiebreaker:
                  approval(vote_for_k(utilities, 'half'), tiebreaker),
+                 'Vote-for-(n-1)': lambda utilities, tiebreaker:
+                 approval(vote_for_k(utilities, -1), tiebreaker),
                  }
 
 count = {key: Counter() for key in (ranked_methods.keys() |
@@ -122,6 +124,7 @@ for name, method in (('Standard', eff_standard),
                      ('Vote-for-3', lambda m: eff_vote_for_k(m, 3)),
                      ('Vote-for-4', lambda m: eff_vote_for_k(m, 4)),
                      ('Vote-for-half', lambda m: eff_vote_for_half(m)),
+                     ('Vote-for-(n-1)', lambda m: eff_vote_for_k(m, -1)),
                      ):
     eff = method(np.array(n_cands_list))*100
     plt.plot(n_cands_list[eff != 0], eff[eff != 0], ':', lw=0.8)
@@ -135,7 +138,7 @@ table = {}
 x_uw, y_uw = zip(*sorted(count['UW'].items()))
 average_utility = n_voters * n / 2
 for method in ('Standard', 'Vote-for-1', 'Vote-for-2', 'Vote-for-3',
-               'Vote-for-4', 'Vote-for-half'):
+               'Vote-for-4', 'Vote-for-half', 'Vote-for-(n-1)'):
     x, y = zip(*sorted(count[method].items()))
     SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
     plt.plot(x, SUE*100, '-', label=method)
