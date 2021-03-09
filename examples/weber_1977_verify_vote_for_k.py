@@ -46,14 +46,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tabulate import tabulate
 from joblib import Parallel, delayed
-from elsim.methods import utility_winner, approval
+from elsim.methods import (fptp, utility_winner, approval)
 from elsim.elections import random_utilities
-from elsim.strategies import vote_for_k
-from weber_1977_expressions import eff_vote_for_k, eff_vote_for_half
+from elsim.strategies import honest_rankings, vote_for_k
+from weber_1977_expressions import (eff_standard, eff_vote_for_k,
+                                    eff_vote_for_half)
 
 n = 10_000
 n_voters = 1_000
 n_cands_list = np.arange(2, 11)
+
+ranked_methods = {'Standard': fptp}
 
 rated_methods = {'Vote-for-1': lambda utilities, tiebreaker:
                  approval(vote_for_k(utilities, 1), tiebreaker),
@@ -67,7 +70,8 @@ rated_methods = {'Vote-for-1': lambda utilities, tiebreaker:
                  approval(vote_for_k(utilities, 'half'), tiebreaker),
                  }
 
-count = {key: Counter() for key in (rated_methods.keys() | {'UW'})}
+count = {key: Counter() for key in (ranked_methods.keys() |
+                                    rated_methods.keys() | {'UW'})}
 
 print(f'Doing {n:,} iterations, {n_voters:,} voters, '
       f'{n_cands_list} candidates')
@@ -91,6 +95,11 @@ def func():
             except ValueError:
                 count[name][n_cands] = np.nan
 
+        rankings = honest_rankings(utilities)
+        for name, method in ranked_methods.items():
+            winner = method(rankings, tiebreaker='random')
+            count[name][n_cands] = utilities.sum(axis=0)[winner]
+
     return count
 
 
@@ -107,7 +116,8 @@ print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
 plt.figure(f'Effectiveness, {n_voters} voters, {n} iterations')
 plt.title('The Effectiveness of Several Voting Systems')
-for name, method in (('Vote-for-1', lambda m: eff_vote_for_k(m, 1)),
+for name, method in (('Standard', eff_standard),
+                     ('Vote-for-1', lambda m: eff_vote_for_k(m, 1)),
                      ('Vote-for-2', lambda m: eff_vote_for_k(m, 2)),
                      ('Vote-for-3', lambda m: eff_vote_for_k(m, 3)),
                      ('Vote-for-4', lambda m: eff_vote_for_k(m, 4)),
@@ -124,8 +134,8 @@ table = {}
 # Calculate Social Utility Efficiency from summed utilities
 x_uw, y_uw = zip(*sorted(count['UW'].items()))
 average_utility = n_voters * n / 2
-for method in ('Vote-for-1', 'Vote-for-2', 'Vote-for-3', 'Vote-for-4',
-               'Vote-for-half'):
+for method in ('Standard', 'Vote-for-1', 'Vote-for-2', 'Vote-for-3',
+               'Vote-for-4', 'Vote-for-half'):
     x, y = zip(*sorted(count[method].items()))
     SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
     plt.plot(x, SUE*100, '-', label=method)
