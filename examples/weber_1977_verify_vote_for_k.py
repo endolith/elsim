@@ -80,8 +80,7 @@ def func():
     return count
 
 
-p = Parallel(n_jobs=-2, prefer="threads",
-             verbose=5)(delayed(func)() for i in range(n))
+p = Parallel(n_jobs=-2, verbose=5)(delayed(func)() for i in range(n))
 
 for result in p:
     for method, d in result.items():
