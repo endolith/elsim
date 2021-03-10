@@ -6,7 +6,7 @@ This is a library of functions for running many simulations of different electio
 
 Goals:
 
-- Fast (~25,000 elections per second)
+- Fast (~25,000 elections per second on Core i7-9750H)
 - Flexible
 - Well-documented, easily-used and improved upon by other people
 - Well-tested and bug-free
