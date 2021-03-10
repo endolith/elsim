@@ -24,7 +24,21 @@ number of candidates increases.
 
 Increasing the number of voters to 100_000 improves the accuracy so that
 it matches Weber's results (which used an infinite number of voters), but this
-takes a very long time to simulate.
+takes a very long time (hours) to simulate.
+
+Typical results with 100k voters, 100k iterations:
+
+|    |    1 |     2 |     3 |     4 |   half |
+|---:|-----:|------:|------:|------:|-------:|
+|  2 | 81.6 | nan   | nan   | nan   |   81.6 |
+|  3 | 75.0 |  75.2 | nan   | nan   |   75.0 |
+|  4 | 69.4 |  80.1 |  69.2 | nan   |   80.1 |
+|  5 | 64.4 |  79.1 |  79.1 |  64.9 |   79.1 |
+|  6 | 60.8 |  76.6 |  81.4 |  76.6 |   81.4 |
+|  7 | 57.1 |  74.0 |  81.1 |  81.1 |   81.1 |
+|  8 | 54.4 |  71.3 |  79.7 |  82.3 |   82.3 |
+|  9 | 51.8 |  68.5 |  77.8 |  82.0 |   82.0 |
+| 10 | 49.7 |  66.4 |  75.9 |  81.5 |   83.0 |
 """
 import time
 from collections import Counter, defaultdict
@@ -37,7 +51,7 @@ from elsim.elections import random_utilities
 from elsim.strategies import vote_for_k
 from weber_1977_expressions import eff_vote_for_k, eff_vote_for_half
 
-n = 50_000
+n = 10_000
 n_voters = 1_000
 n_cands_list = np.arange(2, 11)
 
@@ -80,7 +94,7 @@ def func():
     return count
 
 
-p = Parallel(n_jobs=-2, verbose=5)(delayed(func)() for i in range(n))
+p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n))
 
 for result in p:
     for method, d in result.items():
