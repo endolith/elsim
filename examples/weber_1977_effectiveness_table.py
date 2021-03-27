@@ -26,6 +26,7 @@ from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
 from tabulate import tabulate
+from joblib import Parallel, delayed
 from elsim.methods import (fptp, utility_winner,
                            combined_approval)
 from elsim.elections import random_utilities
@@ -53,6 +54,9 @@ rated_methods = {
 
 count = {key: Counter() for key in (ranked_methods.keys() |
                                     rated_methods.keys() | {'UW'})}
+
+print(f'Doing {n:,} iterations, {n_voters:,} voters, '
+      f'{n_cands_list} candidates')
 
 start_time = time.monotonic()
 
