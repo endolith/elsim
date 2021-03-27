@@ -358,8 +358,8 @@ def vote_for_or_against_k(utilities, k):
         return (utilities.max(axis=1) + utilities.min(axis=1)) / 2      # or np.mean of the two values?
     voter_mid = mid(utilities)
 
-    # Vfoa1 doesn't quite match.  Is this what Weber did?
-    voter_mid[:] = 0.5
+    # # Vfoa1 doesn't quite match.  Is this what Weber did?
+    # voter_mid[:] = 0.5
 
     voter_mean = utilities.mean(axis=1)
 
