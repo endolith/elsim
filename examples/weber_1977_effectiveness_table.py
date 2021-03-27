@@ -56,22 +56,38 @@ count = {key: Counter() for key in (ranked_methods.keys() |
 
 start_time = time.monotonic()
 
-for iteration in range(n):
+
+def func():
+    count = defaultdict(dict)
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
 
         # Find the social utility winner and accumulate utilities
         UW = utility_winner(utilities)
-        count['UW'][n_cands] += utilities.sum(axis=0)[UW]
+        count['UW'][n_cands] = utilities.sum(axis=0)[UW]
 
         for name, method in rated_methods.items():
-            winner = method(utilities, tiebreaker='random')
-            count[name][n_cands] += utilities.sum(axis=0)[winner]
+            try:
+                winner = method(utilities, tiebreaker='random')
+                count[name][n_cands] = utilities.sum(axis=0)[winner]
+            except ValueError:
+                count[name][n_cands] = np.nan
 
         rankings = honest_rankings(utilities)
         for name, method in ranked_methods.items():
             winner = method(rankings, tiebreaker='random')
-            count[name][n_cands] += utilities.sum(axis=0)[winner]
+            count[name][n_cands] = utilities.sum(axis=0)[winner]
+
+    return count
+
+
+p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n))
+
+for result in p:
+    for method, d in result.items():
+        for n_cands, value in d.items():
+            count[method][n_cands] += value
+
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
