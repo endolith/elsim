@@ -35,8 +35,8 @@ from elsim.strategies import (honest_rankings,
 from weber_1977_expressions import eff_standard, eff_vote_for_or_against_k
 
 n = 20_000
-n_voters = 10_000
-n_cands_list = (2, 3, 4, 5, 6, 10, 255)
+n_voters = 1_00
+n_cands_list = (2, 3, 4, 5, 7, 10)  # Reduced for speed and trying things
 
 ranked_methods = {}#'Standard': fptp}
 

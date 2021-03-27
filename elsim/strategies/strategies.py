@@ -356,10 +356,16 @@ def vote_for_or_against_k(utilities, k):
     # TODO: Make a utility funciont for this
     def mid(utilities):
         return (utilities.max(axis=1) + utilities.min(axis=1)) / 2      # or np.mean of the two values?
+
+
+    # Matches for 2 3 4 but then is lower above that
+    # Number of voters doesn't affect it, strangely
     voter_mid = mid(utilities)
 
     # # Vfoa1 doesn't quite match.  Is this what Weber did?
-    # voter_mid[:] = 0.5
+    # Matches for 2 3 4 but then is lower above that
+    # Number of voters doesn't affect it, strangely
+    voter_mid[:] = 0.5
 
     voter_mean = utilities.mean(axis=1)
 
@@ -367,21 +373,21 @@ def vote_for_or_against_k(utilities, k):
     # disapprove at random?
 
 
-    # TODO: Simplify all this
-    # Actually, Weber specifies k < m/2
-    if k < n_cands / 2:
-        # If average utility < mid, then do approve of top k
-        # If average utility > mid, then do disapprove of bottom k
-        approving_voters = np.where(voter_mean < voter_mid)[0]
-        disapproving_voters = np.where(voter_mean >= voter_mid)[0]
-    else:
-        approving_voters = np.where(voter_mean >= voter_mid)[0]
-        disapproving_voters = np.where(voter_mean < voter_mid)[0]
+    # # TODO: Simplify all this
+    # # Actually, Weber specifies k < m/2
+    # if k < n_cands / 2:
+    #     # If average utility < mid, then do approve of top k
+    #     # If average utility > mid, then do disapprove of bottom k
+    #     approving_voters = np.where(voter_mean < voter_mid)[0]
+    #     disapproving_voters = np.where(voter_mean >= voter_mid)[0]
+    # else:
+    #     approving_voters = np.where(voter_mean >= voter_mid)[0]
+    #     disapproving_voters = np.where(voter_mean < voter_mid)[0]
 
 
-    # # "a voter is equally likely to be of either type."
-    # approving_voters = np.arange(len(utilities)//2)
-    # disapproving_voters = np.arange(len(utilities)//2, len(utilities))
+    # "a voter is equally likely to be of either type."
+    approving_voters = np.arange(len(utilities)//2)
+    disapproving_voters = np.arange(len(utilities)//2, len(utilities))
 
     # Create blank ballots
     approvals = np.zeros(utilities.shape, np.int8)
