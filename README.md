@@ -46,7 +46,7 @@ Calculate the winner using Black's method:
 
 Candidate 2 is the Condorcet winner, and wins under Black's method.
 
-See [/examples](/examples) folder for more on what it can do.
+See [/examples](/examples) folder for more on what it can do, such as reproductions of previous research.
 
 # Tests
 Tests can be run by installing the testing dependencies and then running `pytest` in the project folder.
