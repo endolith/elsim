@@ -31,7 +31,7 @@ from elsim.strategies import honest_rankings, vote_for_k
 from weber_1977_expressions import eff_standard, eff_vote_for_half, eff_borda
 
 n = 2_000
-n_voters = 1000
+n_voters = 1_000
 n_cands_list = (2, 3, 4, 5, 6, 10, 255)
 
 ranked_methods = {'Standard': fptp, 'Borda': borda}
