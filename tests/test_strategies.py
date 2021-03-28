@@ -102,13 +102,13 @@ def test_vote_for_or_against_k():
                                                              ])
 
 
-@pytest.mark.parametrize("method", [vote_for_k, vote_for_or_against_k])
+@pytest.mark.parametrize("method", [vote_for_k])  # , vote_for_or_against_k])
 @pytest.mark.parametrize("k", [0, 3, -3, -4, 4])
-def test_invalid_k(k):
+def test_invalid_k(k, method):
     with pytest.raises(ValueError):
         election = [[0.0, 0.5, 1.0],
                     [1.0, 0.0, 0.1]]
-        vote_for_k(election, k)
+        method(election, k)
 
 
 def utilities(min_cands=2, max_cands=25, min_voters=1, max_voters=100):
