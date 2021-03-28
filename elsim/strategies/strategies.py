@@ -345,6 +345,9 @@ def vote_for_or_against_k(utilities, k):
     """
     utilities = np.asarray(utilities)
     n_cands = utilities.shape[1]
+
+
+    "TODO: where k < m/2"
     if k <= 0 or k > n_cands - 1:
         raise ValueError(f'k of {k} not possible with {n_cands} candidates')
 
@@ -386,6 +389,7 @@ def vote_for_or_against_k(utilities, k):
 
 
     # "a voter is equally likely to be of either type."
+    # and this is simpler and faster than trying to actually do each one
     approving_voters = np.arange(len(utilities)//2)
     disapproving_voters = np.arange(len(utilities)//2, len(utilities))
 
