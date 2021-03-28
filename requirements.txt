@@ -8,5 +8,6 @@ joblib
 
 # Testing
 pytest
-hypothesis
 pytest-cov
+pytest-env
+hypothesis
