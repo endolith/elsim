@@ -372,26 +372,27 @@ def vote_for_or_against_k(utilities, k):
 
     voter_mean = utilities.mean(axis=1)
 
+    # TODO: Simplify all this
+    # Actually, Weber specifies k < m/2
+    if k < n_cands / 2:
+        # If average utility < mid, then do approve of top k
+        # If average utility > mid, then do disapprove of bottom k
+        approving_voters = np.where(voter_mean < voter_mid)[0]
+        disapproving_voters = np.where(voter_mean >= voter_mid)[0]
+    else:
+        approving_voters = np.where(voter_mean >= voter_mid)[0]
+        disapproving_voters = np.where(voter_mean < voter_mid)[0]
+
+
     # Or maybe he literally means that each voter chooses to approve or
     # disapprove at random?
 
-
-    # # TODO: Simplify all this
-    # # Actually, Weber specifies k < m/2
-    # if k < n_cands / 2:
-    #     # If average utility < mid, then do approve of top k
-    #     # If average utility > mid, then do disapprove of bottom k
-    #     approving_voters = np.where(voter_mean < voter_mid)[0]
-    #     disapproving_voters = np.where(voter_mean >= voter_mid)[0]
-    # else:
-    #     approving_voters = np.where(voter_mean >= voter_mid)[0]
-    #     disapproving_voters = np.where(voter_mean < voter_mid)[0]
-
-
-    # "a voter is equally likely to be of either type."
-    # and this is simpler and faster than trying to actually do each one
-    approving_voters = np.arange(len(utilities)//2)
-    disapproving_voters = np.arange(len(utilities)//2, len(utilities))
+    # No, this doesn't work, it doesn't match at 3 or 4 candidates, number of
+    # voters doesn't change it
+    # # "a voter is equally likely to be of either type."
+    # # and this is simpler and faster than trying to actually do each one
+    # approving_voters = np.arange(len(utilities)//2)
+    # disapproving_voters = np.arange(len(utilities)//2, len(utilities))
 
     # Create blank ballots
     approvals = np.zeros(utilities.shape, np.int8)
