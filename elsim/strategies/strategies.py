@@ -368,7 +368,10 @@ def vote_for_or_against_k(utilities, k):
     # # Vfoa1 doesn't quite match.  Is this what Weber did?
     # Matches for 2 3 4 but then is lower above that
     # Number of voters doesn't affect it, strangely
-    voter_mid[:] = 0.5
+
+
+    # # this doesn't match for 3 or 4, number of voters doesn't affect it
+    # voter_mid[:] = 0.5
 
     voter_mean = utilities.mean(axis=1)
 

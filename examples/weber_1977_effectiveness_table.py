@@ -22,38 +22,27 @@ Typical result with n = 100_000:
 # TODO: Standard is consistently ~1% high, while Borda is very accurate
 # TODO: Best Vote-for-or-against-k is not implemneted yet
 import time
-from collections import Counter
+from collections import Counter, defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
 from tabulate import tabulate
 from joblib import Parallel, delayed
-from elsim.methods import (fptp, utility_winner,
+from elsim.methods import (utility_winner,
                            combined_approval)
 from elsim.elections import random_utilities
-from elsim.strategies import (honest_rankings,
-                              vote_for_or_against_k)
-from weber_1977_expressions import eff_standard, eff_vote_for_or_against_k
+from elsim.strategies import (vote_for_or_against_k)
+from weber_1977_expressions import eff_vote_for_or_against_k
 
 n = 20_000
 n_voters = 1_00
 n_cands_list = (2, 3, 4, 5, 7, 10)  # Reduced for speed and trying things
 
-ranked_methods = {}#'Standard': fptp}
-
-rated_methods = {
-                # 'Vote-for-1': lambda utilities, tiebreaker:
-                #  approval(vote_for_k(utilities, 1), tiebreaker),  # delete me
-                 # 'Vote-for-half': lambda utilities, tiebreaker:
-                 # approval(vote_for_k(utilities, 'half'), tiebreaker),
-                 'Vfoak1': lambda utilities, tiebreaker:
+rated_methods = {'Vfoak1': lambda utilities, tiebreaker:
                  combined_approval(vote_for_or_against_k(utilities, 1),
                                    tiebreaker),
-                 # 'Approval': lambda utilities, tiebreaker:
-                 # approval(approval_optimal(utilities), tiebreaker),
                  }
 
-count = {key: Counter() for key in (ranked_methods.keys() |
-                                    rated_methods.keys() | {'UW'})}
+count = {key: Counter() for key in (rated_methods.keys() | {'UW'})}
 
 print(f'Doing {n:,} iterations, {n_voters:,} voters, '
       f'{n_cands_list} candidates')
@@ -77,11 +66,6 @@ def func():
             except ValueError:
                 count[name][n_cands] = np.nan
 
-        rankings = honest_rankings(utilities)
-        for name, method in ranked_methods.items():
-            winner = method(rankings, tiebreaker='random')
-            count[name][n_cands] = utilities.sum(axis=0)[winner]
-
     return count
 
 
@@ -98,12 +82,8 @@ print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
 plt.figure(f'Effectiveness, {n_voters} voters, {n} iterations')
 plt.title('The Effectiveness of Several Voting Systems')
-for name, method in (#('Standard', eff_standard),
-                     #('Vote-for-half', eff_vote_for_half),
-                     ('Vote-for-or-against-1',
-                      lambda m:eff_vote_for_or_against_k(m, 1
-                                                         )),
-                     #('Borda', eff_borda)
+for name, method in (('Vote-for-or-against-1',
+                      lambda m: eff_vote_for_or_against_k(m, 1)),
                      ):
     plt.plot(n_cands_list, method(np.array(n_cands_list))*100, ':', lw=0.8)
 
