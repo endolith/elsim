@@ -377,14 +377,14 @@ def vote_for_or_against_k(utilities, k):
 
     # TODO: Simplify all this
     # Actually, Weber specifies k < m/2
-    if k < n_cands / 2:
+    if k <= n_cands / 2:
         # If average utility < mid, then do approve of top k
         # If average utility > mid, then do disapprove of bottom k
         approving_voters = np.where(voter_mean < voter_mid)[0]
         disapproving_voters = np.where(voter_mean >= voter_mid)[0]
-    else:
-        approving_voters = np.where(voter_mean >= voter_mid)[0]
-        disapproving_voters = np.where(voter_mean < voter_mid)[0]
+    # else:
+    #     approving_voters = np.where(voter_mean >= voter_mid)[0]
+    #     disapproving_voters = np.where(voter_mean < voter_mid)[0]
 
 
     # Or maybe he literally means that each voter chooses to approve or
@@ -398,7 +398,7 @@ def vote_for_or_against_k(utilities, k):
     # disapproving_voters = np.arange(len(utilities)//2, len(utilities))
 
     # Create blank ballots
-    approvals = np.zeros(utilities.shape, np.int8)
+    approvals = np.ones(utilities.shape, np.int8)
 
     # slice utilities to get just approving voters?  then find top k of that slice
     approving_utilities = utilities[approving_voters]
