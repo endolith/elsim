@@ -6,11 +6,11 @@ This is a library of functions for simulating thousands of elections held using 
 
 For example, it can be used to reproduce Figure 1 from [Merrill 1984](https://www.jstor.org/stable/2110786):
 
-![](./examples/results/Figure_1._25_voters,_10000_iterations.png)
+![](./examples/results/Merrill_1984_Figure_1._25_voters,_10000_iterations.png)
 
-Or the table of Effectiveness from [Weber 1978](https://elischolar.library.yale.edu/cowles-discussion-paper-series/732/):
+Or the table of Effectiveness from [Weber 1977](https://elischolar.library.yale.edu/cowles-discussion-paper-series/732/):
 
-![](./examples/results/Effectiveness,_1000_voters,_10000_iterations.png)
+![](./examples/results/Weber_1977_Effectiveness,_1000_voters,_10000_iterations.png)
 
 ## Goals
 
