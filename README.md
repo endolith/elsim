@@ -10,7 +10,15 @@ For example, it can be used to reproduce Figure 1 from [Merrill 1984](https://ww
 
 Or the table of Effectiveness from [Weber 1977](https://elischolar.library.yale.edu/cowles-discussion-paper-series/732/):
 
-![](./examples/results/Weber_1977_Effectiveness,_1000_voters,_10000_iterations.png)
+|      | Standard | Vote-for-half | Borda |
+| ---: | -------: | ------------: | ----: |
+|    2 |    81.37 |         81.71 | 81.41 |
+|    3 |    75.10 |         75.00 | 86.53 |
+|    4 |    69.90 |         79.92 | 89.47 |
+|    5 |    65.02 |         79.09 | 91.34 |
+|    6 |    61.08 |         81.20 | 92.61 |
+|   10 |    50.78 |         82.94 | 95.35 |
+|  255 |    12.78 |         86.37 | 99.80 |
 
 ## Goals
 
