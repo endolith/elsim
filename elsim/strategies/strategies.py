@@ -59,13 +59,13 @@ def honest_rankings(utilities):
     return np.argsort(utilities)[:, ::-1].astype(np.uint8)
 
 
-def honest_ratings(utilities, levels=5):
+def honest_normed_scores(utilities, max_score=5):
     """
-    Convert utilities to optimal approval voting ballots.
+    Convert utilities into scores using honest (but normalized) strategy.
 
     Given a set of utilities for each voter-candidate pair, each voter is
-    modeled as maximizing their expected utility, by approving any candidate
-    that exceeds their mean utility over all candidates.[1]_
+    modeled as giving their favorite candidate a maximum score, least favorite
+    candidate a minimum score, and proportional scores in between.
 
     Parameters
     ----------
@@ -76,20 +76,18 @@ def honest_ratings(utilities, levels=5):
         Higher utility numbers mean greater approval of that candidate by that
         voter.
 
+    max_score : int, optional
+        The highest score on the ballot. If `max_score` = 3, the possible
+        scores are 0, 1, 2, 3.
+
     Returns
     -------
     election : ndarray
-        A 2D collection of approval ballots.
+        A 2D collection of score ballots.
 
         Rows represent voters, and columns represent candidate IDs.
-        A cell contains 1 if that voter approves of that candidate,
-        otherwise 0.
-
-    References
-    ----------
-    .. [1] S. Merrill III, "A Comparison of Efficiency of Multicandidate
-       Electoral Systems", American Journal of Political Science, vol. 28,
-       no. 1, p. 26, 1984.  :doi:`10.2307/2110786`
+        A cell contains a high score if that voter approves of that candidate,
+        or low score if they disapprove
 
     Examples
     --------
@@ -102,22 +100,26 @@ def honest_ratings(utilities, levels=5):
                      [0.0, 0.5, 0.5],
                      ]
 
-    Each voter optimally chooses their approval threshold based on their mean
-    utility:
-    Voter 0 approves A and B.
-    Voter 1 approves B and C.
-    Voter 2 approves B and C.
+    Each voter fills out a 0-5 Score ballot with their favorite and least
+    favorite scored at the max and min:
 
-    >>> approval_optimal(utilities)
-    array([[1, 1, 0],
-           [0, 1, 1],
-           [0, 1, 1]], dtype=uint8)
+    >>> honest_normed_scores(utilities, max_score=5)
+    array([[5, 5, 0],
+           [0, 4, 5],
+           [0, 5, 5]], dtype=uint8)
 
     """
-    means = np.mean(utilities, 1)
-    approvals = (utilities > means[:, np.newaxis]).astype(np.uint8)
-    return approvals
+    # Slide every voter's minimum utility to 0
+    normed = utilities - np.amin(utilities, axis=1)[:, np.newaxis]
 
+    # Normalize every voter's maximum utility to 1
+    normed /= np.amax(normed, axis=1)[:, np.newaxis]
+
+    # Normalize every voter's maximum score to max_score
+    normed *= max_score
+
+    # Quantize to discrete scale
+    return np.around(normed).astype(np.uint8)
 
 
 def approval_optimal(utilities):
