@@ -59,6 +59,67 @@ def honest_rankings(utilities):
     return np.argsort(utilities)[:, ::-1].astype(np.uint8)
 
 
+def honest_ratings(utilities, levels=5):
+    """
+    Convert utilities to optimal approval voting ballots.
+
+    Given a set of utilities for each voter-candidate pair, each voter is
+    modeled as maximizing their expected utility, by approving any candidate
+    that exceeds their mean utility over all candidates.[1]_
+
+    Parameters
+    ----------
+    utilities : array_like
+        A 2D collection of utilities.
+
+        Rows represent voters, and columns represent candidate IDs.
+        Higher utility numbers mean greater approval of that candidate by that
+        voter.
+
+    Returns
+    -------
+    election : ndarray
+        A 2D collection of approval ballots.
+
+        Rows represent voters, and columns represent candidate IDs.
+        A cell contains 1 if that voter approves of that candidate,
+        otherwise 0.
+
+    References
+    ----------
+    .. [1] S. Merrill III, "A Comparison of Efficiency of Multicandidate
+       Electoral Systems", American Journal of Political Science, vol. 28,
+       no. 1, p. 26, 1984.  :doi:`10.2307/2110786`
+
+    Examples
+    --------
+    Voter 0 loves Candidates A (index 0) and B (index 1), but hates C (2).
+    Voter 1 dislikes A, likes B, and loves C.
+    Voter 2 hates A, and is lukewarm about B and C.
+
+    >>> utilities = [[1.0, 1.0, 0.0],
+                     [0.1, 0.8, 1.0],
+                     [0.0, 0.5, 0.5],
+                     ]
+
+    Each voter optimally chooses their approval threshold based on their mean
+    utility:
+    Voter 0 approves A and B.
+    Voter 1 approves B and C.
+    Voter 2 approves B and C.
+
+    >>> approval_optimal(utilities)
+    array([[1, 1, 0],
+           [0, 1, 1],
+           [0, 1, 1]], dtype=uint8)
+
+    """
+    means = np.mean(utilities, 1)
+    approvals = (utilities > means[:, np.newaxis]).astype(np.uint8)
+    return approvals
+
+
+
 def approval_optimal(utilities):
     """
     Convert utilities to optimal approval voting ballots.
