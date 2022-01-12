@@ -110,6 +110,9 @@ def test_honest_normed_scores_properties(utilities, max_score):
     assert election.min() == 0
     assert election.min() <= max_score
 
+    # Output should be integers
+    assert_array_equal(election % 1, 0)
+
 
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
