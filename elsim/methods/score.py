@@ -85,7 +85,7 @@ def score(election, tiebreaker=None):
     1
 
     """
-    election = np.asarray(election, dtype=np.uint8)
+    election = np.asarray(election)
 
     if election.min() < 0:
         raise ValueError
