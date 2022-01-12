@@ -4,7 +4,8 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, tuples, floats
 from hypothesis.extra.numpy import arrays
-from elsim.strategies import approval_optimal, vote_for_k
+from elsim.strategies import (approval_optimal, vote_for_k,
+                              honest_normed_scores)
 
 
 def test_approval_optimal():
@@ -20,6 +21,21 @@ def test_approval_optimal():
                                                      [0, 1, 1],
                                                      [0, 0, 1],
                                                      ])
+
+
+def test_honest_normed_scores():
+    utilities = np.array([[0.0, 0.4, 1.0],
+                          [1.0, 0.5, 1.0],
+                          [0.0, 0.2, 0.0],
+                          [0.0, 1.0, 0.7],
+                          [0.3, 0.4, 0.6],
+                          ])
+    assert_array_equal(honest_normed_scores(utilities, 7), [[0, 3, 7],
+                                                            [7, 0, 7],
+                                                            [0, 7, 0],
+                                                            [0, 7, 5],
+                                                            [0, 2, 7],
+                                                            ])
 
 
 def test_vote_for_k():
@@ -80,6 +96,19 @@ def test_vote_for_k_properties(utilities):
     assert election.shape == utilities.shape
     assert 1 in set(election.flat)
     assert set(election.flat) <= {0, 1}
+
+
+@given(utilities=utilities(), max_score=integers(1, 100))
+def test_honest_normed_scores_properties(utilities, max_score):
+    utilities = np.asarray(utilities)
+    election = honest_normed_scores(utilities, max_score)
+    assert election.shape == utilities.shape
+
+    # Normalized should contain both 0 and max_score for all voters. However,
+    # Hypothesis will find degenerate cases with indifferent voters. (TODO)
+    assert_array_equal(election.min(axis=1), 0)
+    assert election.min() == 0
+    assert election.min() <= max_score
 
 
 if __name__ == "__main__":
