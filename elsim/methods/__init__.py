@@ -13,4 +13,5 @@ from .coombs import coombs
 from .fptp import fptp
 from .irv import irv
 from .runoff import runoff
+from .score import score
 from .utility_winner import utility_winner

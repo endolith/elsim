@@ -39,20 +39,20 @@ def _get_tiebreak(tiebreaker):
         raise ValueError('Tiebreaker not understood')
 
 
-def approval(election, tiebreaker=None):
+def score(election, tiebreaker=None):
     """
-    Find the winner of an election using approval voting.
+    Find the winner of an election using score (or range) voting.
 
-    The candidate with the largest number of approvals wins.[1]_
+    The candidate with the highest score wins.[1]_
 
     Parameters
     ----------
     election : array_like
-        A 2D collection of approval ballots.
+        A 2D collection of score ballots.
 
         Rows represent voters, and columns represent candidate IDs.
-        A cell contains 1 if that voter approves of that candidate,
-        otherwise 0.
+        A cell contains a high score if that voter approves of that candidate,
+        or low score if they disapprove
 
     tiebreaker : {'random', 'order', None}, optional
         If there is a tie, and `tiebreaker` is ``'random'``, a random finalist
@@ -67,95 +67,30 @@ def approval(election, tiebreaker=None):
 
     References
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Approval_voting
+    .. [1] https://en.wikipedia.org/wiki/Score_voting
 
     Examples
     --------
-    Voter 0 approves Candidate A (index 0) and B (index 1).
-    Voter 1 approves B and C.
-    Voter 2 approves B and C.
+    Voter 0 loves Candidates A (index 0) and B (index 1), but hates C (2).
+    Voter 1 dislikes A, likes B, and loves C.
+    Voter 2 hates A, and is lukewarm about B and C.
 
-    >>> election = [[1, 1, 0],
-                    [0, 1, 1],
-                    [0, 1, 1],
-                    ]
+    >>> election = [[5, 5, 0],
+                    [0, 4, 5],
+                    [0, 3, 3]]
 
-    Candidate B (1) gets the most approvals and wins the election:
+    Candidate B (1) gets the highest score and wins the election:
 
-    >>> approval(election)
+    >>> score(election)
     1
 
     """
     election = np.asarray(election, dtype=np.uint8)
 
-    if election.min() < 0 or election.max() > 1:
+    if election.min() < 0:
         raise ValueError
 
-    # Tally all approvals
-    tallies = election.sum(axis=0)
-
-    # Find the set of candidates who have the highest score (usually only one)
-    winners = _all_indices(tallies, max(tallies))
-
-    # Break any ties using specified method
-    tiebreak = _get_tiebreak(tiebreaker)
-    return tiebreak(winners)
-
-
-def combined_approval(election, tiebreaker=None):
-    """
-    Find the winner of an election using combined approval voting.
-
-    Also known as balanced approval or dis&approval voting, the candidate with
-    the largest number of approvals minus disapprovals wins.[1]_
-
-    Parameters
-    ----------
-    election : array_like
-        A 2D collection of combined approval ballots.
-
-        Rows represent voters, and columns represent candidate IDs.
-        A cell contains a +1 if that voter approves of that candidate, a -1 if
-        the voter disapproves of that candidate, or a 0 if they are neutral.
-
-    tiebreaker : {'random', 'order', None}, optional
-        If there is a tie, and `tiebreaker` is ``'random'``, a random finalist
-        is returned.
-        If 'order', the lowest-ID tied candidate is returned.
-        By default, ``None`` is returned for ties.
-
-    Returns
-    -------
-    winner : int
-        The ID number of the winner, or ``None`` for an unbroken tie.
-
-    References
-    ----------
-    .. [1] https://en.wikipedia.org/wiki/Combined_approval_voting
-
-    Examples
-    --------
-    Voter 0 approves Candidate A (index 0) and B (index 1).
-    Voter 1 approves of B and disapproves of C.
-    Voter 2 approves of A and disapproves of B and C.
-
-    >>> election = [[+1, +1,  0],
-                    [ 0, +1, -1],
-                    [+1, -1, -1],
-                    ]
-
-    Candidate A (0) has the highest net approval and wins the election:
-
-    >>> combined_approval(election)
-    0
-
-    """
-    election = np.asarray(election, dtype=np.int8)
-
-    if election.min() < -1 or election.max() > 1:
-        raise ValueError
-
-    # Tally all approvals
+    # Tally all scores
     tallies = election.sum(axis=0)
 
     # Find the set of candidates who have the highest score (usually only one)
