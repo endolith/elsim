@@ -79,7 +79,7 @@ def utilities(min_cands=2, max_cands=25, min_voters=1, max_voters=100):
     """
     n_cands = integers(min_value=min_cands, max_value=max_cands)
     n_voters = integers(min_value=min_voters, max_value=max_voters)
-    return arrays(np.float, tuples(n_voters, n_cands), elements=floats(0, 1))
+    return arrays(float, tuples(n_voters, n_cands), elements=floats(0, 1))
 
 
 @given(utilities=utilities())
