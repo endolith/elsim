@@ -1,4 +1,3 @@
-import random
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
@@ -8,22 +7,7 @@ from hypothesis.extra.numpy import arrays
 from elsim.strategies import approval_optimal, vote_for_k
 
 
-def collect_random_results(method, election):
-    """
-    Run multiple elections with tiebreaker='random' and collect the set of all
-    winners.
-    """
-    random.seed(47)  # Deterministic test
-    winners = set()
-    for trial in range(10):
-        winner = method(election, tiebreaker='random')
-        assert isinstance(winner, int)
-        winners.add(winner)
-    return winners
-
-
-@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
-def test_approval_optimal(tiebreaker):
+def test_approval_optimal():
     utilities = np.array([[0.0, 0.4, 1.0],
                           [1.0, 0.5, 1.0],
                           [0.0, 0.2, 0.0],
@@ -38,8 +22,7 @@ def test_approval_optimal(tiebreaker):
                                                      ])
 
 
-@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
-def test_vote_for_k(tiebreaker):
+def test_vote_for_k():
     utilities = np.array([[0.0, 0.4, 1.0],
                           [1.0, 0.5, 0.9],
                           [0.0, 0.2, 0.1],
