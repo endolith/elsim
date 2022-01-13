@@ -55,7 +55,7 @@ def random_utilities(n_voters, n_cands, random_state=None):
 
     Returns
     -------
-    election : numpy.ndarray
+    utilities : numpy.ndarray
         A collection of utilities between 0 and 1, inclusive.
         Rows represent voters and columns represent candidates.
 
@@ -277,7 +277,7 @@ def normed_dist_utilities(voters, cands):
 
     Returns
     -------
-    election : numpy.ndarray
+    utilities : numpy.ndarray
         A collection of utilities between 0 and 1, inclusive.
         Rows represent voters and columns represent candidates.
 
