@@ -26,7 +26,7 @@ def collect_random_results(method, election):
 @pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
 def test_basic(tiebreaker, method):
     # Standard Tennessee example
-    # https://electowiki.org/wiki/Score_voting#Example
+    # https://en.wikipedia.org/wiki/Score_voting#Example
     #                 Memphis Nashville Chattanooga Knoxville
     election = [*42*[[10,     4,        2,          0]],
                 *26*[[0,     10,        4,          2]],
@@ -35,6 +35,35 @@ def test_basic(tiebreaker, method):
                 ]
 
     assert method(election, tiebreaker) == 1  # Nashville
+
+    # Standard Tennessee example
+    # https://electowiki.org/wiki/Score_voting#Example
+    #                 Memphis Nashville Chattanooga Knoxville
+    election = [*42*[[4,      3,        2,          1]],
+                *26*[[1,      4,        3,          2]],
+                *15*[[1,      2,        4,          3]],
+                *17*[[1,      2,        3,          4]],
+                ]
+
+    assert method(election, tiebreaker) == 1  # Nashville
+
+    # Example from https://rangevoting.org/CondRangeExample.html
+    #            A  B  C  D
+    election = [[9, 1, 0, 0],
+                [0, 0, 3, 9],
+                [3, 9, 5, 0],
+                ]
+
+    assert method(election, tiebreaker) == 0  # A
+
+    # Example from https://docs.fedoraproject.org/en-US/Fedora_Contributor_Documentation/1/html/Fedora_Elections_Guide/sect-Fedora_Elections_Guide-Range_Voting-Range_Voting_Example.html
+    #            A  B  C  D  E  F  G
+    election = [[0, 3, 4, 4, 6, 0, 4],
+                [7, 2, 7, 2, 3, 5, 0],
+                [7, 7, 6, 1, 4, 1, 4],
+                ]
+
+    assert method(election, tiebreaker) == 2  # C
 
     # Example from http://www-users.math.umn.edu/~rogness/math1001/approval/
     #                 Gore McCain Bush
