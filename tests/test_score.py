@@ -131,7 +131,7 @@ def test_ties(method):
 
 def score_ballots(min_cands=1, max_cands=25, min_voters=1, max_voters=100):
     """
-    Strategy to generate score voting ballot elections
+    Strategy to generate score/rated ballot elections
     """
     n_cands = integers(min_value=min_cands, max_value=max_cands)
     n_voters = integers(min_value=min_voters, max_value=max_voters)
