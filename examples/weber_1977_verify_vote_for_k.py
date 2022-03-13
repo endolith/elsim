@@ -95,6 +95,7 @@ def func():
                 winner = method(utilities, tiebreaker='random')
                 count[name][n_cands] = utilities.sum(axis=0)[winner]
             except ValueError:
+                # Skip junk cases like vote-for-2 with 2 candidates
                 count[name][n_cands] = np.nan
 
         rankings = honest_rankings(utilities)
