@@ -14,7 +14,8 @@ def _order_tiebreak(winners, n=1):
 
 def _random_tiebreak(winners, n=1):
     """
-    Given an iterable of possibly tied `winners`, select one at random.
+    Given an iterable of possibly tied `winners`, select `n` candidates at
+    random.
     """
     if len(winners) == 1:
         return winners
@@ -24,7 +25,8 @@ def _random_tiebreak(winners, n=1):
 
 def _no_tiebreak(winners, n=1):
     """
-    Given an iterable of `winners`, return None if there is a tie.
+    Given an iterable of possibly tied `winners`, return None if there are more
+    than `n` tied.
     """
     if len(winners) <= n:
         return winners
