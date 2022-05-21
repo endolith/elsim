@@ -112,8 +112,11 @@ def honest_normed_scores(utilities, max_score=5):
     # Slide every voter's minimum utility to 0
     normed = utilities - np.amin(utilities, axis=1)[:, np.newaxis]
 
-    # Normalize every voter's maximum utility to 1
-    normed /= np.amax(normed, axis=1)[:, np.newaxis]
+    # If a ballot is all 0, suppress 0/0 warning.
+    # astype(np.uint8) will convert NaN back to 0.
+    with np.errstate(invalid='ignore'):
+        # Normalize every voter's maximum utility to 1
+        normed /= np.amax(normed, axis=1)[:, np.newaxis]
 
     # Normalize every voter's maximum score to max_score
     normed *= max_score
