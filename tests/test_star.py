@@ -305,38 +305,40 @@ def test_basic(tiebreaker, method):
     assert method(election, tiebreaker) == 3  # "DeAndre wins"
 
 
-# @pytest.mark.parametrize("method", [star])
-# def test_ties(method):
-#     # Two-way tie between candidates 1 and 2
-#     election = np.array([[0, 3, 2],
-#                          [3, 0, 1],
-#                          [0, 1, 3],
-#                          [0, 2, 0],
-#                          [0, 3, 3],
-#                          ])
-#     # No tiebreaker:
-#     assert method(election, tiebreaker=None) is None
+@pytest.mark.parametrize("method", [star])
+def test_ties(method):
+    # Two-way tie between candidates 1 and 2
+    election = np.array([[0, 3, 2],
+                         [3, 0, 1],
+                         [0, 1, 3],
+                         [0, 2, 0],
+                         [0, 3, 3],
+                         ])
+    # No tiebreaker:
+    assert method(election, tiebreaker=None) is None
 
-#     # Mode 'order' should always prefer lowest candidate ID
-#     assert method(election, tiebreaker='order') == 1
+    # Mode 'order' should always prefer lowest candidate ID
+    assert method(election, tiebreaker='order') == 1
 
-#     # Mode 'random' should choose all tied candidates at random
-#     assert collect_random_results(method, election) == {1, 2}
+    # Mode 'random' should choose all tied candidates at random
+    assert collect_random_results(method, election) == {1, 2}
 
-#     # Three-way tie between 0, 1, and 2
-#     election = np.array([[0, 1, 1],
-#                          [0, 1, 2],
-#                          [0, 2, 1],
-#                          [2, 4, 0],
-#                          [4, 1, 0],
-#                          [1, 3, 0],
-#                          [1, 0, 3],
-#                          [3, 0, 1],
-#                          [1, 0, 4],
-#                          ])
+    # Three-way tie between 0, 1, and 2
+    election = np.array([[0, 1, 1],
+                         [0, 1, 2],
+                         [0, 2, 1],
+                         [2, 4, 0],
+                         [4, 1, 0],
+                         [1, 3, 0],
+                         [1, 0, 3],
+                         [3, 0, 1],
+                         [1, 0, 4],
+                         ])
 
-#     # No tiebreaker:
-#     assert method(election, tiebreaker=None) is None
+    # No tiebreaker:
+    assert method(election, tiebreaker=None) is None
+
+    # TODO: Add every type of tie at every stage.
 
 #     # Mode 'order' should always prefer lowest candidate ID
 #     assert method(election, tiebreaker='order') == 0
