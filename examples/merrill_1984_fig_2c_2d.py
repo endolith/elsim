@@ -87,8 +87,10 @@ merrill_fig_2d = {
 
 for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
                               ('2.d', 0.5, 0, merrill_fig_2d)):
+
     count = {key: Counter() for key in (ranked_methods.keys() |
-                                        rated_methods.keys() | {'CW'})}
+                                        rated_methods.keys() |
+                                        {'CW'})}
     start_time = time.monotonic()
 
     for iteration in range(n):
