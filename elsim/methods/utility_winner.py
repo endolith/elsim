@@ -94,7 +94,8 @@ def utility_winner(utilities, tiebreaker=None):
     total_utilities = utilities.sum(0).tolist()
 
     # Find the set of candidates who have the highest score (usually only one)
-    winners = _all_indices(total_utilities, max(total_utilities))
+    highest = max(total_utilities)
+    winners = _all_indices(total_utilities, highest)
 
     # Break any ties using specified method
     tiebreak = _get_tiebreak(tiebreaker)

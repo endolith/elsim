@@ -110,7 +110,8 @@ def borda(election, tiebreaker=None):
     total_tally = total_tally.tolist()
 
     # Find the set of candidates who have the highest score (usually only one)
-    winners = _all_indices(total_tally, max(total_tally))
+    highest = max(total_tally)
+    winners = _all_indices(total_tally, highest)
 
     # Break any ties using specified method
     tiebreak = _get_tiebreak(tiebreaker)

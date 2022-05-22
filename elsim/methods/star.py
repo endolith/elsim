@@ -105,7 +105,8 @@ def star(election, tiebreaker=None):
     tallies = election.sum(axis=0)
 
     # Find the set of candidates who have the highest score (usually only one)
-    first_set = _all_indices(tallies, np.sort(tallies)[-1])
+    highest = max(tallies)
+    first_set = _all_indices(tallies, highest)
 
     # TODO: Follow the official tie-breaking rules
     # Break any ties using specified method
@@ -122,7 +123,8 @@ def star(election, tiebreaker=None):
     elif len(first_set) == 1:
         first = first_set[0]
         # Find the set of candidates who have the second-highest score
-        second_set = _all_indices(tallies, np.sort(tallies)[-2])
+        second = np.sort(tallies)[-2]
+        second_set = _all_indices(tallies, second)
         if len(second_set) == 1:
             second = second_set[0]
         else:

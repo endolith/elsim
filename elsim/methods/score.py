@@ -94,7 +94,8 @@ def score(election, tiebreaker=None):
     tallies = election.sum(axis=0)
 
     # Find the set of candidates who have the highest score (usually only one)
-    winners = _all_indices(tallies, max(tallies))
+    highest = max(tallies)
+    winners = _all_indices(tallies, highest)
 
     # Break any ties using specified method
     tiebreak = _get_tiebreak(tiebreaker)
