@@ -83,7 +83,6 @@ def random_utilities(min_cands=1, max_cands=25, min_voters=1, max_voters=100):
 @given(election=random_utilities(min_cands=1, max_cands=25,
                                  min_voters=1, max_voters=100))
 def test_legit_winner(election, tiebreaker):
-    election = np.asarray(election)
     n_cands = election.shape[1]
     winner = utility_winner(election, tiebreaker)
     assert isinstance(winner, int)
@@ -93,7 +92,6 @@ def test_legit_winner(election, tiebreaker):
 @given(election=random_utilities(min_cands=1, max_cands=25,
                                  min_voters=1, max_voters=100))
 def test_legit_winner_no_tiebreaker(election):
-    election = np.asarray(election)
     n_cands = election.shape[1]
     winner = utility_winner(election)
     assert isinstance(winner, (int, type(None)))

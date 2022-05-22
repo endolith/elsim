@@ -283,8 +283,7 @@ def complete_ranked_ballots(min_cands=3, max_cands=25, min_voters=1,
 @given(election=complete_ranked_ballots(min_cands=1, max_cands=25,
                                         min_voters=1, max_voters=100))
 def test_legit_winner(election):
-    election = np.asarray(election)
-    n_cands = election.shape[1]
+    n_cands = np.shape(election)[1]
     winner = condorcet(election)
     assert isinstance(winner, (int, type(None)))
     assert winner in set(range(n_cands)) | {None}

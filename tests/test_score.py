@@ -143,7 +143,6 @@ def score_ballots(min_cands=1, max_cands=25, min_voters=1, max_voters=100):
 @given(election=score_ballots(min_cands=1, max_cands=25,
                               min_voters=1, max_voters=100))
 def test_legit_winner(election, tiebreaker, method):
-    election = np.asarray(election)
     n_cands = election.shape[1]
     winner = method(election, tiebreaker)
     assert isinstance(winner, int)
@@ -154,7 +153,6 @@ def test_legit_winner(election, tiebreaker, method):
 @given(election=score_ballots(min_cands=1, max_cands=25,
                               min_voters=1, max_voters=100))
 def test_legit_winner_none(election, method):
-    election = np.asarray(election)
     n_cands = election.shape[1]
     winner = method(election)
     assert isinstance(winner, (int, type(None)))

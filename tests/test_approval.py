@@ -114,7 +114,6 @@ def approval_ballots(min_cands=1, max_cands=25, min_voters=1, max_voters=100):
 @given(election=approval_ballots(min_cands=1, max_cands=25,
                                  min_voters=1, max_voters=100))
 def test_legit_winner(election, tiebreaker, method):
-    election = np.asarray(election)
     n_cands = election.shape[1]
     winner = method(election, tiebreaker)
     assert isinstance(winner, int)
@@ -125,7 +124,6 @@ def test_legit_winner(election, tiebreaker, method):
 @given(election=approval_ballots(min_cands=1, max_cands=25,
                                  min_voters=1, max_voters=100))
 def test_legit_winner_none(election, method):
-    election = np.asarray(election)
     n_cands = election.shape[1]
     winner = method(election)
     assert isinstance(winner, (int, type(None)))
@@ -159,7 +157,6 @@ def combined_approval_ballots(min_cands=1, max_cands=25, min_voters=1,
 @given(election=combined_approval_ballots(min_cands=1, max_cands=25,
                                           min_voters=1, max_voters=100))
 def test_cav_legit_winner(election, tiebreaker):
-    election = np.asarray(election)
     n_cands = election.shape[1]
     winner = combined_approval(election, tiebreaker)
     assert isinstance(winner, int)
@@ -169,7 +166,6 @@ def test_cav_legit_winner(election, tiebreaker):
 @given(election=combined_approval_ballots(min_cands=1, max_cands=25,
                                           min_voters=1, max_voters=100))
 def test_cav_legit_winner_none(election):
-    election = np.asarray(election)
     n_cands = election.shape[1]
     winner = combined_approval(election)
     assert isinstance(winner, (int, type(None)))

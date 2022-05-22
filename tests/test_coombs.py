@@ -205,16 +205,14 @@ def complete_ranked_ballots(min_cands=3, max_cands=256, min_voters=1,
 @given(election=complete_ranked_ballots(min_cands=1, max_cands=25,
                                         min_voters=1, max_voters=100))
 def test_legit_winner_order(election, tiebreaker):
-    election = np.asarray(election)
-    n_cands = election.shape[1]
+    n_cands = np.shape(election)[1]
     assert coombs(election, tiebreaker) in range(n_cands)
 
 
 @given(election=complete_ranked_ballots(min_cands=1, max_cands=25,
                                         min_voters=1, max_voters=100))
 def test_legit_winner_none(election):
-    election = np.asarray(election)
-    n_cands = election.shape[1]
+    n_cands = np.shape(election)[1]
     assert coombs(election) in {None} | set(range(n_cands))
 
 

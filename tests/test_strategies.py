@@ -83,7 +83,6 @@ def utilities(min_cands=2, max_cands=25, min_voters=1, max_voters=100):
 
 @given(utilities=utilities())
 def test_approval_optimal_properties(utilities):
-    utilities = np.asarray(utilities)
     election = approval_optimal(utilities)
     assert election.shape == utilities.shape
     assert set(election.flat) <= {0, 1}
@@ -91,7 +90,6 @@ def test_approval_optimal_properties(utilities):
 
 @given(utilities=utilities())
 def test_vote_for_k_properties(utilities):
-    utilities = np.asarray(utilities)
     election = vote_for_k(utilities, 1)
     assert election.shape == utilities.shape
     assert 1 in set(election.flat)
@@ -100,7 +98,6 @@ def test_vote_for_k_properties(utilities):
 
 @given(utilities=utilities(), max_score=integers(1, 100))
 def test_honest_normed_scores_properties(utilities, max_score):
-    utilities = np.asarray(utilities)
     election = honest_normed_scores(utilities, max_score)
     assert election.shape == utilities.shape
 
