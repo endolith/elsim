@@ -41,6 +41,7 @@ WP_table = {3:   5.556,
 iterations = 300_000  # Roughly 30 seconds
 n_cands = 3
 
+# Do more than just one iteration per worker to improve efficiency
 batch = 100
 n = iterations // batch
 assert n * batch == iterations
@@ -49,6 +50,7 @@ assert n * batch == iterations
 def func():
     is_CP = Counter()  # Is there a Condorcet paradox?
     for n_voters in WP_table:
+        # Reuse the same chunk of memory to save time
         election = np.empty((n_voters, n_cands), dtype=np.uint8)
         for iteration in range(batch):
             election[:] = impartial_culture(n_voters, n_cands)
@@ -61,8 +63,7 @@ def func():
 p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n))
 is_CP = sum(p, Counter())
 
-x = list(WP_table.keys())
-y = list(WP_table.values())
+x, y = zip(*WP_table.items())
 plt.plot(x, y, label='WP')
 
 x, y = zip(*sorted(is_CP.items()))
