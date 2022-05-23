@@ -39,7 +39,7 @@ from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings, approval_optimal
 
-n = 10_000
+n = 10_000  # Roughly 60 seconds
 n_voters = 201
 n_cands = 5
 

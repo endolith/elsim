@@ -33,7 +33,7 @@ from elsim.methods import fptp, borda, approval
 from elsim.elections import random_utilities
 from elsim.strategies import honest_rankings, approval_optimal
 
-n = 30_000
+n = 30_000  # Roughly 30 seconds
 n_voters_list = (2, 3, 4, 5, 10, 15, 20, 25, 30)
 n_cands = 3
 

@@ -38,7 +38,7 @@ from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings, approval_optimal
 
-n = 10_000
+n = 10_000  # Roughly 60 seconds
 n_voters = 201
 n_cands = 5
 
@@ -81,7 +81,7 @@ for disp, corr, D in conditions:
         TODO: standard scores vs normalized don't matter for the ranked systems
         and don't affect approval much
 
-        but This is necessary for the SU Maximizer results to match Merrill's.
+        but this is necessary for the SU Maximizer results to match Merrill's.
         """
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
