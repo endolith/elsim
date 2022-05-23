@@ -20,11 +20,11 @@ With iterations = 10_000_000 (which takes forever):
 | Diff | 0.003 | 0.008 | 0.016 | 0.003 | 0.006 | 0.002 | 0.008 |
 
 """
-import time
 from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
 from tabulate import tabulate
+from joblib import Parallel, delayed
 from elsim.methods import condorcet
 from elsim.elections import impartial_culture
 
@@ -38,28 +38,34 @@ WP_table = {3:   5.556,
             601: 8.760}
 
 # It needs many iterations to get similar accuracy as the analytical results
-iterations = 100_000
+iterations = 300_000  # Roughly 30 seconds
 n_cands = 3
 
-start_time = time.monotonic()
+batch = 100
+n = iterations // batch
+assert n * batch == iterations
 
-is_CP = Counter()  # Is there a Condorcet paradox?
-for n_voters in WP_table:
-    for iteration in range(iterations):
-        election = impartial_culture(n_voters, n_cands)
-        CW = condorcet(election)
-        if CW is None:
-            is_CP[n_voters] += 1
 
-elapsed_time = time.monotonic() - start_time
-print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
+def func():
+    is_CP = Counter()  # Is there a Condorcet paradox?
+    for n_voters in WP_table:
+        election = np.empty((n_voters, n_cands), dtype=np.uint8)
+        for iteration in range(batch):
+            election[:] = impartial_culture(n_voters, n_cands)
+            CW = condorcet(election)
+            if CW is None:
+                is_CP[n_voters] += 1
+    return is_CP
+
+
+p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n))
+is_CP = sum(p, Counter())
 
 x = list(WP_table.keys())
 y = list(WP_table.values())
 plt.plot(x, y, label='WP')
 
-x = list(is_CP.keys())
-y = list(is_CP.values())
+x, y = zip(*sorted(is_CP.items()))
 y = np.asarray(y) / iterations * 100  # Percent likelihood of paradox
 plt.plot(x, y, '-', label='Simulation')
 
