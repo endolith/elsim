@@ -20,6 +20,7 @@ With iterations = 10_000_000 (which takes forever):
 | Diff | 0.003 | 0.008 | 0.016 | 0.003 | 0.006 | 0.002 | 0.008 |
 
 """
+import time
 from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
@@ -37,8 +38,11 @@ WP_table = {3:   5.556,
             601: 8.760}
 
 # It needs many iterations to get similar accuracy as the analytical results
-iterations = 50_000
+iterations = 100_000
 n_cands = 3
+
+start_time = time.monotonic()
+
 is_CP = Counter()  # Is there a Condorcet paradox?
 for n_voters in WP_table:
     for iteration in range(iterations):
@@ -46,6 +50,9 @@ for n_voters in WP_table:
         CW = condorcet(election)
         if CW is None:
             is_CP[n_voters] += 1
+
+elapsed_time = time.monotonic() - start_time
+print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
 x = list(WP_table.keys())
 y = list(WP_table.values())
