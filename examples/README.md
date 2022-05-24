@@ -18,6 +18,20 @@ These are some example scripts to demonstrate the various simulations that can b
 
 Source: [wikipedia_condorcet_paradox_likelihood.py](wikipedia_condorcet_paradox_likelihood.py)
 
+## Niemi and Weisberg 1968
+
+### Table 1: Probability That There Is No Majority Winner
+
+Reproduction of Condorcet cycle likelihood column
+
+|       |     2 |     3 |     4 |     5 |     6 |     7 |    10 |    23 |    49 |
+|:------|------:|------:|------:|------:|------:|------:|------:|------:|------:|
+| Niemi | 0.000 | 0.088 | 0.175 | 0.251 | 0.315 | 0.369 | 0.489 | 0.712 | 0.841 |
+| Sim   | 0.002 | 0.095 | 0.179 | 0.253 | 0.321 | 0.372 | 0.488 | 0.728 | 0.843 |
+| Diff  | 0.002 | 0.008 | 0.004 | 0.002 | 0.006 | 0.003 | 0.001 | 0.015 | 0.003 |
+
+Source: [niemi_1968_table_1.py](niemi_1968_table_1.py)
+
 ## Weber 1977
 
 Reproduction of utility and effectiveness tables and formulas from Weber (1977) *[Comparison of Public Choice Systems](https://cowles.yale.edu/publications/cfdp/cfdp-498)* 
