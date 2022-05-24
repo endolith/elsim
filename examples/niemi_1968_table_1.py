@@ -26,6 +26,14 @@ More accuracy with iterations = 10_000, n_voters = 100_000 (3 minutes):
 | Sim   | 0.002 | 0.095 | 0.179 | 0.253 | 0.321 | 0.372 |
 | Diff  | 0.002 | 0.008 | 0.004 | 0.002 | 0.006 | 0.003 |
 
+Many candidates, with iterations = 10_000, n_voters = 100_000 (3.5 hours)
+
+|       |    10 |    23 |    49 |
+|:------|------:|------:|------:|
+| Niemi | 0.489 | 0.712 | 0.841 |
+| Sim   | 0.488 | 0.728 | 0.843 |
+| Diff  | 0.001 | 0.015 | 0.003 |
+
 """
 from collections import Counter
 import numpy as np
