@@ -41,6 +41,8 @@ Source: [niemi_1968_table_1.py](niemi_1968_table_1.py)
 |    5 | 0.1599 | 0.1996 | 0.2146 | 0.2230 | 0.2288 | 0.2331 | 0.2347 | 0.2367 | 0.2387 | 0.2395 | 0.2406 | 0.2416 | 0.2421 | 0.2437 | 0.2480 |
 |    6 | 0.2023 | 0.2518 | 0.2707 | 0.2814 | 0.2884 | 0.2925 | 0.2948 | 0.2974 | 0.2993 | 0.3012 | 0.3030 | 0.3038 | 0.3036 | 0.3052 | 0.3110 |
 
+(This also covers the same values as Figure 6. of Klahr, D. (1966). A Computer Simulation of the Paradox of Voting. *American Political Science Review*, *60*(2), 384–390.)
+
 Source: [niemi_1968_table_2.py](niemi_1968_table_2.py)
 
 ## Weber 1977
