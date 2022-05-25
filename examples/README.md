@@ -20,9 +20,9 @@ Source: [wikipedia_condorcet_paradox_likelihood.py](wikipedia_condorcet_paradox_
 
 ## Niemi and Weisberg 1968
 
-### Table 1: Probability That There Is No Majority Winner
+Reproduction of Condorcet paradox likelihood column and table
 
-Reproduction of Condorcet cycle likelihood column
+### Table 1: Probability That There Is No Majority Winner
 
 |       |     2 |     3 |     4 |     5 |     6 |     7 |    10 |    23 |    49 |
 |:------|------:|------:|------:|------:|------:|------:|------:|------:|------:|
@@ -31,6 +31,17 @@ Reproduction of Condorcet cycle likelihood column
 | Diff  | 0.002 | 0.008 | 0.004 | 0.002 | 0.006 | 0.003 | 0.001 | 0.015 | 0.003 |
 
 Source: [niemi_1968_table_1.py](niemi_1968_table_1.py)
+
+### Table 2: Probabilities of No Majority Winner, P(m, n), for Equally Likely Rank Orders
+
+|      |      3 |      5 |      7 |      9 |     11 |     13 |     15 |     17 |     19 |     21 |     23 |     25 |     27 |     29 |     59 |
+| ---: | -----: | -----: | -----: | -----: | -----: | -----: | -----: | -----: | -----: | -----: | -----: | -----: | -----: | -----: | -----: |
+|    3 | 0.0558 | 0.0698 | 0.0755 | 0.0779 | 0.0799 | 0.0812 | 0.0819 | 0.0826 | 0.0831 | 0.0830 | 0.0842 | 0.0839 | 0.0845 | 0.0840 | 0.0864 |
+|    4 | 0.1110 | 0.1388 | 0.1506 | 0.1556 | 0.1599 | 0.1625 | 0.1641 | 0.1653 | 0.1662 | 0.1678 | 0.1675 | 0.1687 | 0.1697 | 0.1697 | 0.1728 |
+|    5 | 0.1599 | 0.1996 | 0.2146 | 0.2230 | 0.2288 | 0.2331 | 0.2347 | 0.2367 | 0.2387 | 0.2395 | 0.2406 | 0.2416 | 0.2421 | 0.2437 | 0.2480 |
+|    6 | 0.2023 | 0.2518 | 0.2707 | 0.2814 | 0.2884 | 0.2925 | 0.2948 | 0.2974 | 0.2993 | 0.3012 | 0.3030 | 0.3038 | 0.3036 | 0.3052 | 0.3110 |
+
+Source: [niemi_1968_table_2.py](niemi_1968_table_2.py)
 
 ## Weber 1977
 
