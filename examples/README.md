@@ -18,7 +18,7 @@ These are some example scripts to demonstrate the various simulations that can b
 
 Source: [wikipedia_condorcet_paradox_likelihood.py](wikipedia_condorcet_paradox_likelihood.py)
 
-## Niemi and Weisberg 1968
+## Niemi and Weisberg 1968, Klahr 1966
 
 Reproduction of Condorcet paradox likelihood column and table
 
