@@ -1,40 +1,7 @@
-import random
 import numpy as np
 from ._common import (_all_indices, _tally_at_pointer, _inc_pointer,
-                      _dec_pointer)
-
-
-def _order_tiebreak_elim(winners, n=1):
-    """
-    Given an iterable of possibly tied `winners`, select the highest numbered
-    `n` candidates.  (Since they are to be eliminated, and all systems should
-    be biased in favor of lower-indexed candidates.)  If `n` is larger than
-    `winners`, it is returned unchanged.
-    """
-    return sorted(winners)[-n:]
-
-
-def _random_tiebreak(winners, n=1):
-    """
-    Given an iterable of possibly tied `winners`, select `n` candidates at
-    random.  If `n` is larger than `winners`, it is returned unchanged.
-    """
-    if len(winners) <= n:
-        return winners
-    else:
-        return random.sample(winners, n)
-
-
-def _no_tiebreak(winners, n=1):
-    """
-    Given an iterable of possibly tied `winners`, return None if there are more
-    than `n` tied.  If `n` is larger than `winners`, it is returned unchanged.
-    """
-    if len(winners) <= n:
-        return winners
-    else:
-        return [None]
-
+                      _dec_pointer, _order_tiebreak_elim, _random_tiebreak,
+                      _no_tiebreak)
 
 _tiebreak_map = {'order': _order_tiebreak_elim,
                  'random': _random_tiebreak,

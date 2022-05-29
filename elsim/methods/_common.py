@@ -5,6 +5,7 @@ faster than the previous solutions, but still slower than numba.  So I'm using
 numba as a "soft" dependency, falling back on numpy if not installed.
 """
 import warnings
+import random
 import numpy as np
 
 try:
@@ -89,3 +90,43 @@ def _all_indices(iterable, value):
     Return all indices of `iterable` that match `value`.
     """
     return [i for i, x in enumerate(iterable) if x == value]
+
+
+def _order_tiebreak_keep(winners, n=1):
+    """
+    Given an iterable of possibly tied `winners`, select the lowest-numbered
+    `n` candidates.  If `n` is larger than `winners`, it is returned unchanged.
+    """
+    return sorted(winners)[:n]
+
+
+def _order_tiebreak_elim(winners, n=1):
+    """
+    Given an iterable of possibly tied `winners`, select the highest numbered
+    `n` candidates.  (Since they are to be eliminated, and all systems should
+    be biased in favor of lower-indexed candidates.)  If `n` is larger than
+    `winners`, it is returned unchanged.
+    """
+    return sorted(winners)[-n:]
+
+
+def _random_tiebreak(winners, n=1):
+    """
+    Given an iterable of possibly tied `winners`, select `n` candidates at
+    random.  If `n` is larger than `winners`, it is returned unchanged.
+    """
+    if len(winners) <= n:
+        return winners
+    else:
+        return random.sample(winners, n)
+
+
+def _no_tiebreak(winners, n=1):
+    """
+    Given an iterable of possibly tied `winners`, return None if there are more
+    than `n` tied.  If `n` is larger than `winners`, it is returned unchanged.
+    """
+    if len(winners) <= n:
+        return winners
+    else:
+        return [None]
