@@ -3,28 +3,34 @@ import numpy as np
 from ._common import _all_indices
 
 
-def _order_tiebreak(winners):
+def _order_tiebreak(winners, n=1):
     """
-    Given an iterable of possibly tied `winners`, select the lowest numbered.
+    Given an iterable of possibly tied `winners`, select the lowest-numbered
+    `n` candidates.  If `n` is larger than `winners`, it is returned unchanged.
     """
-    return min(winners)
+    return sorted(winners)[:n]
 
 
-def _random_tiebreak(winners):
+def _random_tiebreak(winners, n=1):
     """
-    Given an iterable of possibly tied `winners`, select one at random.
+    Given an iterable of possibly tied `winners`, select `n` candidates at
+    random.  If `n` is larger than `winners`, it is returned unchanged.
     """
-    return random.choice(winners)
-
-
-def _no_tiebreak(winners):
-    """
-    Given an iterable of `winners`, return None if there is a tie.
-    """
-    if len(winners) == 1:
-        return winners[0]
+    if len(winners) <= n:
+        return winners
     else:
-        return None
+        return random.sample(winners, n)
+
+
+def _no_tiebreak(winners, n=1):
+    """
+    Given an iterable of possibly tied `winners`, return None if there are more
+    than `n` tied.  If `n` is larger than `winners`, it is returned unchanged.
+    """
+    if len(winners) <= n:
+        return winners
+    else:
+        return [None]
 
 
 _tiebreak_map = {'order': _order_tiebreak,
@@ -100,7 +106,7 @@ def approval(election, tiebreaker=None):
 
     # Break any ties using specified method
     tiebreak = _get_tiebreak(tiebreaker)
-    return tiebreak(winners)
+    return tiebreak(winners)[0]
 
 
 def combined_approval(election, tiebreaker=None):
@@ -165,4 +171,4 @@ def combined_approval(election, tiebreaker=None):
 
     # Break any ties using specified method
     tiebreak = _get_tiebreak(tiebreaker)
-    return tiebreak(winners)
+    return tiebreak(winners)[0]
