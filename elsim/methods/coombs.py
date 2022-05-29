@@ -9,6 +9,8 @@ def _order_tiebreak(winners, n=1):
     Given an iterable of possibly tied `winners`, select the highest numbered.
 
     (Since they are to be eliminated.)
+
+    If `n` is larger than `winners`, it is returned unchanged.
     """
     return sorted(winners)[-n:]
 
@@ -16,9 +18,9 @@ def _order_tiebreak(winners, n=1):
 def _random_tiebreak(winners, n=1):
     """
     Given an iterable of possibly tied `winners`, select `n` candidates at
-    random.
+    random.  If `n` is larger than `winners`, it is returned unchanged.
     """
-    if len(winners) == 1:
+    if len(winners) <= n:
         return winners
     else:
         return random.sample(winners, n)
@@ -27,7 +29,7 @@ def _random_tiebreak(winners, n=1):
 def _no_tiebreak(winners, n=1):
     """
     Given an iterable of possibly tied `winners`, return None if there are more
-    than `n` tied.
+    than `n` tied.  If `n` is larger than `winners`, it is returned unchanged.
     """
     if len(winners) <= n:
         return winners
