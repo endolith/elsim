@@ -4,13 +4,12 @@ from ._common import (_all_indices, _tally_at_pointer, _inc_pointer,
                       _dec_pointer)
 
 
-def _order_tiebreak(winners, n=1):
+def _order_tiebreak_elim(winners, n=1):
     """
-    Given an iterable of possibly tied `winners`, select the highest numbered.
-
-    (Since they are to be eliminated.)
-
-    If `n` is larger than `winners`, it is returned unchanged.
+    Given an iterable of possibly tied `winners`, select the highest numbered
+    `n` candidates.  (Since they are to be eliminated, and all systems should
+    be biased in favor of lower-indexed candidates.)  If `n` is larger than
+    `winners`, it is returned unchanged.
     """
     return sorted(winners)[-n:]
 
@@ -37,7 +36,7 @@ def _no_tiebreak(winners, n=1):
         return [None]
 
 
-_tiebreak_map = {'order': _order_tiebreak,
+_tiebreak_map = {'order': _order_tiebreak_elim,
                  'random': _random_tiebreak,
                  None: _no_tiebreak}
 

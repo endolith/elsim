@@ -3,7 +3,7 @@ import numpy as np
 from ._common import _all_indices
 
 
-def _order_tiebreak(winners, n=1):
+def _order_tiebreak_keep(winners, n=1):
     """
     Given an iterable of possibly tied `winners`, select the lowest-numbered
     `n` candidates.  If `n` is larger than `winners`, it is returned unchanged.
@@ -33,7 +33,7 @@ def _no_tiebreak(winners, n=1):
         return [None]
 
 
-_tiebreak_map = {'order': _order_tiebreak,
+_tiebreak_map = {'order': _order_tiebreak_keep,
                  'random': _random_tiebreak,
                  None: _no_tiebreak}
 
