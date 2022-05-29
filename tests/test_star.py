@@ -60,6 +60,25 @@ def test_star_condorcet_winner(tiebreaker, method):
 
 @pytest.mark.parametrize("method", [star])
 @pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
+def test_star_runner_up_tie(tiebreaker, method):
+    Allison, Bill, Carmen, Doug = 0, 1, 2, 3
+    election = [[5, 4, 3, 3],
+                [4, 5, 1, 1],
+                [4, 5, 1, 2],
+                [3, 5, 1, 0],
+                [5, 4, 3, 0],
+                [5, 0, 4, 1],
+                [5, 0, 4, 0],
+                [4, 0, 5, 1],
+                [3, 4, 5, 0],
+                [3, 5, 5, 4]]
+
+    # expected = [["Allison"], ["Bill", "Carmen"], ["Doug"]];
+    assert method(election, tiebreaker) == Allison
+
+
+@pytest.mark.parametrize("method", [star])
+@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
 def test_rangevoting_org_examples(tiebreaker, method):
     # Every example from https://rangevoting.org/StarVoting.html
     # (https://web.archive.org/web/20201105181703/ in case of changes)
