@@ -23,7 +23,7 @@ def ranked_election_to_matrix(election):
 
     Returns
     -------
-    matrix : array_like
+    matrix : ndarray
         A pairwise comparison matrix of candidate vs candidate defeats.
 
         For example, a ``3`` in row 2, column 5, means that 3 voters preferred

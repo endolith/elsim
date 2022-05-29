@@ -27,7 +27,7 @@ def star(election, tiebreaker=None):
 
         Rows represent voters, and columns represent candidate IDs.
         A cell contains a high score if that voter approves of that candidate,
-        or low score if they disapprove
+        or low score if they disapprove.
 
     tiebreaker : {'random', 'order', None}, optional
         If there is a tie, and `tiebreaker` is ``'random'``, a random finalist
