@@ -144,9 +144,19 @@ def star(election, tiebreaker=None):
     winner : int
         The ID number of the winner, or ``None`` for an unbroken tie.
 
+    Notes
+    -----
+    If there is a tie during the automatic runoff (neither candidate is
+    preferred more than the other) then it is broken in favor of the
+    higher-scoring candidate.
+
+    If there is still a tie, it is broken according to the
+    `tiebreaker` parameter.
+
     References
     ----------
     .. [1] https://en.wikipedia.org/wiki/STAR_voting
+    .. [2] https://www.starvoting.us/ties
 
     Examples
     --------
