@@ -37,6 +37,30 @@ def test_basic(tiebreaker, method):
 
     assert method(election, tiebreaker) == 1  # Nashville
 
+
+# https://github.com/Equal-Vote/star-core/blob/master/src/Tests/ties.test.js
+@pytest.mark.parametrize("method", [star])
+@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
+def test_star_condorcet_winner(tiebreaker, method):
+    Allison, Bill, Carmen, Doug = 0, 1, 2, 3
+    election = [[5, 2, 1, 4],
+                [5, 2, 1, 0],
+                [5, 2, 1, 0],
+                [5, 2, 1, 0],
+                [5, 3, 4, 0],
+                [5, 1, 4, 0],
+                [5, 1, 4, 0],
+                [4, 0, 5, 1],
+                [3, 4, 5, 0],
+                [3, 5, 5, 5]]
+
+    # expected = [["Allison"], ["Carmen"], ["Bill", "Doug"]];
+    assert method(election, tiebreaker) == Allison
+
+
+@pytest.mark.parametrize("method", [star])
+@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
+def test_rangevoting_org_examples(tiebreaker, method):
     # Every example from https://rangevoting.org/StarVoting.html
     # (https://web.archive.org/web/20201105181703/ in case of changes)
     # '51% vote "A5, B0, C4," while 49% vote "A0, B5, C4."'
