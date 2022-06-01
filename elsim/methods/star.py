@@ -93,6 +93,31 @@ def _pairwise_compare(election, a, b):
         return None
 
 
+def _scorewise_compare(tallies, a, b):
+    """
+    Find higher-scored candidate between `a` and `b` in `election`.
+
+    Parameters
+    ----------
+    tallies : array_like
+        A 1D collection of tallies of scores
+    a, b : int
+        Indices of candidates.
+
+    Returns
+    -------
+    winner : {a, b, None}
+        Index of candidate who beats the other, or None if there is a tie.
+
+    """
+    if tallies[a] > tallies[b]:
+        return a
+    elif tallies[b] > tallies[a]:
+        return b
+    else:
+        return None
+
+
 def star(election, tiebreaker=None):
     """
     Find the winner of an election using STAR voting.
@@ -187,7 +212,13 @@ def star(election, tiebreaker=None):
     # RUNOFF ROUND
 
     winner = _pairwise_compare(election, first, second)
-    if winner is None:
-        winner = tiebreak({first, second}, 1)[0]
+    if winner is None:  # Neither candidate preferred over the other
+        # "1. Ties in the Runoff round should be broken in favor of the
+        # candidate who was scored higher if possible."
+        winner = _scorewise_compare(tallies, first, second)
+        if winner is None:  # Tied in both scores and preferences
+            # '5. Ties which can not be broken as above are considered a "True
+            # Tie."' "True ties can be broken by random selection."
+            winner = tiebreak({first, second}, 1)[0]
 
     return winner
