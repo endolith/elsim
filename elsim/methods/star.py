@@ -184,6 +184,10 @@ def star(election, tiebreaker=None):
         # Only 1 candidate: that candidate wins.
         return 0
 
+    # TODO: Follow the official tie-breaking rules
+    # Break any True Ties using specified method
+    tiebreak = _get_tiebreak(tiebreaker)
+
     # SCORING ROUND
 
     # Tally all scores
@@ -192,10 +196,6 @@ def star(election, tiebreaker=None):
     # Find the set of candidates who have the highest score (usually only one)
     highest = max(tallies)
     first_set = _all_indices(tallies, highest)
-
-    # TODO: Follow the official tie-breaking rules
-    # Break any ties using specified method
-    tiebreak = _get_tiebreak(tiebreaker)
 
     if len(first_set) == 2:
         first, second = first_set
