@@ -155,22 +155,12 @@ def star(election, tiebreaker=None):
     else:
         raise RuntimeError('This should not happen')
 
-    # TODO there must be a vectorized way to do this
-    a = first
-    b = second
-    a_beats = 0
-    b_beats = 0
-    # Find the candidate who was preferred on more ballots
-    for ballot in election:
-        if ballot[a] > ballot[b]:
-            a_beats += 1
-        elif ballot[a] < ballot[b]:
-            b_beats += 1
-
-    if a_beats > b_beats:
-        winner = a
-    elif a_beats < b_beats:
-        winner = b
+    a_beats_b = (election[:, first] > election[:, second]).sum()
+    b_beats_a = (election[:, second] > election[:, first]).sum()
+    if a_beats_b > b_beats_a:
+        winner = first
+    elif b_beats_a > a_beats_b:
+        winner = second
     else:
         winner = tiebreak({first, second}, 1)[0]
 
