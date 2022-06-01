@@ -1,8 +1,9 @@
 import random
 import numpy as np
+from numpy.testing import assert_array_equal
 import pytest
 from hypothesis import given
-from elsim.methods import star
+from elsim.methods import star, matrix_from_scores
 import test_score
 score_ballots = test_score.score_ballots
 
@@ -373,6 +374,58 @@ def test_invalid(method):
     with pytest.raises(ValueError):
         method([[-2, -2, -2],
                 [0, +1, -1]])
+
+
+def test_matrix_from_scores():
+    election = [[5, 5, 0],
+                [0, 4, 5],
+                [0, 3, 4]]
+
+    expected = [[0, 0, 1],
+                [2, 0, 1],
+                [2, 2, 0]]
+
+    assert_array_equal(matrix_from_scores(election), expected)
+
+    # Favorite Modern Snack?
+    # https://star.vote/y5www21z/ 2022-05-31
+    #            Tide Pods, Fabuloso, Fidget Spinners
+    election = [[4, 3, 2],
+                [5, 0, 3],
+                [5, 4, 1],
+                [4, 5, 1],
+                [5, 3, 1],
+                [5, 1, 3],
+                [5, 3, 2],
+                [5, 4, 1],
+                [5, 0, 4],
+                [5, 3, 4],
+                [5, 3, 0],
+                [5, 3, 1],
+                [4, 5, 1],
+                [0, 5, 0],
+                [3, 1, 5]]
+
+    expected = [[0, 12, 13],
+                [3,  0, 10],
+                [1,  5,  0]]
+
+    assert_array_equal(matrix_from_scores(election), expected)
+
+
+@pytest.mark.parametrize("method", [star])
+@given(election=score_ballots(min_cands=1, max_cands=25,
+                              min_voters=1, max_voters=100))
+def test_matrix_from_scores_properties(election, method):
+    matrix = matrix_from_scores(election)
+    assert matrix.ndim == 2
+    assert matrix.shape[0] == matrix.shape[1]
+    for n in range(len(matrix)):
+        assert matrix[n, n] == 0
+
+    n_voters = len(election)
+    assert matrix.max() <= n_voters
+    assert matrix.min() >= 0
 
 
 if __name__ == "__main__":

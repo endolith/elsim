@@ -14,6 +14,58 @@ def _get_tiebreak(tiebreaker):
         raise ValueError('Tiebreaker not understood')
 
 
+def matrix_from_scores(election):
+    """
+    Convert a scored ballot election to a pairwise comparison matrix.
+
+    Parameters
+    ----------
+    election : array_like
+        A 2D collection of score ballots.
+
+        Rows represent voters, and columns represent candidate IDs.
+        A cell contains a high score if that voter approves of that candidate,
+        or low score if they disapprove.
+
+    Returns
+    -------
+    matrix : ndarray
+        A pairwise comparison matrix of candidate vs candidate defeats.
+
+        For example, a ``3`` in row 2, column 5, means that 3 voters preferred
+        Candidate 2 over Candidate 5.  Candidates are not preferred over
+        themselves, so the diagonal is all zeros.
+
+    Examples
+    --------
+    Voter 0 loves Candidates A (index 0) and B (index 1), but hates C (2).
+    Voter 1 dislikes A, likes B, and loves C.
+    Voter 2 hates A, is lukewarm about B and likes C.
+
+    >>> election = [[5, 5, 0],
+                    [0, 4, 5],
+                    [0, 3, 4]]
+
+    So, candidate B is preferred over A by 2 voters, while one is indifferent
+    between them.  C is preferred over A by 2 voters, while A is preferred
+    over C by 1 voter.  C is preferred over B by 2 voters, while B is preferred
+    over C by 1 voter.
+
+    >>> matrix_from_scores(election)
+    array([[0, 0, 1],
+           [2, 0, 1],
+           [2, 2, 0]])
+
+    """
+    # Add extra dimensions so that election is broadcast against itself,
+    # producing every combination of candidate pairs. Count how often each
+    # beats the other.
+    gt = np.expand_dims(election, 2) > np.expand_dims(election, 1)
+
+    # Sum across all voters
+    return gt.sum(axis=0)
+
+
 def star(election, tiebreaker=None):
     """
     Find the winner of an election using STAR voting.
