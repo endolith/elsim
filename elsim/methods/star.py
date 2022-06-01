@@ -206,11 +206,13 @@ def star(election, tiebreaker=None):
         else:
             first, second = result
     elif len(first_set) == 1:
+        # One candidate has highest score
         first = first_set[0]
         # Find the set of candidates who have the second-highest score
         second = np.sort(tallies)[-2]
         second_set = _all_indices(tallies, second)
         if len(second_set) == 1:
+            # One candidate has second-highest score. They go to runoff.
             second = second_set[0]
         else:
             second = tiebreak(second_set, 1)[0]
