@@ -66,6 +66,33 @@ def matrix_from_scores(election):
     return gt.sum(axis=0)
 
 
+def _pairwise_compare(election, a, b):
+    """
+    Find more-preferred candidate between `a` and `b` in `election`.
+
+    Parameters
+    ----------
+    election : array_like
+        A 2D collection of score ballots.
+    a, b : int
+        Indices of candidates.
+
+    Returns
+    -------
+    winner : {a, b, None}
+        Index of candidate who beats the other, or None if there is a tie.
+
+    """
+    a_beats_b = (election[:, a] > election[:, b]).sum()
+    b_beats_a = (election[:, b] > election[:, a]).sum()
+    if a_beats_b > b_beats_a:
+        return a
+    elif b_beats_a > a_beats_b:
+        return b
+    else:
+        return None
+
+
 def star(election, tiebreaker=None):
     """
     Find the winner of an election using STAR voting.
@@ -122,6 +149,8 @@ def star(election, tiebreaker=None):
         # Only 1 candidate: that candidate wins.
         return 0
 
+    # SCORING ROUND
+
     # Tally all scores
     tallies = election.sum(axis=0)
 
@@ -155,13 +184,10 @@ def star(election, tiebreaker=None):
     else:
         raise RuntimeError('This should not happen')
 
-    a_beats_b = (election[:, first] > election[:, second]).sum()
-    b_beats_a = (election[:, second] > election[:, first]).sum()
-    if a_beats_b > b_beats_a:
-        winner = first
-    elif b_beats_a > a_beats_b:
-        winner = second
-    else:
+    # RUNOFF ROUND
+
+    winner = _pairwise_compare(election, first, second)
+    if winner is None:
         winner = tiebreak({first, second}, 1)[0]
 
     return winner
