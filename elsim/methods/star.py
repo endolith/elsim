@@ -1,6 +1,7 @@
 import numpy as np
 from ._common import (_all_indices, _order_tiebreak_keep, _random_tiebreak,
                       _no_tiebreak)
+from .condorcet import condorcet_from_matrix
 
 _tiebreak_map = {'order': _order_tiebreak_keep,
                  'random': _random_tiebreak,
@@ -215,7 +216,22 @@ def star(election, tiebreaker=None):
             # One candidate has second-highest score. They go to runoff.
             second = second_set[0]
         else:
-            second = tiebreak(second_set, 1)[0]
+            # Two or more candidates have second-highest score.
+            # "2. Ties in the Scoring round should be broken in favor of the
+            # candidate who was preferred head-to-head by more voters."
+            # "3. Multi-candidate ties in either round are broken in favor of
+            # the Condorcet winner if one exists"
+            matrix = matrix_from_scores(election[:, second_set])
+            winner = condorcet_from_matrix(matrix)
+            if winner is None:
+                # There was still a tie or cycle.
+                # '5. Ties which can not be broken as above are considered a
+                # "True Tie."' "True ties can be broken by random selection."
+                second = tiebreak(second_set, 1)[0]
+            else:
+                # There was a Condorcet winner among the tied candidates.
+                # Map back to their original index.
+                second = second_set[winner]
         if second is None:
             return None
     else:
