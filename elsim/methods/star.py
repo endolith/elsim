@@ -70,7 +70,7 @@ def star(election, tiebreaker=None):
     """
     Find the winner of an election using STAR voting.
 
-    The more-preferred of the two candidates with the highest scores wins.[1]_
+    The more-preferred of the two highest-scoring candidates wins.[1]_
 
     Parameters
     ----------
