@@ -78,6 +78,32 @@ def test_star_runner_up_tie(tiebreaker, method):
 
 
 @pytest.mark.parametrize("method", [star])
+def test_star_true_tie(method):
+    Allison, Bill, Carmen, Doug = 0, 1, 2, 3
+    election = [[5, 4, 1, 4],
+                [5, 4, 1, 4],
+                [2, 4, 1, 2],
+                [4, 3, 2, 1],
+                [0, 5, 4, 4],
+                [3, 2, 4, 2],
+                [3, 1, 5, 3],
+                [3, 1, 5, 3],
+                [1, 3, 2, 2],
+                [4, 3, 5, 5]]
+
+    # expected = [["Allison", "Bill", "Carmen"], [], ["Doug"]];
+
+    # No tiebreaker:
+    assert method(election, tiebreaker=None) is None
+
+    # Mode 'order' should always prefer lowest candidate ID
+    assert method(election, tiebreaker='order') == Allison
+
+    # Mode 'random' should choose all tied candidates at random
+    assert collect_random_results(method, election) == {Allison, Bill, Carmen}
+
+
+@pytest.mark.parametrize("method", [star])
 @pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
 def test_rangevoting_org_examples(tiebreaker, method):
     # Every example from https://rangevoting.org/StarVoting.html
