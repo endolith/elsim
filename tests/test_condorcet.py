@@ -186,20 +186,20 @@ def test_condorcet():
 def test_condorcet_from_matrix():
     # Examples from Young 1988 Condorcet's Theory of Voting
     # http://www.cs.cmu.edu/~arielpro/15896s15/docs/paper4a.pdf
-    # Table 1
+    # Table 1. Voting Matrix with Three Alternatives and 11 Voters [cycle]
     matrix = np.array([[0,  8,  6],
                        [5,  0, 11],
                        [7,  2,  0]])
     assert condorcet_from_matrix(matrix) is None
 
-    # Table 2
+    # Table 2. A Voting Matrix with 25 Voters and Four Alternatives [cycle]
     matrix = np.array([[ 0, 12, 15, 17],
                        [13,  0, 16, 11],
                        [10,  9,  0, 18],
                        [ 8, 14,  7,  0]])
     assert condorcet_from_matrix(matrix) is None
 
-    # Table 4
+    # Table 4. A Voting Matrix with 60 Voters and Three Candidates [c wins]
     matrix = np.array([[ 0, 23, 29],
                        [37,  0, 29],
                        [31, 31,  0]])
