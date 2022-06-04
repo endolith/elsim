@@ -138,7 +138,17 @@ def condorcet_from_matrix(matrix):
 
     n_cands = matrix.shape[0]
 
-    # Brute force
+    # Vectorized version is actually slower:
+    # matrix = matrix.astype(np.uint)
+    # n_cands = len(matrix)
+    # wins = (matrix > matrix.T).sum(axis=1)
+    # winner = (wins == n_cands-1).nonzero()[0]
+    # if len(winner) == 1:
+    #     return int(winner[0])
+    # else:
+    #     return None
+
+    # Brute force numba version is 4× faster (in part because it halts early)
     for runner in range(n_cands):
         wins = 0
         for opponent in range(n_cands):
