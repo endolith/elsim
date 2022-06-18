@@ -119,6 +119,7 @@ def test_condorcet():
                 [z, w, v, y, x],
                 ]
 
+    # Cycles: v>x>z>v or v>y>z>v or x>z>w>x or w>y>z>w or v>w>x>y>z>v
     assert condorcet(election) is None
 
     # Example from
