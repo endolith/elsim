@@ -1,6 +1,6 @@
 import numpy as np
-from ._common import (_all_indices, _order_tiebreak_keep, _random_tiebreak,
-                      _no_tiebreak)
+from elsim.methods._common import (_all_indices, _order_tiebreak_keep,
+                                   _random_tiebreak, _no_tiebreak)
 
 _tiebreak_map = {'order': _order_tiebreak_keep,
                  'random': _random_tiebreak,

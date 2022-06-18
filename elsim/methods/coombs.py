@@ -1,7 +1,8 @@
 import numpy as np
-from ._common import (_all_indices, _tally_at_pointer, _inc_pointer,
-                      _dec_pointer, _order_tiebreak_elim, _random_tiebreak,
-                      _no_tiebreak)
+from elsim.methods._common import (_all_indices, _tally_at_pointer,
+                                   _inc_pointer, _dec_pointer,
+                                   _order_tiebreak_elim, _random_tiebreak,
+                                   _no_tiebreak)
 
 _tiebreak_map = {'order': _order_tiebreak_elim,
                  'random': _random_tiebreak,
