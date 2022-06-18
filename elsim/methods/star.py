@@ -119,6 +119,52 @@ def _scorewise_compare(tallies, a, b):
         return None
 
 
+def _all_condorcet_from_matrix(matrix):
+    """
+    Find all winners of a ranked ballot election using a Condorcet method.
+
+    This does not contain any "tiebreakers"; it returns all tied Condorcet
+    winners.
+
+    Parameters
+    ----------
+    matrix : array_like
+        A pairwise comparison matrix of candidate vs candidate defeats.
+
+    Returns
+    -------
+    winner : ndarray
+        Array of ID numbers of winners.
+
+    Examples
+    --------
+    Specify the pairwise comparison matrix for the election:
+
+    >>> matrix = np.array([[0, 7, 4, 4],
+                           [3, 0, 6, 4],
+                           [6, 4, 0, 4],
+                           [3, 3, 3, 0]])
+
+    Candidate
+    A (row 0) is preferred over B (column 1) and D (column 3).
+    B (row 1) is preferred over C and D.
+    C is preferred over A and D.
+    So A, B, and C form a top cycle.
+
+    >>> _all_condorcet_from_matrix(matrix)
+    array([0, 1, 2], dtype=int64)
+
+    TODO: Is this actually correct? Handle cycles with unequal wins correctly.
+    """
+    if matrix.shape[0] != matrix.shape[1] or len(matrix.shape) != 2:
+        raise ValueError('Input must be n by n square sum matrix')
+
+    matrix = matrix.astype(np.uint)
+    wins = (matrix > matrix.T).sum(axis=1)
+    winners = (wins == wins.max()).nonzero()[0]
+    return winners
+
+
 def star(election, tiebreaker=None):
     """
     Find the winner of an election using STAR voting.
@@ -147,11 +193,15 @@ def star(election, tiebreaker=None):
 
     Notes
     -----
+    If there is a tie during the scoring round (three or more candidates tied
+    for highest score, or two or more tied for second highest), it is broken
+    using a Condorcet method between the tied candidates.
+
     If there is a tie during the automatic runoff (neither candidate is
     preferred more than the other) then it is broken in favor of the
     higher-scoring candidate.
 
-    If there is still a tie, it is broken according to the
+    If there is still a tie in either round, it is broken according to the
     `tiebreaker` parameter.
 
     References
@@ -185,7 +235,6 @@ def star(election, tiebreaker=None):
         # Only 1 candidate: that candidate wins.
         return 0
 
-    # TODO: Follow the official tie-breaking rules
     # Break any True Ties using specified method
     tiebreak = _get_tiebreak(tiebreaker)
 
@@ -199,13 +248,32 @@ def star(election, tiebreaker=None):
     first_set = _all_indices(tallies, highest)
 
     if len(first_set) == 2:
+        # 2 tied for highest score: Both advance to runoff.
         first, second = first_set
     elif len(first_set) > 2:
-        result = tiebreak(first_set, 2)
-        if result[0] is None:
-            return None
+        # 3 or more tied for highest score: Tiebreak using Condorcet.
+        # "2. Ties in the Scoring round should be broken in favor of the
+        # candidate who was preferred head-to-head by more voters."
+        # "3. Multi-candidate ties in either round are broken in favor of the
+        # Condorcet winner if one exists, and can also be narrowed down by
+        # eliminating any Condorcet losers."
+        matrix = matrix_from_scores(election[:, first_set])
+        winner = condorcet_from_matrix(matrix)
+        if winner is None:
+            # There was a tie or cycle in both scores and preferences.
+            # Tiebreak randomly
+            # TODO: Shouldn't need to convert to list
+            # TODO: This should just call a condorcet function between the tied
+            # score candidates
+            # TODO: Should handle two CWs tied, Smith set(??), etc.
+            result = tiebreak(list(_all_condorcet_from_matrix(matrix)), 1)
+            if result[0] is None:
+                return None
+            else:
+                return int(result[0])  # TODO: don't convert back and forth?
         else:
-            first, second = result
+            # There is a single Condorcet winner, so they will also win runoff
+            return winner
     elif len(first_set) == 1:
         # One candidate has highest score
         first = first_set[0]

@@ -105,6 +105,33 @@ def test_star_true_tie(method):
 
 @pytest.mark.parametrize("method", [star])
 @pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
+def test_star_PR_ties(tiebreaker, method):
+    Allison, Bill, Carmen, Doug = 0, 1, 2, 3
+    election = [[5, 4, 1, 4],
+                [5, 4, 1, 4],
+                [2, 4, 1, 2],
+                [4, 3, 2, 1],
+                [0, 5, 4, 4],
+                [3, 2, 4, 2],
+                [3, 1, 5, 3],
+                [3, 1, 5, 3],
+                [1, 3, 2, 2],
+                [4, 3, 5, 5]]
+
+    # expectedWinners = ["Allison", "Carmen", "Bill"];
+
+    # No tiebreaker:
+    assert method(election, tiebreaker=None) is None
+
+    # Mode 'order' should always prefer lowest candidate ID
+    assert method(election, tiebreaker='order') == Allison
+
+    # Mode 'random' should choose all tied candidates at random
+    assert collect_random_results(method, election) == {Allison, Bill, Carmen}
+
+
+@pytest.mark.parametrize("method", [star])
+@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
 def test_rangevoting_org_examples(tiebreaker, method):
     # Every example from https://rangevoting.org/StarVoting.html
     # (https://web.archive.org/web/20201105181703/ in case of changes)
@@ -375,6 +402,111 @@ def test_rangevoting_org_examples(tiebreaker, method):
     assert method(election, tiebreaker) == 3  # "DeAndre wins"
 
 
+# I tried to enumerate all possible scenarios and make a test for each.
+@pytest.mark.parametrize("method", [star])
+@pytest.mark.parametrize("tiebreaker", ['random', 'order'])  # TODO: None
+def test_all_tiebreaker_cases(tiebreaker, method):
+    # 1. One highest-scoring, one 2nd-highest. B preferred in runoff:
+    election = [[0, 5],
+                [2, 4],
+                ]
+    assert method(election, tiebreaker) == 1
+
+    # 2. One highest-scoring, one 2nd-highest. Both tied in runoff, break tie
+    # using scores, B wins:
+    election = [[0, 5],
+                [3, 2],
+                ]
+    assert method(election, tiebreaker) == 1
+
+    # 3. Two tied for highest-scoring, B wins in runoff:
+    election = [[0, 2],
+                [1, 2],
+                [4, 1],
+                ]
+    assert method(election, tiebreaker) == 1
+
+    # 4. Two tied for highest-scoring, tied in runoff, decide A or B randomly:
+    election = [[1, 3],
+                [4, 2],
+                ]
+    assert method(election, tiebreaker) in {0, 1}
+
+    # 5. One highest-scoring, two or more tied for second-highest. One
+    # Condorcet winner among tied (C). One is preferred in runoff (A):
+    election = [[5, 2, 3],
+                [5, 2, 3],
+                [5, 2, 0],
+                ]
+    assert method(election, tiebreaker) == 0
+
+    # 6. One highest-scoring, two or more tied for second-highest. One
+    # Condorcet winner among tied (C). Runoff is tied, highest-scoring A wins:
+    election = [[5, 2, 3],
+                [5, 2, 3],
+                [1, 2, 2],
+                [1, 4, 2],
+                ]
+    assert method(election, tiebreaker) == 0
+
+    # 7. One highest-scoring, two or more tied for second-highest. No
+    # Condorcet winner among tied, break 2nd place randomly (B or C). One is
+    # preferred in runoff (A):
+    election = [[5, 2, 3],
+                [5, 2, 3],
+                [4, 3, 2],
+                [1, 4, 3],
+                ]
+    assert method(election, tiebreaker) == 0
+
+    # 8. One highest-scoring, two or more tied for second-highest. No
+    # Condorcet winner among tied, break 2nd place randomly (B or C). Both are
+    # tied in runoff, highest-scoring wins (A).],
+    election = [[5, 2, 3],
+                [5, 2, 3],
+                [1, 3, 2],
+                [1, 4, 3],
+                ]
+    assert method(election, tiebreaker) == 0
+
+    # 9. Three or more tied for highest-scoring. One Condorcet winner and one
+    # 2nd-place Condorcet winner go to runoff. Condorcet winner wins (A):
+    election = [[2, 1, 0],
+                [2, 1, 0],
+                [2, 1, 0],
+                [2, 1, 0],
+                [1, 0, 0],
+                [0, 0, 4],
+                [0, 5, 5],
+                ]
+    assert method(election, tiebreaker) == 0
+
+    # 10. Three or more tied for highest-scoring. Two tied for Condorcet
+    # winner (A and B), both go to runoff. True Tie, break randomly:
+    election = [[2, 2, 0],
+                [2, 2, 0],
+                [1, 1, 5],
+                ]
+    assert method(election, tiebreaker) in {0, 1}
+
+    # 11. Three or more tied for highest-scoring. One Condorcet winner in
+    # tiebreaker and two or more tied for 2nd place CW. Break tie randomly (B
+    # or C).  Condorcet winner A wins runoff:
+    election = [[2, 1, 1],
+                [2, 1, 1],
+                [3, 5, 5],
+                ]
+    assert method(election, tiebreaker) == 0
+
+    # 12. Three or more tied for highest-scoring. No Condorcet winner in
+    # tiebreaker, choose two randomly.  Neither wins runoff, choose winner
+    # randomly (A B or C):
+    election = [[5, 5, 5],
+                [2, 2, 2],
+                ]
+    assert method(election, tiebreaker) in {0, 1, 2}
+
+
 @pytest.mark.parametrize("method", [star])
 def test_ties(method):
     # Two-way tie between candidates 1 and 2
@@ -407,8 +539,6 @@ def test_ties(method):
 
     # No tiebreaker:
     assert method(election, tiebreaker=None) is None
-
-    # TODO: Add every type of tie at every stage.
 
 #     # Mode 'order' should always prefer lowest candidate ID
 #     assert method(election, tiebreaker='order') == 0
