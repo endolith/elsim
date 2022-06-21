@@ -195,11 +195,11 @@ def star(election, tiebreaker=None):
     -----
     If there is a tie during the scoring round (three or more candidates tied
     for highest score, or two or more tied for second highest), it is broken
-    using a Condorcet method between the tied candidates.
+    using a Condorcet method between the tied candidates.[2]_
 
     If there is a tie during the automatic runoff (neither candidate is
     preferred more than the other) then it is broken in favor of the
-    higher-scoring candidate.
+    higher-scoring candidate.[2]_
 
     If there is still a tie in either round, it is broken according to the
     `tiebreaker` parameter.
@@ -254,9 +254,6 @@ def star(election, tiebreaker=None):
         # 3 or more tied for highest score: Tiebreak using Condorcet.
         # "2. Ties in the Scoring round should be broken in favor of the
         # candidate who was preferred head-to-head by more voters."
-        # "3. Multi-candidate ties in either round are broken in favor of the
-        # Condorcet winner if one exists, and can also be narrowed down by
-        # eliminating any Condorcet losers."
         matrix = matrix_from_scores(election[:, first_set])
         winner = condorcet_from_matrix(matrix)
         if winner is None:
@@ -285,16 +282,17 @@ def star(election, tiebreaker=None):
             second = second_set[0]
         else:
             # Two or more candidates have second-highest score.
-            # "2. Ties in the Scoring round should be broken in favor of the
+            # "2. Ties in the Scoring Round should be broken in favor of the
             # candidate who was preferred head-to-head by more voters."
-            # "3. Multi-candidate ties in either round are broken in favor of
-            # the Condorcet winner if one exists"
             matrix = matrix_from_scores(election[:, second_set])
             winner = condorcet_from_matrix(matrix)
             if winner is None:
                 # There was still a tie or cycle.
-                # '5. Ties which can not be broken as above are considered a
-                # "True Tie."' "True ties can be broken by random selection."
+                # '3. Ties which can be broken as above are known as simple
+                # ties and should be broken as above. Ties which can not be
+                # broken as above are considered "True Ties."
+                # "In the event that a true tie arises you can opt to resolve
+                # it with a random tiebreaker"
                 second = tiebreak(second_set, 1)[0]
             else:
                 # There was a Condorcet winner among the tied candidates.
@@ -309,12 +307,15 @@ def star(election, tiebreaker=None):
 
     winner = _pairwise_compare(election, first, second)
     if winner is None:  # Neither candidate preferred over the other
-        # "1. Ties in the Runoff round should be broken in favor of the
+        # "1. Ties in the Runoff Round should be broken in favor of the
         # candidate who was scored higher if possible."
         winner = _scorewise_compare(tallies, first, second)
         if winner is None:  # Tied in both scores and preferences
-            # '5. Ties which can not be broken as above are considered a "True
-            # Tie."' "True ties can be broken by random selection."
+            # '3. Ties which can be broken as above are known as simple
+            # ties and should be broken as above. Ties which can not be
+            # broken as above are considered "True Ties."
+            # "In the event that a true tie arises you can opt to resolve
+            # it with a random tiebreaker"
             winner = tiebreak({first, second}, 1)[0]
 
     return winner
