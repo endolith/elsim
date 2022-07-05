@@ -1,7 +1,7 @@
 """
 Reproduce Figures 2.c and 2.d
 
-Condorcet Efficiencies under Spatial-Model Assumptions
+Condorcet Efficiency under Spatial-Model Assumptions
 (201 voters, two dimensions, correlation = .5, relative dispersion = .5 or 1.0)
 
 from
@@ -119,7 +119,7 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
           '\n')
 
     plt.figure(f'Figure {fig}. {n_voters} voters, {n} iterations')
-    plt.title(f'Figure {fig}: Condorcet Efficiencies under Spatial-Model '
+    plt.title(f'Figure {fig}: Condorcet Efficiency under Spatial-Model '
               'Assumptions')
 
     # Restart color cycle, so result colors match
@@ -140,8 +140,9 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
     for method in ('Black', 'Coombs', 'Borda', 'Approval', 'Hare', 'Runoff',
                    'Plurality'):
         x, y = zip(*sorted(count[method].items()))
-        plt.plot(x, np.array(y)/y_cw*100, '-', label=method)
-        table.append([method, *np.array(y)/y_cw*100])
+        CE = np.array(y)/y_cw
+        plt.plot(x, CE*100, '-', label=method)
+        table.append([method, *CE*100])
 
     print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
     print()
