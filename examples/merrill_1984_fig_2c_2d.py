@@ -140,7 +140,8 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
                    'Plurality'):
         x, y = zip(*sorted(condorcet_winner_count[method].items()))
         CE = np.array(y)/y_cw
-        plt.plot(x, CE*100, '-', label=method)
+        var = CE*(1-CE)/y_cw  # If p = N/n, then var = p(1-p)/n
+        plt.errorbar(x, CE*100, var*100, fmt='-', label=method)
         table.append([method, *CE*100])
 
     print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
