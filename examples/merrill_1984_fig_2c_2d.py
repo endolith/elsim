@@ -46,6 +46,7 @@ from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.stats import binomtest
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
@@ -142,8 +143,10 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
                    'Plurality'):
         x, y = zip(*sorted(condorcet_winner_count[method].items()))
         CE = np.array(y)/y_cw
-        var = CE*(1-CE)/y_cw  # If p = N/n, then var = p(1-p)/n
-        plt.errorbar(x, CE*100, var*100, fmt='-', label=method)
+        ci = np.empty((2, len(y)))
+        for i in range(len(y)):
+            ci[:, i] = binomtest(y[i], y_cw[i]).proportion_ci()
+        plt.errorbar(x, CE*100, ci*100, fmt='-', label=method)
         table.append([method, *CE*100])
 
     print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
