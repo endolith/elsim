@@ -67,8 +67,8 @@ x, y = zip(*WP_table.items())
 plt.plot(x, y, label='WP')
 
 x, y = zip(*sorted(is_CP.items()))
-y = np.asarray(y) / iterations * 100  # Percent likelihood of paradox
-plt.plot(x, y, '-', label='Simulation')
+CP = np.asarray(y) / iterations  # Likelihood of paradox
+plt.plot(x, CP*100, '-', label='Simulation')
 
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')

@@ -112,7 +112,8 @@ x_cw, y_cw = zip(*sorted(count['CW'].items()))
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
     x, y = zip(*sorted(count[method].items()))
-    plt.plot(x, np.array(y)/y_cw*100, '-', label=method)
+    CE = np.array(y)/y_cw
+    plt.plot(x, CE*100, '-', label=method)
     table.append([method, *np.array(y)/y_cw*100])
 
 # Likelihood that social utility maximizer is Condorcet Winner
