@@ -20,6 +20,7 @@ Typical result with n = 100_000:
 | 255 |      12.78 |           86.37 |   99.80 |
 """
 # TODO: Standard is consistently ~1% high, while Borda is very accurate
+# TODO: Best Vote-for-or-against-k is not implemneted yet
 import time
 from collections import Counter
 import numpy as np

@@ -1,8 +1,7 @@
 """
 Reproduce Table 2
 
-Condorcet Efficiencies under Random Society and
-Spatial Model Assumptions
+Condorcet Efficiencies under […] Spatial Model Assumptions
 (201 voters, 5 candidates)
 
 from
@@ -10,6 +9,8 @@ from
 S. Merrill III, "A Comparison of Efficiency of Multicandidate
 Electoral Systems", American Journal of Political Science, vol. 28,
 no. 1, pp. 23-48, 1984.  :doi:`10.2307/2110786`
+
+(Not including random society column)
 
 Typical result:
 

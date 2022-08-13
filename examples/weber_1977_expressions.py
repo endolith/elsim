@@ -7,6 +7,19 @@ Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 
 These all use the impartial culture / random society model and an infinite
 number of voters.
+
+When run, this reproduces the "The Effectiveness of Several Voting Systems"
+table from page 19:
+
+|    |   Standard |   Vote-for-half |   Best Vote-for-or-against-k |   Borda |
+|:---|-----------:|----------------:|-----------------------------:|--------:|
+| 2  |     81.65% |          81.65% |                       81.65% |  81.65% |
+| 3  |     75.00% |          75.00% |                       87.50% |  86.60% |
+| 4  |     69.28% |          80.00% |                       80.83% |  89.44% |
+| 5  |     64.55% |          79.06% |                       86.96% |  91.29% |
+| 6  |     60.61% |          81.32% |                       86.25% |  92.58% |
+| 10 |     49.79% |          82.99% |                       88.09% |  95.35% |
+| ∞  |      0.00% |          86.60% |                       92.25% | 100.00% |
 """
 from numpy import sqrt, round
 from numpy.testing import assert_, assert_almost_equal
