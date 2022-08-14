@@ -40,7 +40,6 @@ Typical results with 100k voters, 100k iterations:
 |  9 | 51.8 |  68.5 |  77.8 |  82.0 |   82.0 |
 | 10 | 49.7 |  66.4 |  75.9 |  81.5 |   83.0 |
 """
-import time
 from collections import Counter, defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
@@ -78,8 +77,6 @@ count = {key: Counter() for key in (ranked_methods.keys() |
 print(f'Doing {n:,} iterations, {n_voters:,} voters, '
       f'{n_cands_list} candidates')
 
-start_time = time.monotonic()
-
 
 def func():
     count = defaultdict(dict)
@@ -112,10 +109,6 @@ for result in p:
     for method, d in result.items():
         for n_cands, value in d.items():
             count[method][n_cands] += value
-
-
-elapsed_time = time.monotonic() - start_time
-print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
 plt.figure(f'Effectiveness, {n_voters} voters, {n} iterations')
 plt.title('The Effectiveness of Several Voting Systems')
