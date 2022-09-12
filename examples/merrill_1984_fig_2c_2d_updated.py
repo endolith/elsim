@@ -1,5 +1,5 @@
 """
-Reproduce Figures 2.c and 2.d
+Add modern voting methods to Figures 2.c and 2.d
 
 Condorcet Efficiency under Spatial-Model Assumptions
 (201 voters, two dimensions, correlation = .5, relative dispersion = .5 or 1.0)
@@ -10,31 +10,35 @@ S. Merrill III, "A Comparison of Efficiency of Multicandidate
 Electoral Systems", American Journal of Political Science, vol. 28,
 no. 1, pp. 23-48, 1984.  :doi:`10.2307/2110786`
 
-Results with 500_000 iterations:
+Results with 100_000 iterations:
 
 2.c
 
-| Method    |     2 |     3 |     4 |     5 |     6 |     7 |
-|:----------|------:|------:|------:|------:|------:|------:|
-| Black     | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 |
-| Coombs    | 100.0 |  99.4 |  98.6 |  97.8 |  96.9 |  96.0 |
-| Borda     | 100.0 |  91.4 |  89.2 |  87.1 |  85.7 |  84.6 |
-| Approval  | 100.0 |  85.9 |  79.8 |  73.9 |  70.1 |  66.8 |
-| Hare      | 100.0 |  94.1 |  86.6 |  78.9 |  71.7 |  65.2 |
-| Runoff    | 100.0 |  94.1 |  87.1 |  79.7 |  72.8 |  66.1 |
-| Plurality | 100.0 |  80.6 |  67.6 |  57.4 |  49.3 |  42.6 |
+| Method          |     2 |     3 |     4 |     5 |     6 |     7 |
+|:----------------|------:|------:|------:|------:|------:|------:|
+| Condorcet RCV   | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 |
+| Coombs          | 100.0 |  99.4 |  98.6 |  97.8 |  96.9 |  96.0 |
+| STAR            | 100.0 |  97.8 |  94.7 |  92.1 |  89.9 |  88.0 |
+| Borda           | 100.0 |  91.4 |  89.2 |  87.1 |  85.8 |  84.8 |
+| Score           | 100.0 |  88.7 |  84.6 |  82.7 |  81.3 |  79.9 |
+| Approval (opt.) | 100.0 |  86.0 |  79.7 |  73.9 |  70.5 |  67.0 |
+| Hare RCV        | 100.0 |  94.1 |  86.6 |  79.0 |  71.3 |  65.1 |
+| Top-2 Runoff    | 100.0 |  94.1 |  87.1 |  79.9 |  72.8 |  65.9 |
+| Plurality       | 100.0 |  80.6 |  67.8 |  57.3 |  49.1 |  42.7 |
 
 2.d
 
-| Method    |     2 |     3 |     4 |     5 |     6 |     7 |
-|:----------|------:|------:|------:|------:|------:|------:|
-| Black     | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 |
-| Coombs    | 100.0 |  98.2 |  95.9 |  93.4 |  90.9 |  88.4 |
-| Borda     | 100.0 |  89.2 |  86.3 |  83.8 |  82.1 |  80.8 |
-| Approval  | 100.0 |  84.0 |  76.9 |  71.5 |  67.8 |  64.7 |
-| Hare      | 100.0 |  72.2 |  50.3 |  35.8 |  26.0 |  19.7 |
-| Runoff    | 100.0 |  72.2 |  50.6 |  35.3 |  24.4 |  16.9 |
-| Plurality | 100.0 |  55.9 |  34.7 |  21.5 |  13.5 |   8.5 |
+| Method          |     2 |     3 |     4 |     5 |     6 |     7 |
+|:----------------|------:|------:|------:|------:|------:|------:|
+| Condorcet RCV   | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 |
+| Coombs          | 100.0 |  98.3 |  95.7 |  93.4 |  90.8 |  88.5 |
+| STAR            | 100.0 |  96.5 |  91.5 |  87.2 |  83.1 |  79.8 |
+| Borda           | 100.0 |  89.2 |  86.4 |  83.9 |  82.2 |  80.7 |
+| Score           | 100.0 |  86.2 |  80.5 |  77.4 |  74.5 |  72.1 |
+| Approval (opt.) | 100.0 |  83.7 |  76.9 |  71.6 |  67.6 |  64.6 |
+| Hare RCV        | 100.0 |  72.4 |  50.4 |  35.6 |  26.2 |  19.8 |
+| Top-2 Runoff    | 100.0 |  72.4 |  50.5 |  35.3 |  24.5 |  17.1 |
+| Plurality       | 100.0 |  56.3 |  34.8 |  21.5 |  13.5 |   8.6 |
 
 These look generally like Merrill's, but are smoother, and there are some
 discrepancies, as great as 7%. This may just be random variation from not
@@ -47,46 +51,33 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tabulate import tabulate
 from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
-                           black, utility_winner, condorcet)
+                           black, utility_winner, condorcet, score, star)
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.strategies import honest_rankings, approval_optimal
+from elsim.strategies import (honest_rankings, approval_optimal,
+                              honest_normed_scores)
 
-n = 10_000  # Roughly 30 seconds each
+n = 5_000  # Roughly 30 seconds each
 n_voters = 201
 n_cands_list = (2, 3, 4, 5, 6, 7)
 corr = 0.5
 D = 2
 
-ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
-                  'Borda': borda, 'Coombs': coombs, 'Black': black}
+ranked_methods = {'Plurality': fptp, 'Top-2 Runoff': runoff, 'Hare RCV': irv,
+                  'Borda': borda, 'Coombs': coombs, 'Condorcet RCV': black}
 
 rated_methods = {'SU max': utility_winner,
-                 'Approval': lambda utilities, tiebreaker:
-                     approval(approval_optimal(utilities), tiebreaker)}
+                 'Approval (opt.)': lambda utilities, tiebreaker:
+                     approval(approval_optimal(utilities), tiebreaker),
+                     'Score': lambda utilities, tiebreaker:
+                         score(honest_normed_scores(utilities, 5),
+                               tiebreaker),
+                     'STAR': lambda utilities, tiebreaker:
+                         star(honest_normed_scores(utilities, 5),
+                              tiebreaker),
+                 }
 
-# Plot Merrill's results as dotted lines for comparison (traced from plots)
-merrill_fig_2c = {
-    'Black':     {2: 100.0, 3: 100.0, 4: 100.0, 5: 100.0, 7: 100.0},
-    'Coombs':    {2: 100.0, 3: 99.1,  4: 98.1,  5: 97.1,  7: 93.1},
-    'Borda':     {2: 100.0, 3: 91.0,  4: 87.1,  5: 86.0,  7: 84.0},
-    'Approval':  {2: 100.0, 3: 86.0,  4: 77.1,  5: 74.0,  7: 66.0},
-    'Hare':      {2: 100.0, 3: 94.1,  4: 88.1,  5: 78.0,  7: 66.0},
-    'Runoff':    {2: 100.0, 3: 94.1,  4: 88.1,  5: 80.1,  7: 64.0},
-    'Plurality': {2: 100.0, 3: 79.1,  4: 68.9,  5: 57.0,  7: 50.0},
-    }
-
-merrill_fig_2d = {
-    'Black':     {2: 100.0, 3: 100.0, 4: 100.0, 5: 100.0, 7: 100.0},
-    'Coombs':    {2: 100.0, 3: 97.2,  4: 93.2,  5: 90.0,  7: 81.2},
-    'Borda':     {2: 100.0, 3: 88.3,  4: 88.0,  5: 84.0,  7: 76.0},
-    'Approval':  {2: 100.0, 3: 84.2,  4: 81.3,  5: 73.0,  7: 62.0},
-    'Hare':      {2: 100.0, 3: 69.4,  4: 52.1,  5: 34.0,  7: 21.0},
-    'Runoff':    {2: 100.0, 3: 69.4,  4: 53.3,  5: 31.0,  7: 16.9},
-    'Plurality': {2: 100.0, 3: 51.3,  4: 36.2,  5: 21.0,  7: 7.8},
-    }
-
-for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
-                              ('2.d', 0.5, 0, merrill_fig_2d)):
+for fig, disp, ymin in (('2.c', 1.0, 50),
+                        ('2.d', 0.5, 0)):
 
     count = {key: Counter() for key in (ranked_methods.keys() |
                                         rated_methods.keys() |
@@ -118,27 +109,17 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
           '\n')
 
-    plt.figure(f'Figure {fig}. {n_voters} voters, {n} iterations')
+    plt.figure(f'Figure {fig}. {n_voters} voters, {n} iterations',
+               figsize=(8, 6.5))
     plt.title(f'Figure {fig}: Condorcet Efficiency under Spatial-Model '
-              'Assumptions')
-
-    # Restart color cycle, so result colors match
-    plt.gca().set_prop_cycle(None)
-
-    for method in ('Black', 'Coombs', 'Borda', 'Approval', 'Hare', 'Runoff',
-                   'Plurality'):
-        x, y = zip(*sorted(orig[method].items()))
-        plt.plot(x, y, ':', lw=0.8)
-
-    # Restart color cycle, so result colors match
-    plt.gca().set_prop_cycle(None)
+              f'Assumptions [Disp: {disp}]')
 
     table = []
 
     # Of those elections with CW, likelihood that method chooses CW
     x_cw, y_cw = zip(*sorted(count['CW'].items()))
-    for method in ('Black', 'Coombs', 'Borda', 'Approval', 'Hare', 'Runoff',
-                   'Plurality'):
+    for method in ('Condorcet RCV', 'Coombs', 'STAR', 'Borda', 'Score',
+                   'Approval (opt.)', 'Hare RCV', 'Top-2 Runoff', 'Plurality'):
         x, y = zip(*sorted(count[method].items()))
         CE = np.array(y)/y_cw
         plt.plot(x, CE*100, '-', label=method)
@@ -147,7 +128,6 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
     print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
     print()
 
-    plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
     plt.legend()
     plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
     plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
