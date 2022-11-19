@@ -64,6 +64,78 @@ Candidate 2 is the Condorcet winner, and wins under Black's method.
 
 See [/examples](/examples) folder for more on what it can do, such as reproductions of previous research.
 
+## Submodules
+
+Originally, the functions in submodules were meant to be chained together in a simple flow: 
+
+1. A function from `elsim.elections` takes parameters as input (number of candidates, number of voters, dispersion in spatial model, etc.) and produces an array of utilities (each voter's appraisal of each candidate).  
+2. Then a function from `elsim.strategies` converts each voter's utilities into a ballot.  
+3. Then a function from `elsim.methods` counts the collection of ballots and chooses a winner.
+
+```mermaid
+flowchart LR
+    Parameters -- Election --> Utilities
+    Utilities -- Strategy --> Ballots
+    Ballots -- Method --> Winner
+```
+
+However, while implementing many various scenarios, it has become more complicated.  Some functions produce intermediate results, while others skip over multiple steps.  I'm no longer sure the best way to organize these functions into submodules.  Here is a diagram showing the flow of every function currently in the submodules:
+
+```mermaid
+%%{ init: { 'flowchart': { 'curve': 'monotoneX' } } }%%
+flowchart LR
+    %% elections.py
+    Parameters -- <code>random_utilities</code> --> Utilities
+    Parameters -- <code>impartial_culture</code> --> Ballots
+    Parameters -- <code>normal_electorate</code> --> Positions
+    Positions -- <code>normed_dist_utilities</code> --> Utilities
+
+    %% strategies.py
+    Utilities -- <code>honest_rankings</code> --> Ballots
+    Utilities -- <code>honest_normed_scores</code> --> Ballots
+    Utilities -- <code>approval_optimal</code> --> Ballots
+    Utilities -- <code>vote_for_k</code> --> Ballots
+
+    %% approval.py
+    Ballots -- <code>approval</code> --> Winner
+    Ballots -- <code>combined_approval</code> --> Winner
+
+    %% black.py
+    Ballots -- <code>black</code> --> Winner
+
+    %% borda.py
+    Ballots -- <code>borda</code> --> Winner
+
+    %% condorcet.py
+    Ballots -- <code>ranked_election_to_matrix</code> --> Matrix
+    Matrix -- <code>condorcet_from_matrix</code> --> Winner
+    Ballots -- <code>condorcet</code> --> Winner
+
+    %% coombs.py
+    Ballots -- <code>coombs</code> --> Winner
+
+    %% fptp.py
+    Ballots -- <code>fptp</code> --> Winner
+
+    %% irv.py
+    Ballots -- <code>irv</code> --> Winner
+
+    %% runoff.py
+    Ballots -- <code>runoff</code> --> Winner
+
+    %% score.py
+    Ballots -- <code>score</code> --> Winner
+
+    %% star.py
+    Ballots -- <code>matrix_from_scores</code> --> Matrix
+    Ballots -- <code>star</code> --> Winner
+
+    %% utility_winner.py
+    Utilities -- <code>utility_winner</code> --> Winner
+```
+
+(And the `Ballots` block contains multiple different formats, so it could be shown in a more complex way than this.)
+
 ## Tests
 Tests can be run by installing the testing dependencies and then running `pytest` in the project folder.
 
