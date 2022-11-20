@@ -53,7 +53,7 @@ def func():
     for n_voters in WP_table:
         # Reuse the same chunk of memory to save time
         election = np.empty((n_voters, n_cands), dtype=np.uint8)
-        for iteration in range(batch):
+        for _ in range(batch):
             election[:] = impartial_culture(n_voters, n_cands)
             CW = condorcet(election)
             if CW is None:
@@ -61,7 +61,7 @@ def func():
     return is_CP
 
 
-p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n))
+p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for _ in range(n))
 is_CP = sum(p, Counter())
 
 x, y = zip(*WP_table.items())

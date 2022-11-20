@@ -24,6 +24,7 @@ Typical result:
 | SU max    | 100.0 |  84.1 |  79.6 |  78.4 |  77.3 |  77.5 |
 | CW        | 100.0 |  91.7 |  83.1 |  75.6 |  64.3 |  52.9 |
 """
+
 import time
 from collections import Counter
 import numpy as np
@@ -51,7 +52,7 @@ count = {key: Counter() for key in (ranked_methods.keys() |
 
 start_time = time.monotonic()
 
-for iteration in range(n):
+for _ in range(n):
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
 
@@ -126,10 +127,12 @@ for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
 
 # Likelihood that social utility maximizer is Condorcet Winner
 x, y = zip(*sorted(count['SU max'].items()))
-table.append(['SU max', *np.array(y)/y_cw*100])
-
-# Likelihood of Condorcet Winner (normalized by n iterations)
-table.append(['CW', *np.asarray(y_cw)/n*100])
+table.extend(
+    (
+        ['SU max', *np.array(y) / y_cw * 100],
+        ['CW', *np.asarray(y_cw) / n * 100],
+    )
+)
 
 print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
 
