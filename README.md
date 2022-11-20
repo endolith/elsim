@@ -144,7 +144,7 @@ flowchart LR
 Tests can be run by installing the testing dependencies and then running `pytest` in the project folder.
 
 ## Bugs / Requests
-File issues on the [Github issue tracker](https://github.com/endolith/elsim/issues).
+File issues on the [GitHub issue tracker](https://github.com/endolith/elsim/issues).
 
 ## Similar projects
 
@@ -162,4 +162,4 @@ File issues on the [Github issue tracker](https://github.com/endolith/elsim/issu
 
 ### Voting system implementations
 
-* [See Electowiki](https://electowiki.org/wiki/Voting_links#Election_calculators)
+* [See the list on Electowiki](https://electowiki.org/wiki/Voting_links#Election_calculators)
