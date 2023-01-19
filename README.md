@@ -2,7 +2,7 @@
 [![CircleCI](https://circleci.com/gh/endolith/elsim.svg?style=shield)](https://circleci.com/gh/endolith/elsim)
 [![Actions Status](https://github.com/endolith/elsim/workflows/Python%20package/badge.svg)](https://github.com/endolith/elsim/actions)
 
-This is a library of functions for simulating thousands of elections held using different [voting methods](https://en.wikipedia.org/wiki/Electoral_system) ([Borda count](https://en.wikipedia.org/wiki/Borda_count), [Approval voting](https://en.wikipedia.org/wiki/Approval_voting), etc.) under different voter models ([impartial culture](https://en.wikipedia.org/wiki/Impartial_culture), [spatial model](https://en.wikipedia.org/wiki/Spatial_model_of_voting), etc.)
+This is a library of functions for simulating thousands of elections held using different [voting methods](https://en.wikipedia.org/wiki/Electoral_system) ([Borda count](https://en.wikipedia.org/wiki/Borda_count), [Approval voting](https://en.wikipedia.org/wiki/Approval_voting), etc.) under different voter models ([impartial culture](https://en.wikipedia.org/wiki/Impartial_culture), [spatial model](https://en.wikipedia.org/wiki/Spatial_model_of_voting), etc.) and estimating various metrics from them ([Social Utility Efficiency](https://en.wikipedia.org/wiki/Social_utility_efficiency) = Voter Satisfaction Efficiency = VSE, [Condorcet Efficiency](https://en.wikipedia.org/wiki/Condorcet_efficiency), [likelihood of Condorcet cycles](https://en.wikipedia.org/wiki/Condorcet_paradox#Likelihood_of_the_paradox), etc.)
 
 For example, it can be used to reproduce Figure 1 from [Merrill 1984](https://www.jstor.org/stable/2110786):
 
@@ -151,14 +151,14 @@ File issues on the [GitHub issue tracker](https://github.com/endolith/elsim/issu
 ### Election simulators
 
 - 1D:
-  - http://zesty.ca/voting/voteline/ (Flash, 5 candidates, normal/uniform/bimodal distribution)
-  - https://demonstrations.wolfram.com/ComparingVotingSystemsForANormalDistributionOfVoters/
+  - [Election Methods in Pictures ("Voteline")](http://zesty.ca/voting/voteline/) by Ka-Ping Yee - 5 candidates, normal/uniform/bimodal distribution
+  - [Comparing Voting Systems for a Normal Distribution of Voters](https://demonstrations.wolfram.com/ComparingVotingSystemsForANormalDistributionOfVoters/) - Wolfram demonstration clone
 - 2D:
-  - http://bolson.org/voting/sim_one_seat/www/spacegraph.html
-  - http://zesty.ca/voting/sim/
-  - http://rangevoting.org/IEVS/Pictures.html
+  - [Voting Simulation Visualizations](http://zesty.ca/voting/sim/) by Ka-Ping Yee - "Yee diagrams"
+  - [Elections On The Plane](http://bolson.org/voting/sim_one_seat/www/spacegraph.html) - Yee diagrams by Brian Olson
+  - [Yee Pictures illustrating voting method behavior](http://rangevoting.org/IEVS/Pictures.html) by Warren D. Smith
 - ND:
-  - https://github.com/electology/vse-sim
+  - [Voter Satisfaction Efficiency](https://github.com/electology/vse-sim) by Jameson Quinn
 
 ### Voting system implementations
 
