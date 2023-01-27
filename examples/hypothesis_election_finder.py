@@ -1,33 +1,53 @@
-from collections import Counter
+"""
+Use Hypothesis to find simple elections that violate Condorcet compliance.
 
-from hypothesis import given
-from hypothesis.strategies import lists, permutations
+This depends on Hypothesis' "shrinking" algorithm, which is not guaranteed to
+find the absolute simplest case (or any at all), but typically works well.
+https://hypothesis.readthedocs.io/en/latest/data.html#shrinking
+
+Typical result:
+
+    Falsifying example: test_condorcet_compliance(
+        election=[[0, 1, 2], [1, 0, 2], [1, 0, 2], [2, 0, 1], [2, 0, 1]],
+    )
+
+IRV:
+    Candidate 0 is eliminated first.
+    That voter's ballot is transferred to Candidate 1.
+    Candidate 1 now has 3 first-choice votes out of 5 and is the IRV winner.
+
+Condorcet:
+    Candidate 0 is preferred over Candidate 1 by 3 of 5 voters.
+    Candidate 0 is preferred over Candidate 2 by 3 of 5 voters.
+    Candidate 0 is therefore the Condorcet winner.
+"""
+from hypothesis import given, assume, settings
+from hypothesis.strategies import lists, permutations, integers
+from elsim.methods import condorcet, irv
 
 
-# We need at least three candidates and at least three voters to have a
-# paradox; anything less can only lead to victories or at worst ties.
-@given(lists(permutations(["A", "B", "C"]), min_size=3))
-def test_elections_are_transitive(election):
-    all_candidates = {"A", "B", "C"}
+def complete_ranked_ballots(min_cands=3, max_cands=25, min_voters=1,
+                            max_voters=100):
+    n_cands = integers(min_value=min_cands, max_value=max_cands)
+    return n_cands.flatmap(lambda n: lists(permutations(range(n)),
+                                           min_size=min_voters,
+                                           max_size=max_voters))
 
-    # First calculate the pairwise counts of how many prefer each candidate
-    # to the other
-    counts = Counter()
-    for vote in election:
-        for i in range(len(vote)):
-            for j in range(i + 1, len(vote)):
-                counts[(vote[i], vote[j])] += 1
 
-    # Now look at which pairs of candidates one has a majority over the
-    # other and store that.
-    graph = {}
-    for i in all_candidates:
-        for j in all_candidates:
-            if counts[(i, j)] > counts[(j, i)]:
-                graph.setdefault(i, set()).add(j)
+@settings(max_examples=5000, database=None)
+@given(election=complete_ranked_ballots(min_cands=1, max_cands=3,
+                                        min_voters=1, max_voters=100))
+def test_condorcet_compliance(election):
+    """
+    Find simplest election in which IRV does not choose the Condorcet winner.
+    """
+    assume(condorcet(election) is not None)  # Not a cycle
+    assume(irv(election) is not None)  # Not a tie
+    assert irv(election) == condorcet(election)
 
-    # Now for each triple assert that it is transitive.
-    for x in all_candidates:
-        for y in graph.get(x, ()):
-            for z in graph.get(y, ()):
-                assert x not in graph.get(z, ())
+
+try:
+    test_condorcet_compliance()
+except AssertionError:
+    # Just print the Falsifying example, don't raise anything.
+    pass
