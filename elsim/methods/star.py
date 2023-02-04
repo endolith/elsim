@@ -316,6 +316,6 @@ def star(election, tiebreaker=None):
             # broken as above are considered "True Ties."
             # "In the event that a true tie arises you can opt to resolve
             # it with a random tiebreaker"
-            winner = tiebreak({first, second}, 1)[0]
+            winner = tiebreak([first, second], 1)[0]
 
     return winner
