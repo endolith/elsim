@@ -11,7 +11,7 @@ of the paradox of voting". Behavioral Science. 13 (4): 317–323.
 
 (Not including m = ∞ case which is covered by niemi_1968_table_1.py)
 
-Example output with iterations = 1_000_000:
+Example output with n_elections = 1_000_000:
 
 |    |      3 |      5 |      7 |      9 |     11 |     13 |     15 |     17 |
 |---:|-------:|-------:|-------:|-------:|-------:|-------:|-------:|-------:|
@@ -28,40 +28,41 @@ from joblib import Parallel, delayed
 from elsim.methods import condorcet
 from elsim.elections import impartial_culture
 
-# It needs many iterations to get similar accuracy as the analytical results
-iterations = 100_000  # Roughly 30 seconds
+# It needs many simulations to get similar accuracy as the analytical results
+n_elections = 100_000  # Roughly 30 seconds
 n_voters_list = (3, 5, 7, 9, 11, 13, 15, 17)  # , 19, 21, 23, 25, 27, 29, 59)
 n_cands_list = (3, 4, 5, 6)
 
-# Do more than just one iteration per worker to improve efficiency
-batch = 10
-n = iterations // batch
-assert n * batch == iterations
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 10
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
 
 
-def func():
-    is_CP = Counter()  # Is there a Condorcet paradox?
+def simulate_batch():
+    condorcet_paradox_count = Counter()
     for n_voters in n_voters_list:
         for n_cands in n_cands_list:
             # Reuse the same chunk of memory to save time
             election = np.empty((n_voters, n_cands), dtype=np.uint8)
-            for iteration in range(batch):
+            for iteration in range(batch_size):
                 election[:] = impartial_culture(n_voters, n_cands)
                 CW = condorcet(election)
                 if CW is None:
-                    is_CP[n_cands, n_voters] += 1
-    return is_CP
+                    condorcet_paradox_count[n_cands, n_voters] += 1
+    return condorcet_paradox_count
 
 
-p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n))
-is_CP = sum(p, Counter())
+paradox_counts = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_batch)()
+                                                for i in range(n_batches))
+is_CP = sum(paradox_counts, Counter())
 
 nm, P = zip(*sorted(is_CP.items()))
-P = np.asarray(P) / iterations  # Percent likelihood of paradox
+P = np.asarray(P) / n_elections  # Percent likelihood of paradox
 
 table = []
 for n in n_cands_list:
-    row = [q / iterations for (x, y), q in sorted(is_CP.items()) if x == n]
+    row = [q / n_elections for (x, y), q in sorted(is_CP.items()) if x == n]
     table.append(row)
 
 print(tabulate(table, n_voters_list, tablefmt="pipe", showindex=n_cands_list,

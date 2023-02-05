@@ -10,7 +10,7 @@ Niemi, R. G.; Weisberg, H. (1968). "A mathematical solution for the probability
 of the paradox of voting". Behavioral Science. 13 (4): 317–323.
 :doi:`10.1002/bs.3830130406` PMID 5663898.
 
-Example output with iterations = 1_000, n_voters = 100_000 (16 minutes):
+Example output with n_elections = 1_000, n_voters = 100_000 (16 minutes):
 
 |       |     2 |     3 |     4 |     5 |     6 |    10 |    23 |    49 |
 |:------|------:|------:|------:|------:|------:|------:|------:|------:|
@@ -18,7 +18,7 @@ Example output with iterations = 1_000, n_voters = 100_000 (16 minutes):
 | Sim   | 0.003 | 0.091 | 0.188 | 0.255 | 0.328 | 0.511 | 0.695 | 0.855 |
 | Diff  | 0.003 | 0.003 | 0.013 | 0.004 | 0.013 | 0.022 | 0.017 | 0.014 |
 
-More accuracy with iterations = 10_000, n_voters = 100_000 (3 minutes):
+More accuracy with n_elections = 10_000, n_voters = 100_000 (3 minutes):
 
 |       |     2 |     3 |     4 |     5 |     6 |     7 |
 |:------|------:|------:|------:|------:|------:|------:|
@@ -26,7 +26,7 @@ More accuracy with iterations = 10_000, n_voters = 100_000 (3 minutes):
 | Sim   | 0.002 | 0.095 | 0.179 | 0.253 | 0.321 | 0.372 |
 | Diff  | 0.002 | 0.008 | 0.004 | 0.002 | 0.006 | 0.003 |
 
-Many candidates, with iterations = 10_000, n_voters = 100_000 (3.5 hours)
+Many candidates, with n_elections = 10_000, n_voters = 100_000 (3.5 hours)
 
 |       |    10 |    23 |    49 |
 |:------|------:|------:|------:|
@@ -52,38 +52,39 @@ niemi_table = [.0000, .0000, .0877, .1755, .2513, .3152, .3692, .4151, .4545,
                .8322, .8351, .8379, .8405]
 niemi_table = dict(enumerate(niemi_table[1:], start=2))
 
-# It needs many iterations to get similar accuracy as the analytical results
-iterations = 2_000  # Roughly 30 seconds
+# It needs many simulations to get similar accuracy as the analytical results
+n_elections = 2_000  # Roughly 30 seconds
 n_voters = 100_000  # m = infinity
 n_cands_list = (2, 3, 4, 5, 6, 7)  # 49 takes many minutes
 
-# Do more than just one iteration per worker to improve efficiency
-batch = 10
-n = iterations // batch
-assert n * batch == iterations
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 10
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
 
 
-def func():
-    is_CP = Counter()  # Is there a Condorcet paradox?
+def simulate_batch():
+    condorcet_paradox_count = Counter()
     for n_cands in n_cands_list:
         # Reuse the same chunk of memory to save time
         election = np.empty((n_voters, n_cands), dtype=np.uint8)
-        for iteration in range(batch):
+        for iteration in range(batch_size):
             election[:] = impartial_culture(n_voters, n_cands)
             CW = condorcet(election)
             if CW is None:
-                is_CP[n_cands] += 1
-    return is_CP
+                condorcet_paradox_count[n_cands] += 1
+    return condorcet_paradox_count
 
 
-p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n))
-is_CP = sum(p, Counter())
+paradox_counts = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_batch)()
+                                                for i in range(n_batches))
+is_CP = sum(paradox_counts, Counter())
 
 x, y = zip(*niemi_table.items())
 plt.plot(x, y, label='Niemi')
 
 x, y = zip(*sorted(is_CP.items()))
-y = np.asarray(y) / iterations  # Percent likelihood of paradox
+y = np.asarray(y) / n_elections  # Percent likelihood of paradox
 plt.plot(x, y, '.', label='Simulation')
 
 plt.legend()
@@ -91,7 +92,7 @@ plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
 
 table = [{k: v for k, v in niemi_table.items() if k in is_CP},
-         {k: v/iterations for k, v in is_CP.items()},
-         {k: abs(niemi_table[k]-v/iterations) for k, v in is_CP.items()}]
+         {k: v/n_elections for k, v in is_CP.items()},
+         {k: abs(niemi_table[k]-v/n_elections) for k, v in is_CP.items()}]
 print(tabulate(table, "keys", showindex=['Niemi', 'Sim', 'Diff'],
                tablefmt="pipe", floatfmt='.3f'))
