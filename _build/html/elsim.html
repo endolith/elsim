@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>elsim package &#8212; elsim 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="elsim-package">
+<h1>elsim package<a class="headerlink" href="#elsim-package" title="Permalink to this heading">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="elsim.elections.html">elsim.elections package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="elsim.elections.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.elections.html#module-elsim.elections.elections">elsim.elections.elections module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.elections.html#module-elsim.elections">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="elsim.methods.html">elsim.methods package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="elsim.methods.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.methods.html#module-elsim.methods.approval">elsim.methods.approval module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.methods.html#module-elsim.methods.black">elsim.methods.black module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.methods.html#module-elsim.methods.borda">elsim.methods.borda module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.methods.html#module-elsim.methods.condorcet">elsim.methods.condorcet module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.methods.html#module-elsim.methods.coombs">elsim.methods.coombs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.methods.html#module-elsim.methods.fptp">elsim.methods.fptp module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.methods.html#module-elsim.methods.irv">elsim.methods.irv module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.methods.html#module-elsim.methods.runoff">elsim.methods.runoff module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.methods.html#module-elsim.methods.score">elsim.methods.score module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.methods.html#module-elsim.methods.star">elsim.methods.star module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.methods.html#module-elsim.methods.utility_winner">elsim.methods.utility_winner module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.methods.html#module-elsim.methods">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="elsim.strategies.html">elsim.strategies package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="elsim.strategies.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.strategies.html#module-elsim.strategies.strategies">elsim.strategies.strategies module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elsim.strategies.html#module-elsim.strategies">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="module-elsim">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-elsim" title="Permalink to this heading">¶</a></h2>
+<section id="election-simulator-3000">
+<h3>Election Simulator 3000<a class="headerlink" href="#election-simulator-3000" title="Permalink to this heading">¶</a></h3>
+<p>This package provides three sub-modules, which are used to simulate one or more
+elections by combining their functions in the following order:</p>
+<dl class="simple">
+<dt><cite>elections</cite></dt><dd><p>Functions that generate (random) collections of voter-candidate utilities
+for different types of electorates.</p>
+</dd>
+<dt><cite>strategies</cite></dt><dd><p>Functions that convert utilities into ballots, following various strategic
+rules (including honesty).</p>
+</dd>
+<dt><cite>methods</cite></dt><dd><p>Functions that implement voting methods, which calculate a winner from a
+collection of ballots.</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">elsim</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, endolith.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/elsim.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
