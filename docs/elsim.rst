@@ -16,5 +16,5 @@ Subpackages
    :maxdepth: 4
 
    elsim.elections
-   elsim.methods
    elsim.strategies
+   elsim.methods
