@@ -43,27 +43,37 @@
 <dt class="sig sig-object py" id="elsim.methods.approval.approval">
 <span class="sig-prename descclassname"><span class="pre">elsim.methods.approval.</span></span><span class="sig-name descname"><span class="pre">approval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">election</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiebreaker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.methods.approval.approval" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the winner of an election using approval voting.</p>
-<p>The candidate with the largest number of approvals wins.[1]_</p>
-<dl>
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A 2D collection of approval ballots.</p>
+<p>The candidate with the largest number of approvals wins.[Rb3d7b4cc0631-1]_</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A 2D collection of approval ballots.</p>
 <p>Rows represent voters, and columns represent candidate IDs.
 A cell contains 1 if that voter approves of that candidate,
 otherwise 0.</p>
 </dd>
-<dt>tiebreaker<span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
+<dt><strong>tiebreaker</strong><span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
 is returned.
 If ‘order’, the lowest-ID tied candidate is returned.
 By default, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned for ties.</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>winner<span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>winner</strong><span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id1" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="rb3d7b4cc0631-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Approval_voting">https://en.wikipedia.org/wiki/Approval_voting</a></p>
-</aside>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Voter 0 approves Candidate A (index 0) and B (index 1).
 Voter 1 approves B and C.
 Voter 2 approves B and C.</p>
@@ -85,27 +95,37 @@ Voter 2 approves B and C.</p>
 <span class="sig-prename descclassname"><span class="pre">elsim.methods.approval.</span></span><span class="sig-name descname"><span class="pre">combined_approval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">election</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiebreaker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.methods.approval.combined_approval" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the winner of an election using combined approval voting.</p>
 <p>Also known as balanced approval or dis&amp;approval voting, the candidate with
-the largest number of approvals minus disapprovals wins.[1]_</p>
-<dl>
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A 2D collection of combined approval ballots.</p>
+the largest number of approvals minus disapprovals wins.[Rad1a669135cd-1]_</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A 2D collection of combined approval ballots.</p>
 <p>Rows represent voters, and columns represent candidate IDs.
 A cell contains a +1 if that voter approves of that candidate, a -1 if
 the voter disapproves of that candidate, or a 0 if they are neutral.</p>
 </dd>
-<dt>tiebreaker<span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
+<dt><strong>tiebreaker</strong><span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
 is returned.
 If ‘order’, the lowest-ID tied candidate is returned.
 By default, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned for ties.</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>winner<span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>winner</strong><span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id2" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="rad1a669135cd-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Combined_approval_voting">https://en.wikipedia.org/wiki/Combined_approval_voting</a></p>
-</aside>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Voter 0 approves Candidate A (index 0) and B (index 1).
 Voter 1 approves of B and disapproves of C.
 Voter 2 approves of A and disapproves of B and C.</p>
@@ -130,29 +150,39 @@ Voter 2 approves of A and disapproves of B and C.</p>
 <span class="sig-prename descclassname"><span class="pre">elsim.methods.black.</span></span><span class="sig-name descname"><span class="pre">black</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">election</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiebreaker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.methods.black.black" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the winner of a ranked ballot election using Black’s method.</p>
 <p>If a Condorcet winner exists, it is returned, otherwise, the Borda winner
-is returned.[1]_</p>
-<dl>
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.
+is returned.[R9bfae4535aef-1]_</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.
 Rows represent voters and columns represent rankings, from best to
 worst, with no tied rankings.
 Each cell contains the ID number of a candidate, starting at 0.</p>
 <p>For example, if a voter ranks Curie &gt; Avogadro &gt; Bohr, the ballot line
 would read <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">0,</span> <span class="pre">1]</span></code> (with IDs in alphabetical order).</p>
 </dd>
-<dt>tiebreaker<span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie in the Borda tally, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>,
+<dt><strong>tiebreaker</strong><span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie in the Borda tally, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>,
 a random finalist is returned.
 If ‘order’, the lowest-ID tied candidate is returned.
 By default, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned for ties.</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>winner<span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a Borda count tie.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>winner</strong><span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a Borda count tie.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id3" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="r9bfae4535aef-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Condorcet_method#Two-method_systems">https://en.wikipedia.org/wiki/Condorcet_method#Two-method_systems</a></p>
-</aside>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Label some candidates:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
 </pre></div>
@@ -185,29 +215,39 @@ C is thus the Condorcet winner and wins under Black’s method:</p>
 <dd><p>Find the winner of a ranked ballot election using the Borda count method.</p>
 <p>A voter’s lowest-ranked candidate receives 1 point, second-lowest receives
 2 points, and so on.  All points are summed, and the highest-scoring
-candidate wins.[1]_</p>
-<dl>
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.
+candidate wins.[Rdecfbba01b46-1]_</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.
 Rows represent voters and columns represent rankings, from best to
 worst, with no tied rankings.
 Each cell contains the ID number of a candidate, starting at 0.</p>
 <p>For example, if a voter ranks Curie &gt; Avogadro &gt; Bohr, the ballot line
 would read <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">0,</span> <span class="pre">1]</span></code> (with IDs in alphabetical order).</p>
 </dd>
-<dt>tiebreaker<span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
+<dt><strong>tiebreaker</strong><span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
 is returned.
 If ‘order’, the lowest-ID tied candidate is returned.
 By default, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned for ties.</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>winner<span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>winner</strong><span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id4" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="rdecfbba01b46-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Borda_count">https://en.wikipedia.org/wiki/Borda_count</a></p>
-</aside>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Label some candidates:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
 </pre></div>
@@ -239,9 +279,11 @@ Candidate C is the winner:</p>
 <span class="sig-prename descclassname"><span class="pre">elsim.methods.condorcet.</span></span><span class="sig-name descname"><span class="pre">condorcet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">election</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.methods.condorcet.condorcet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the winner of a ranked ballot election using a Condorcet method.</p>
 <p>This does not contain any “tiebreakers”; those will be implemented by
-other methods’ functions.  It is not a Condorcet completion method.[1]_</p>
-<dl>
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.
+other methods’ functions.  It is not a Condorcet completion method.[Rf2895d1269e4-1]_</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.
 Rows represent voters and columns represent rankings, from best to
 worst, with no tied rankings.
 Each cell contains the ID number of a candidate, starting at 0.</p>
@@ -249,14 +291,22 @@ Each cell contains the ID number of a candidate, starting at 0.</p>
 would read <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">0,</span> <span class="pre">1]</span></code> (with IDs in alphabetical order).</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>winner<span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a Condorcet cycle / tie.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>winner</strong><span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a Condorcet cycle / tie.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id5" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="rf2895d1269e4-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Condorcet_method">https://en.wikipedia.org/wiki/Condorcet_method</a></p>
-</aside>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Label some candidates:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
 </pre></div>
@@ -287,14 +337,21 @@ C is thus the Condorcet winner:</p>
 <dd><p>Find the winner of a ranked ballot election using a Condorcet method.</p>
 <p>This does not contain any “tiebreakers”; those will be implemented by
 other methods’ functions.  It is not a Condorcet completion method.</p>
-<dl class="simple">
-<dt>matrix<span class="classifier">array_like</span></dt><dd><p>A pairwise comparison matrix of candidate vs candidate defeats.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>matrix</strong><span class="classifier">array_like</span></dt><dd><p>A pairwise comparison matrix of candidate vs candidate defeats.</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>winner<span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a Condorcet cycle / tie.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>winner</strong><span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a Condorcet cycle / tie.</p>
 </dd>
 </dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
 <p>Label some candidates:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
 </pre></div>
@@ -321,9 +378,11 @@ C is thus the Condorcet winner:</p>
 <span class="sig-prename descclassname"><span class="pre">elsim.methods.condorcet.</span></span><span class="sig-name descname"><span class="pre">ranked_election_to_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">election</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.methods.condorcet.ranked_election_to_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a ranked election to a pairwise comparison matrix.</p>
 <p>Each entry in the matrix gives the total number of votes obtained by the
-row candidate over the column candidate.[1]_</p>
-<dl>
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.
+row candidate over the column candidate.[Re46764344de0-1]_</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.
 Rows represent voters and columns represent rankings, from best to
 worst, with no tied rankings.
 Each cell contains the ID number of a candidate, starting at 0.</p>
@@ -331,18 +390,26 @@ Each cell contains the ID number of a candidate, starting at 0.</p>
 would read <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">0,</span> <span class="pre">1]</span></code> (with IDs in alphabetical order).</p>
 </dd>
 </dl>
-<dl>
-<dt>matrix<span class="classifier">ndarray</span></dt><dd><p>A pairwise comparison matrix of candidate vs candidate defeats.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>matrix</strong><span class="classifier">ndarray</span></dt><dd><p>A pairwise comparison matrix of candidate vs candidate defeats.</p>
 <p>For example, a <code class="docutils literal notranslate"><span class="pre">3</span></code> in row 2, column 5, means that 3 voters preferred
 Candidate 2 over Candidate 5.  Candidates are not preferred over
 themselves, so the diagonal is all zeros.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id6" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="re46764344de0-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p>Wikipedia, “Condorcet method: Pairwise counting and matrices”,
 <a class="reference external" href="https://en.wikipedia.org/wiki/Condorcet_method#Pairwise_counting_and_matrices">https://en.wikipedia.org/wiki/Condorcet_method#Pairwise_counting_and_matrices</a></p>
-</aside>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Label some candidates:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
 </pre></div>
@@ -380,26 +447,36 @@ C (row 2) is preferred over B (column 1) by 3 voters.</p>
 Otherwise, the candidate(s) with the most number of last-preference votes
 is eliminated, votes for eliminated candidates are transferred according
 to the voters’ preference rankings, and a series of runoff elections are
-held between the remainders until a candidate gets a majority.[1]_</p>
-<dl class="simple">
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.  See <cite>borda</cite> for election format.
+held between the remainders until a candidate gets a majority.[R6a6ba168a191-1]_</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.  See <cite>borda</cite> for election format.
 Currently, this must include full rankings for each voter.</p>
 </dd>
-<dt>tiebreaker<span class="classifier">{‘random’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, tied candidates
+<dt><strong>tiebreaker</strong><span class="classifier">{‘random’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, tied candidates
 are eliminated or selected at random
 is returned.
 If ‘order’, the lowest-ID tied candidate is preferred in each tie.
 By default, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned if there are any ties.</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>winner<span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>winner</strong><span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id7" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="r6a6ba168a191-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Coombs%27_method">https://en.wikipedia.org/wiki/Coombs%27_method</a></p>
-</aside>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Label some candidates:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
 </pre></div>
@@ -430,25 +507,35 @@ with 3 out of 5 votes:</p>
 <dt class="sig sig-object py" id="elsim.methods.fptp.fptp">
 <span class="sig-prename descclassname"><span class="pre">elsim.methods.fptp.</span></span><span class="sig-name descname"><span class="pre">fptp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">election</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiebreaker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.methods.fptp.fptp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the winner of an election using first-past-the-post / plurality rule.</p>
-<p>The candidate with the largest number of first preferences wins.[1]_</p>
-<dl class="simple">
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A 2D collection of ranked ballots.  (See <cite>borda</cite> for election format.)
+<p>The candidate with the largest number of first preferences wins.[R41f12afad422-1]_</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A 2D collection of ranked ballots.  (See <cite>borda</cite> for election format.)
 Or a 1D array of first preferences only.</p>
 </dd>
-<dt>tiebreaker<span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
+<dt><strong>tiebreaker</strong><span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
 is returned.
 If ‘order’, the lowest-ID tied candidate is returned.
 By default, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned for ties.</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>winner<span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>winner</strong><span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id8" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="r41f12afad422-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Plurality_voting">https://en.wikipedia.org/wiki/Plurality_voting</a></p>
-</aside>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Label some candidates:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
 </pre></div>
@@ -493,36 +580,46 @@ prefers the lower-numbered candidate in a tie:</p>
 Otherwise, the candidate(s) with the least number of votes is eliminated,
 votes for eliminated candidates are transferred according to the voters’
 preference rankings, and a series of runoff elections are held between the
-remainders until a candidate gets a majority.[1]_</p>
+remainders until a candidate gets a majority.[Rfe9f78171345-1]_</p>
 <p>Also known as “the alternative vote”, “ranked-choice voting”, Hare’s
 method, or Ware’s method.</p>
 <p>The votes in each instant-runoff round are calculated from the same set of
 ranked ballots.  If voters are honest and consistent between rounds, then
 this is also equivalent to the exhaustive ballot method, which uses actual
-separate runoff elections.[2]_</p>
-<dl class="simple">
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.  See <cite>borda</cite> for election format.
+separate runoff elections.[Rfe9f78171345-2]_</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.  See <cite>borda</cite> for election format.
 Currently, this must include full rankings for each voter.</p>
 </dd>
-<dt>tiebreaker<span class="classifier">{‘random’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, tied candidates
+<dt><strong>tiebreaker</strong><span class="classifier">{‘random’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, tied candidates
 are eliminated or selected at random
 is returned.
 If ‘order’, the lowest-ID tied candidate is preferred in each tie.
 By default, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned if there are any ties.</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>winner<span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>winner</strong><span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id9" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="rfe9f78171345-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Instant-runoff_voting">https://en.wikipedia.org/wiki/Instant-runoff_voting</a></p>
-</aside>
-<aside class="footnote brackets" id="id10" role="note">
+</div>
+<div class="citation" id="rfe9f78171345-2" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Exhaustive_ballot">https://en.wikipedia.org/wiki/Exhaustive_ballot</a></p>
-</aside>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Label some candidates:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
 </pre></div>
@@ -554,34 +651,44 @@ Candidate A to win, with 3 out of 5 votes:</p>
 <dd><p>Find the winner of an election using top-two runoff / two-round system.</p>
 <p>If any candidate gets a majority of first-preference votes, they win.
 Otherwise, a runoff election is held between the two highest-voted
-candidates.[1]_</p>
+candidates.[Rece24b189ff2-1]_</p>
 <p>The votes in the first and second rounds are calculated from the same set
-of ranked ballots, so this is actually the contingent vote method.[2]_  If
+of ranked ballots, so this is actually the contingent vote method.[Rece24b189ff2-2]_  If
 voters are honest and consistent between rounds, then the two methods are
 equivalent.  It can also be considered “top-two IRV”, and is closely
 related to the supplementary vote (which restricts rankings to two).</p>
-<dl class="simple">
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.  See <cite>borda</cite> for election format.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.  See <cite>borda</cite> for election format.
 Currently, this must include full rankings for each voter.</p>
 </dd>
-<dt>tiebreaker<span class="classifier">{‘random’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
+<dt><strong>tiebreaker</strong><span class="classifier">{‘random’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
 is returned.
 If ‘order’, the lowest-ID tied candidate is returned.
 By default, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned for ties.</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>winner<span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>winner</strong><span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id11" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="rece24b189ff2-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Two-round_system">https://en.wikipedia.org/wiki/Two-round_system</a></p>
-</aside>
-<aside class="footnote brackets" id="id12" role="note">
+</div>
+<div class="citation" id="rece24b189ff2-2" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Contingent_vote">https://en.wikipedia.org/wiki/Contingent_vote</a></p>
-</aside>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Label some candidates:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
 </pre></div>
@@ -612,27 +719,37 @@ Candidate A to win, with 3 out of 5 votes:</p>
 <dt class="sig sig-object py" id="elsim.methods.score.score">
 <span class="sig-prename descclassname"><span class="pre">elsim.methods.score.</span></span><span class="sig-name descname"><span class="pre">score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">election</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiebreaker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.methods.score.score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the winner of an election using score (or range) voting.</p>
-<p>The candidate with the highest score wins.[1]_</p>
-<dl>
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A 2D collection of score ballots.</p>
+<p>The candidate with the highest score wins.[Raffd050aa9cd-1]_</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A 2D collection of score ballots.</p>
 <p>Rows represent voters, and columns represent candidate IDs.
 A cell contains a high score if that voter approves of that candidate,
 or low score if they disapprove</p>
 </dd>
-<dt>tiebreaker<span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
+<dt><strong>tiebreaker</strong><span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
 is returned.
 If ‘order’, the lowest-ID tied candidate is returned.
 By default, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned for ties.</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>winner<span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>winner</strong><span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id13" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="raffd050aa9cd-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/Score_voting">https://en.wikipedia.org/wiki/Score_voting</a></p>
-</aside>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Voter 0 loves Candidates A (index 0) and B (index 1), but hates C (2).
 Voter 1 dislikes A, likes B, and loves C.
 Voter 2 hates A, and is lukewarm about B and C.</p>
@@ -655,20 +772,27 @@ Voter 2 hates A, and is lukewarm about B and C.</p>
 <dt class="sig sig-object py" id="elsim.methods.star.matrix_from_scores">
 <span class="sig-prename descclassname"><span class="pre">elsim.methods.star.</span></span><span class="sig-name descname"><span class="pre">matrix_from_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">election</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.methods.star.matrix_from_scores" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a scored ballot election to a pairwise comparison matrix.</p>
-<dl>
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A 2D collection of score ballots.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A 2D collection of score ballots.</p>
 <p>Rows represent voters, and columns represent candidate IDs.
 A cell contains a high score if that voter approves of that candidate,
 or low score if they disapprove.</p>
 </dd>
 </dl>
-<dl>
-<dt>matrix<span class="classifier">ndarray</span></dt><dd><p>A pairwise comparison matrix of candidate vs candidate defeats.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>matrix</strong><span class="classifier">ndarray</span></dt><dd><p>A pairwise comparison matrix of candidate vs candidate defeats.</p>
 <p>For example, a <code class="docutils literal notranslate"><span class="pre">3</span></code> in row 2, column 5, means that 3 voters preferred
 Candidate 2 over Candidate 5.  Candidates are not preferred over
 themselves, so the diagonal is all zeros.</p>
 </dd>
 </dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
 <p>Voter 0 loves Candidates A (index 0) and B (index 1), but hates C (2).
 Voter 1 dislikes A, likes B, and loves C.
 Voter 2 hates A, is lukewarm about B and likes C.</p>
@@ -693,39 +817,50 @@ over C by 1 voter.</p>
 <dt class="sig sig-object py" id="elsim.methods.star.star">
 <span class="sig-prename descclassname"><span class="pre">elsim.methods.star.</span></span><span class="sig-name descname"><span class="pre">star</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">election</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiebreaker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.methods.star.star" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the winner of an election using STAR voting.</p>
-<p>The more-preferred of the two highest-scoring candidates wins.[1]_</p>
-<dl>
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A 2D collection of score ballots.</p>
+<p>The more-preferred of the two highest-scoring candidates wins.[Rfd8f98f0f0c2-1]_</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A 2D collection of score ballots.</p>
 <p>Rows represent voters, and columns represent candidate IDs.
 A cell contains a high score if that voter approves of that candidate,
 or low score if they disapprove.</p>
 </dd>
-<dt>tiebreaker<span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
+<dt><strong>tiebreaker</strong><span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
 is returned.
 If ‘order’, the lowest-ID tied candidate is returned.
 By default, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned for ties.</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>winner<span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>winner</strong><span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
 </dd>
 </dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
 <p>If there is a tie during the scoring round (three or more candidates tied
 for highest score, or two or more tied for second highest), it is broken
-using a Condorcet method between the tied candidates.[2]_</p>
+using a Condorcet method between the tied candidates.[Rfd8f98f0f0c2-2]_</p>
 <p>If there is a tie during the automatic runoff (neither candidate is
 preferred more than the other) then it is broken in favor of the
-higher-scoring candidate.[2]_</p>
+higher-scoring candidate.[Rfd8f98f0f0c2-2]_</p>
 <p>If there is still a tie in either round, it is broken according to the
 <cite>tiebreaker</cite> parameter.</p>
-<aside class="footnote brackets" id="id14" role="note">
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="rfd8f98f0f0c2-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://en.wikipedia.org/wiki/STAR_voting">https://en.wikipedia.org/wiki/STAR_voting</a></p>
-</aside>
-<aside class="footnote brackets" id="id15" role="note">
+</div>
+<div class="citation" id="rfd8f98f0f0c2-2" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://www.starvoting.us/ties">https://www.starvoting.us/ties</a></p>
-</aside>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Voter 0 loves Candidates A (index 0) and B (index 1), but hates C (2).
 Voter 1 dislikes A, likes B, and loves C.
 Voter 2 hates A, is lukewarm about B and likes C.</p>
@@ -750,29 +885,39 @@ C is preferred on more ballots, and wins the election:</p>
 <span class="sig-prename descclassname"><span class="pre">elsim.methods.utility_winner.</span></span><span class="sig-name descname"><span class="pre">utility_winner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiebreaker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.methods.utility_winner.utility_winner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the utilitarian winner of an election. (Dummy “election method”).</p>
 <p>Given a set of utilities for each voter-candidate pair, find the candidate
-who maximizes summed utility across all voters.[1]_</p>
-<dl>
-<dt>utilities<span class="classifier">array_like</span></dt><dd><p>A 2D collection of utilities.</p>
+who maximizes summed utility across all voters.[Rd25faf1f9618-1]_</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>utilities</strong><span class="classifier">array_like</span></dt><dd><p>A 2D collection of utilities.</p>
 <p>Rows represent voters, and columns represent candidate IDs.
 Higher utility numbers mean greater approval of that candidate by that
 voter.</p>
 </dd>
-<dt>tiebreaker<span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
+<dt><strong>tiebreaker</strong><span class="classifier">{‘random’, ‘order’, None}, optional</span></dt><dd><p>If there is a tie, and <cite>tiebreaker</cite> is <code class="docutils literal notranslate"><span class="pre">'random'</span></code>, a random finalist
 is returned.
 If ‘order’, the lowest-ID tied candidate is returned.
 By default, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned for ties.</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>winner<span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>winner</strong><span class="classifier">int</span></dt><dd><p>The ID number of the winner, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for an unbroken tie.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id16" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="rd25faf1f9618-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p>S. Merrill III, “A Comparison of Efficiency of Multicandidate
 Electoral Systems”, American Journal of Political Science, vol. 28,
-no. 1, p. 41, 1984.  <a href="#id17"><span class="problematic" id="id18">:doi:`10.2307/2110786`</span></a></p>
-</aside>
+no. 1, p. 41, 1984.  <a href="#id16"><span class="problematic" id="id17">:doi:`10.2307/2110786`</span></a></p>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Voter 0 loves Candidates A (index 0) and B (index 1), but hates C (2).
 Voter 1 dislikes A, likes B, and loves C.
 Voter 2 hates A, and is lukewarm about B and C.</p>

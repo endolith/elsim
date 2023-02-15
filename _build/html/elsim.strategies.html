@@ -45,27 +45,37 @@
 <dd><p>Convert utilities to optimal approval voting ballots.</p>
 <p>Given a set of utilities for each voter-candidate pair, each voter is
 modeled as maximizing their expected utility, by approving any candidate
-that exceeds their mean utility over all candidates.[1]_</p>
-<dl>
-<dt>utilities<span class="classifier">array_like</span></dt><dd><p>A 2D collection of utilities.</p>
+that exceeds their mean utility over all candidates.[R5cc3e559bd86-1]_</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>utilities</strong><span class="classifier">array_like</span></dt><dd><p>A 2D collection of utilities.</p>
 <p>Rows represent voters, and columns represent candidate IDs.
 Higher utility numbers mean greater approval of that candidate by that
 voter.</p>
 </dd>
 </dl>
-<dl>
-<dt>election<span class="classifier">ndarray</span></dt><dd><p>A 2D collection of approval ballots.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>election</strong><span class="classifier">ndarray</span></dt><dd><p>A 2D collection of approval ballots.</p>
 <p>Rows represent voters, and columns represent candidate IDs.
 A cell contains 1 if that voter approves of that candidate,
 otherwise 0.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id1" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="r5cc3e559bd86-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p>S. Merrill III, “A Comparison of Efficiency of Multicandidate
 Electoral Systems”, American Journal of Political Science, vol. 28,
-no. 1, p. 26, 1984.  <a href="#id2"><span class="problematic" id="id3">:doi:`10.2307/2110786`</span></a></p>
-</aside>
+no. 1, p. 26, 1984.  <a href="#id1"><span class="problematic" id="id2">:doi:`10.2307/2110786`</span></a></p>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Voter 0 loves Candidates A (index 0) and B (index 1), but hates C (2).
 Voter 1 dislikes A, likes B, and loves C.
 Voter 2 hates A, and is lukewarm about B and C.</p>
@@ -95,23 +105,30 @@ Voter 2 approves B and C.</p>
 <p>Given a set of utilities for each voter-candidate pair, each voter is
 modeled as giving their favorite candidate a maximum score, least favorite
 candidate a minimum score, and proportional scores in between.</p>
-<dl>
-<dt>utilities<span class="classifier">array_like</span></dt><dd><p>A 2D collection of utilities.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>utilities</strong><span class="classifier">array_like</span></dt><dd><p>A 2D collection of utilities.</p>
 <p>Rows represent voters, and columns represent candidate IDs.
 Higher utility numbers mean greater approval of that candidate by that
 voter.</p>
 </dd>
-<dt>max_score<span class="classifier">int, optional</span></dt><dd><p>The highest score on the ballot. If <cite>max_score</cite> = 3, the possible
+<dt><strong>max_score</strong><span class="classifier">int, optional</span></dt><dd><p>The highest score on the ballot. If <cite>max_score</cite> = 3, the possible
 scores are 0, 1, 2, 3.</p>
 </dd>
 </dl>
-<dl>
-<dt>election<span class="classifier">ndarray</span></dt><dd><p>A 2D collection of score ballots.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>election</strong><span class="classifier">ndarray</span></dt><dd><p>A 2D collection of score ballots.</p>
 <p>Rows represent voters, and columns represent candidate IDs.
 A cell contains a high score if that voter approves of that candidate,
 or low score if they disapprove</p>
 </dd>
 </dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
 <p>Voter 0 loves Candidates A (index 0) and B (index 1), but hates C (2).
 Voter 1 dislikes A, likes B, and loves C.
 Voter 2 hates A, and is lukewarm about B and C.</p>
@@ -135,15 +152,19 @@ favorite scored at the max and min:</p>
 <dt class="sig sig-object py" id="elsim.strategies.strategies.honest_rankings">
 <span class="sig-prename descclassname"><span class="pre">elsim.strategies.strategies.</span></span><span class="sig-name descname"><span class="pre">honest_rankings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.strategies.strategies.honest_rankings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert utilities into rankings using honest strategy.</p>
-<dl>
-<dt>utilities<span class="classifier">array_like</span></dt><dd><p>A 2D collection of utilities.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>utilities</strong><span class="classifier">array_like</span></dt><dd><p>A 2D collection of utilities.</p>
 <p>Rows represent voters, and columns represent candidate IDs.
 Higher utility numbers mean greater approval of that candidate by that
 voter.</p>
 </dd>
 </dl>
-<dl>
-<dt>election<span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>election</strong><span class="classifier">array_like</span></dt><dd><p>A collection of ranked ballots.
 Rows represent voters and columns represent rankings, from best to
 worst, with no tied rankings.
 Each cell contains the ID number of a candidate, starting at 0.</p>
@@ -151,6 +172,9 @@ Each cell contains the ID number of a candidate, starting at 0.</p>
 would read <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">0,</span> <span class="pre">1]</span></code> (with IDs in alphabetical order).</p>
 </dd>
 </dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
 <p>Generate an election with 4 voters and 3 candidates:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">random_utilities</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="go">array([[0.805, 0.759, 0.969],</span>
@@ -179,31 +203,41 @@ converted to rankings:</p>
 <span class="sig-prename descclassname"><span class="pre">elsim.strategies.strategies.</span></span><span class="sig-name descname"><span class="pre">vote_for_k</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.strategies.strategies.vote_for_k" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert utilities to approval voting ballots, approving top k candidates.</p>
 <p>Given a set of utilities for each voter-candidate pair, each voter is
-modeled as voting for the top <cite>k</cite> candidates.[1]_</p>
-<dl>
-<dt>utilities<span class="classifier">array_like</span></dt><dd><p>A 2D collection of utilities.</p>
+modeled as voting for the top <cite>k</cite> candidates.[R3557484ae31c-1]_</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>utilities</strong><span class="classifier">array_like</span></dt><dd><p>A 2D collection of utilities.</p>
 <p>Rows represent voters, and columns represent candidate IDs.
 Higher utility numbers mean greater approval of that candidate by that
 voter.</p>
 </dd>
-<dt>k<span class="classifier">int or ‘half’</span></dt><dd><p>The number of candidates approved of by each voter, or ‘half’ to make
+<dt><strong>k</strong><span class="classifier">int or ‘half’</span></dt><dd><p>The number of candidates approved of by each voter, or ‘half’ to make
 the number dependent on the number of candidates.  If a negative int,
 then vote for <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">k</span></code> candidates, where <code class="docutils literal notranslate"><span class="pre">n</span></code> is the total number.</p>
 </dd>
 </dl>
-<dl>
-<dt>election<span class="classifier">ndarray</span></dt><dd><p>A 2D collection of approval ballots.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><strong>election</strong><span class="classifier">ndarray</span></dt><dd><p>A 2D collection of approval ballots.</p>
 <p>Rows represent voters, and columns represent candidate IDs.
 A cell contains 1 if that voter approves of that candidate,
 otherwise 0.</p>
 </dd>
 </dl>
-<aside class="footnote brackets" id="id4" role="note">
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="r3557484ae31c-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p>Weber, Robert J. (1978). “Comparison of Public Choice Systems”.
 Cowles Foundation Discussion Papers. Cowles Foundation for Research in
 Economics. No. 498. <a class="reference external" href="https://cowles.yale.edu/publications/cfdp/cfdp-498">https://cowles.yale.edu/publications/cfdp/cfdp-498</a></p>
-</aside>
+</div>
+</div>
+<p class="rubric">Examples</p>
 <p>Voter 0 loves Candidates A (index 0) and B (index 1), but hates C (2).
 Voter 1 dislikes A, likes B, and loves C.
 Voter 2 hates A, and is lukewarm about B and C.</p>
