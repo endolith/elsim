@@ -1,6 +1,14 @@
 elsim.methods package
 =====================
 
+Module contents
+---------------
+
+.. automodule:: elsim.methods
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Submodules
 ----------
 
@@ -88,14 +96,6 @@ elsim.methods.utility\_winner module
 ------------------------------------
 
 .. automodule:: elsim.methods.utility_winner
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: elsim.methods
    :members:
    :undoc-members:
    :show-inheritance:
