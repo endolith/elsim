@@ -30,7 +30,7 @@ Or the table of Effectiveness from [Weber 1977](https://elischolar.library.yale.
 - Able to reproduce peer-reviewed research
 
 ## Requirements
-See `requirements.txt`.  As of this README, it includes  [`numpy`](https://numpy.org/) and [`scipy`](https://www.scipy.org/)for the simulations, [`tabulate`](https://github.com/astanin/python-tabulate) for printing example tables, [`joblib`](https://joblib.readthedocs.io/en/latest/) for parallelizing extreme examples, and  [`pytest`](https://docs.pytest.org/en/latest/), [`hypothesis`](https://hypothesis.readthedocs.io/en/latest/), and [`pytest-cov`](https://github.com/pytest-dev/pytest-cov) for running the tests.  All should be installable through `conda`.
+See `requirements.txt`.  As of this README, it includes  [`numpy`](https://numpy.org/) and [`scipy`](https://www.scipy.org/) for the simulations, [`tabulate`](https://github.com/astanin/python-tabulate) for printing example tables, [`joblib`](https://joblib.readthedocs.io/en/latest/) for parallelizing extreme examples, and  [`pytest`](https://docs.pytest.org/en/latest/), [`hypothesis`](https://hypothesis.readthedocs.io/en/latest/), and [`pytest-cov`](https://github.com/pytest-dev/pytest-cov) for running the tests.  All should be installable through `conda`.
 
 Optionally, `elsim` can use [`numba`](http://numba.pydata.org/) for speed.  If not available, the code will still run, just more slowly.
 

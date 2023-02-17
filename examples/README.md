@@ -20,7 +20,9 @@ Source: [wikipedia_condorcet_paradox_likelihood.py](wikipedia_condorcet_paradox_
 
 ## Niemi and Weisberg 1968, Klahr 1966
 
-Reproduction of Condorcet paradox likelihood column and table
+Niemi, R. G., & Weisberg, H. F. (1968). [A mathematical solution for the probability of the paradox of voting](https://doi.org/10.1002/bs.3830130406). *Behavioral Science*, *13*(4), 322.
+
+Reproduction of Condorcet paradox likelihood column and table:
 
 ### Table 1: Probability That There Is No Majority Winner
 
@@ -41,13 +43,15 @@ Source: [niemi_1968_table_1.py](niemi_1968_table_1.py)
 |    5 | 0.1599 | 0.1996 | 0.2146 | 0.2230 | 0.2288 | 0.2331 | 0.2347 | 0.2367 | 0.2387 | 0.2395 | 0.2406 | 0.2416 | 0.2421 | 0.2437 | 0.2480 |
 |    6 | 0.2023 | 0.2518 | 0.2707 | 0.2814 | 0.2884 | 0.2925 | 0.2948 | 0.2974 | 0.2993 | 0.3012 | 0.3030 | 0.3038 | 0.3036 | 0.3052 | 0.3110 |
 
-(This also covers the same values as Figure 6. of Klahr, D. (1966). A Computer Simulation of the Paradox of Voting. *American Political Science Review*, *60*(2), 384–390.)
+(This also covers the same values as Figure 6. of Klahr, D. (1966). [A Computer Simulation of the Paradox of Voting](https://ideas.repec.org/a/cup/apsrev/v60y1966i02p384-390_12.html). *American Political Science Review*, *60*(2), 388.)
 
 Source: [niemi_1968_table_2.py](niemi_1968_table_2.py)
 
-## Weber 1977
+## Weber 1977/1978
 
-Reproduction of utility and effectiveness tables and formulas from Weber (1977) *[Comparison of Public Choice Systems](https://cowles.yale.edu/publications/cfdp/cfdp-498)* 
+Weber, R. J. (1978). [Comparison of Public Choice Systems](https://cowles.yale.edu/publications/cfdp/cfdp-498). *Cowles Foundation Discussion Papers*.
+
+Reproduction of utility and effectiveness tables and formulas:
 
 ### Table 4: The expected social utility of the elected candidate
 
@@ -123,7 +127,7 @@ Source: [weber_1977_verify_vote_for_k.py](weber_1977_verify_vote_for_k.py)
 
 ## Merrill 1984
 
-Merrill (1984) *[A Comparison of Efficiency of Multicandidate Electoral Systems](https://www.jstor.org/stable/2110786)* 
+Merrill, S. (1984). [A Comparison of Efficiency of Multicandidate Electoral Systems](https://doi.org/10.2307/2110786). *American Journal of Political Science*, *28*(1), 23–48.
 
 Reproduction of Condorcet efficiency (CE) and social utility efficiency (SUE) tables and figures:
 
