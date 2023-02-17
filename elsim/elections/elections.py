@@ -1,14 +1,14 @@
 import numbers
 
 import numpy as np
-from scipy.spatial.distance import cdist
+from scipy.spatial.distance import cdist as _cdist
 
-from elsim.strategies import honest_rankings
+from elsim.strategies import honest_rankings as _honest_rankings
 
 elections_rng = np.random.default_rng()
 
 
-def check_random_state(seed):
+def _check_random_state(seed):
     """
     Turn seed into a np.random.Generator instance.
 
@@ -85,7 +85,7 @@ def random_utilities(n_voters, n_cands, random_state=None):
     Here, Voter 2 prefers Candidate 2, considers Candidate 0 mediocre, and
     strongly dislikes Candidate 1.
     """
-    rng = check_random_state(random_state)
+    rng = _check_random_state(random_state)
 
     # Generate utilities from a uniform distribution over [0, 1).
     # Merrill uses [0, 1], but that shouldn't make any difference.
@@ -160,7 +160,7 @@ def impartial_culture(n_voters, n_cands, random_state=None):
     # This method is much faster than generating integer sequences and then
     # shuffling them.
     utilities = random_utilities(n_voters, n_cands, random_state)
-    rankings = honest_rankings(utilities)
+    rankings = _honest_rankings(utilities)
     return rankings
 
 
@@ -238,7 +238,7 @@ def normal_electorate(n_voters, n_cands, dims=2, corr=0.0, disp=1.0,
            Electoral Systems", American Journal of Political Science, vol. 28,
            no. 1, p. 26, 1984.  :doi:`10.2307/2110786`
     """
-    rng = check_random_state(random_state)
+    rng = _check_random_state(random_state)
 
     A = 1 + (dims - 1)*corr
     B = 1 - corr
@@ -308,7 +308,7 @@ def normed_dist_utilities(voters, cands):
            [0.76268967, 0.        , 1.        ]])
     """
     # Find ideological distance between each voter and each candidate
-    dists = cdist(voters, cands)
+    dists = _cdist(voters, cands)
 
     # When distance is low, utility is high
     # "u(d) = - d, where d is the distance from voter to candidate."
