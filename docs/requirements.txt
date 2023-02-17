@@ -1,0 +1,6 @@
+-e .
+numpydoc
+m2r2
+sphinxcontrib.mermaid
+sphinx_rtd_theme
+sphinxcontrib-apidoc

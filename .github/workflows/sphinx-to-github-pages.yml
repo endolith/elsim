@@ -5,7 +5,7 @@ name: Deploy Sphinx documentation to Pages
 # Runs on pushes targeting the default branch
 on:
   push:
-    branches: [master]
+    branches: [ '*' ]
 
 jobs:
   pages:
