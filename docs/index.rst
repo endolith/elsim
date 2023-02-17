@@ -11,8 +11,6 @@ Welcome to elsim's documentation!
    :caption: Contents:
 
 .. mdinclude:: ../README.md
-   :start-line: 1
-   :end-line: -1
 
 
 
