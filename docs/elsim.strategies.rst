@@ -1,21 +1,8 @@
-elsim.strategies package
-========================
-
-Module contents
----------------
+elsim.strategies module
+=======================
 
 .. automodule:: elsim.strategies
    :members:
    :undoc-members:
-   :show-inheritance:
-
-Submodules
-----------
-
-elsim.strategies.strategies module
-----------------------------------
-
-.. automodule:: elsim.strategies.strategies
-   :members:
-   :undoc-members:
+   :imported-members:
    :show-inheritance:
