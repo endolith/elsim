@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>elsim.elections package &mdash; elsim 0.1 documentation</title>
+  <title>elsim.elections module &mdash; elsim 0.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -44,12 +44,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <!-- Local TOC -->
               <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">elsim.elections package</a><ul>
-<li><a class="reference internal" href="#module-elsim.elections">Module contents</a></li>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-elsim.elections.elections">elsim.elections.elections module</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#">elsim.elections module</a></li>
 </ul>
 </div>
         </div>
@@ -66,7 +61,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">elsim.elections package</li>
+      <li class="breadcrumb-item active">elsim.elections module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/elsim.elections.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -76,43 +71,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="elsim-elections-package">
-<h1>elsim.elections package<a class="headerlink" href="#elsim-elections-package" title="Permalink to this heading"></a></h1>
-<section id="module-elsim.elections">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-elsim.elections" title="Permalink to this heading"></a></h2>
+  <section id="module-elsim.elections">
+<span id="elsim-elections-module"></span><h1>elsim.elections module<a class="headerlink" href="#module-elsim.elections" title="Permalink to this heading"></a></h1>
 <p>Implements various election types.</p>
 <p>Currently these are randomly-generated elections.</p>
-</section>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
-</section>
-<section id="module-elsim.elections.elections">
-<span id="elsim-elections-elections-module"></span><h2>elsim.elections.elections module<a class="headerlink" href="#module-elsim.elections.elections" title="Permalink to this heading"></a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="elsim.elections.elections.check_random_state">
-<span class="sig-prename descclassname"><span class="pre">elsim.elections.elections.</span></span><span class="sig-name descname"><span class="pre">check_random_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.elections.elections.check_random_state" title="Permalink to this definition"></a></dt>
-<dd><p>Turn seed into a np.random.Generator instance.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>seed</strong><span class="classifier">None, int or instance of Generator</span></dt><dd><p>If seed is None, return the elsim.elections Generator.
-If seed is an int, return a new Generator instance seeded with it.
-If seed is already a Generator instance, return it.
-Otherwise raise ValueError.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="elsim.elections.elections.impartial_culture">
-<span class="sig-prename descclassname"><span class="pre">elsim.elections.elections.</span></span><span class="sig-name descname"><span class="pre">impartial_culture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_voters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.elections.elections.impartial_culture" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="elsim.elections.impartial_culture">
+<span class="sig-prename descclassname"><span class="pre">elsim.elections.</span></span><span class="sig-name descname"><span class="pre">impartial_culture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_voters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.elections.impartial_culture" title="Permalink to this definition"></a></dt>
 <dd><p>Generate ranked ballots using the impartial culture / random society model.</p>
 <p>The impartial culture model selects complete preference rankings from the
 set of all possible preference rankings using a uniform distribution.</p>
 <p>This model is unrealistic, but is commonly used because it has some
-worst-case properties and is comparable between researchers.[R6a49c53aad98-2]_</p>
+worst-case properties and is comparable between researchers.[Rd8b3be82780c-2]_</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -143,19 +113,19 @@ would read <code class="docutils literal notranslate"><span class="pre">[2,</spa
 </dl>
 <p class="rubric">Notes</p>
 <p>This implementation first generates a set of independent, uniformly
-distributed random utilities, which are then converted into rankings.[R6a49c53aad98-1]_</p>
+distributed random utilities, which are then converted into rankings.[Rd8b3be82780c-1]_</p>
 <p>It can (extremely rarely) generate tied utilities, which are always ranked
 in order from lowest to highest, so there is a very slight bias in favor of
 lower-numbered candidates?</p>
 <p class="rubric">References</p>
 <div role="list" class="citation-list">
-<div class="citation" id="r6a49c53aad98-1" role="doc-biblioentry">
+<div class="citation" id="rd8b3be82780c-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p>S. Merrill III, “A Comparison of Efficiency of Multicandidate
 Electoral Systems”, American Journal of Political Science, vol. 28,
 no. 1, p. 26, 1984.  <a href="#id1"><span class="problematic" id="id2">:doi:`10.2307/2110786`</span></a></p>
 </div>
-<div class="citation" id="r6a49c53aad98-2" role="doc-biblioentry">
+<div class="citation" id="rd8b3be82780c-2" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
 <p>A. Lehtinen and J. Kuorikoski, “Unrealistic Assumptions in Rational
 Choice Theory”, Philosophy of the Social Sciences vol. 37, no. 2,
@@ -175,8 +145,8 @@ p 132. 2007. <a href="#id3"><span class="problematic" id="id4">:doi:`10.1177/004
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="elsim.elections.elections.normal_electorate">
-<span class="sig-prename descclassname"><span class="pre">elsim.elections.elections.</span></span><span class="sig-name descname"><span class="pre">normal_electorate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_voters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.elections.elections.normal_electorate" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="elsim.elections.normal_electorate">
+<span class="sig-prename descclassname"><span class="pre">elsim.elections.</span></span><span class="sig-name descname"><span class="pre">normal_electorate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_voters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.elections.normal_electorate" title="Permalink to this definition"></a></dt>
 <dd><p>Generate normally distributed voters and candidates in issue space.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -242,7 +212,7 @@ variance matters, not absolute variance.</p>
 the rest are 0 or 1, since again, only the relative variance matters.</p>
 <p class="rubric">References</p>
 <div role="list" class="citation-list">
-<div class="citation" id="rf7d40009b2be-1" role="doc-biblioentry">
+<div class="citation" id="r9a12ac3ab819-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p>S. Merrill III, “A Comparison of Efficiency of Multicandidate
 Electoral Systems”, American Journal of Political Science, vol. 28,
@@ -252,8 +222,8 @@ no. 1, p. 26, 1984.  <a href="#id7"><span class="problematic" id="id8">:doi:`10.
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="elsim.elections.elections.normed_dist_utilities">
-<span class="sig-prename descclassname"><span class="pre">elsim.elections.elections.</span></span><span class="sig-name descname"><span class="pre">normed_dist_utilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cands</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.elections.elections.normed_dist_utilities" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="elsim.elections.normed_dist_utilities">
+<span class="sig-prename descclassname"><span class="pre">elsim.elections.</span></span><span class="sig-name descname"><span class="pre">normed_dist_utilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cands</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.elections.normed_dist_utilities" title="Permalink to this definition"></a></dt>
 <dd><p>Generate normalized utilities from a spatial model.</p>
 <p>Given the positions of voters and candidates, calculate the distance from
 each voter to each candidate, and then assign proportional utilities, where
@@ -280,7 +250,7 @@ Rows represent voters and columns represent candidates.</p>
 </dl>
 <p class="rubric">References</p>
 <div role="list" class="citation-list">
-<div class="citation" id="r9d55d22a7fef-1" role="doc-biblioentry">
+<div class="citation" id="r466e94500a6f-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p>S. Merrill III, “A Comparison of Efficiency of Multicandidate
 Electoral Systems”, American Journal of Political Science, vol. 28,
@@ -307,14 +277,14 @@ no. 1, p. 26, 1984.  <a href="#id10"><span class="problematic" id="id11">:doi:`1
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="elsim.elections.elections.random_utilities">
-<span class="sig-prename descclassname"><span class="pre">elsim.elections.elections.</span></span><span class="sig-name descname"><span class="pre">random_utilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_voters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.elections.elections.random_utilities" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="elsim.elections.random_utilities">
+<span class="sig-prename descclassname"><span class="pre">elsim.elections.</span></span><span class="sig-name descname"><span class="pre">random_utilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_voters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.elections.random_utilities" title="Permalink to this definition"></a></dt>
 <dd><p>Generate utilities using the impartial culture / random society model.</p>
-<p>The random society[Rf6e1806bd8ea-1]_ or random uniform utilities[Rf6e1806bd8ea-2]_ model selects
+<p>The random society[R2329d6f80249-1]_ or random uniform utilities[R2329d6f80249-2]_ model selects
 independent candidate utilities for each voter from a uniform distribution
 in the interval [0, 1).</p>
 <p>This model is unrealistic, but is commonly used because it has some
-worst-case properties and is comparable between researchers.[Rf6e1806bd8ea-3]_</p>
+worst-case properties and is comparable between researchers.[R2329d6f80249-3]_</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -341,18 +311,18 @@ Rows represent voters and columns represent candidates.</p>
 </dl>
 <p class="rubric">References</p>
 <div role="list" class="citation-list">
-<div class="citation" id="rf6e1806bd8ea-1" role="doc-biblioentry">
+<div class="citation" id="r2329d6f80249-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p>S. Merrill III, “A Comparison of Efficiency of Multicandidate
 Electoral Systems”, American Journal of Political Science, vol. 28,
 no. 1, p. 26, 1984.  <a href="#id13"><span class="problematic" id="id14">:doi:`10.2307/2110786`</span></a></p>
 </div>
-<div class="citation" id="rf6e1806bd8ea-2" role="doc-biblioentry">
+<div class="citation" id="r2329d6f80249-2" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
 <p>W.D. Smith, “Range voting”, 2000,
 <a class="reference external" href="http://scorevoting.net/WarrenSmithPages/homepage/rangevote.pdf">http://scorevoting.net/WarrenSmithPages/homepage/rangevote.pdf</a></p>
 </div>
-<div class="citation" id="rf6e1806bd8ea-3" role="doc-biblioentry">
+<div class="citation" id="r2329d6f80249-3" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></span>
 <p>A. Lehtinen and J. Kuorikoski, “Unrealistic Assumptions in Rational
 Choice Theory”, Philosophy of the Social Sciences vol. 37, no. 2,
@@ -372,7 +342,6 @@ p 132. 2007. <a href="#id15"><span class="problematic" id="id16">:doi:`10.1177/0
 similar.</p>
 </dd></dl>
 
-</section>
 </section>
 
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>elsim.strategies package &mdash; elsim 0.1 documentation</title>
+  <title>elsim.strategies module &mdash; elsim 0.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -44,12 +44,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <!-- Local TOC -->
               <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">elsim.strategies package</a><ul>
-<li><a class="reference internal" href="#module-elsim.strategies">Module contents</a></li>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-elsim.strategies.strategies">elsim.strategies.strategies module</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#">elsim.strategies module</a></li>
 </ul>
 </div>
         </div>
@@ -66,7 +61,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">elsim.strategies package</li>
+      <li class="breadcrumb-item active">elsim.strategies module</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/elsim.strategies.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -76,26 +71,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="elsim-strategies-package">
-<h1>elsim.strategies package<a class="headerlink" href="#elsim-strategies-package" title="Permalink to this heading"></a></h1>
-<section id="module-elsim.strategies">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-elsim.strategies" title="Permalink to this heading"></a></h2>
+  <section id="module-elsim.strategies">
+<span id="elsim-strategies-module"></span><h1>elsim.strategies module<a class="headerlink" href="#module-elsim.strategies" title="Permalink to this heading"></a></h1>
 <p>Implements various strategies.</p>
 <p>These take collections of utilities as inputs and return collections of
 ballots that voters cast for a voting method.</p>
-</section>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
-</section>
-<section id="module-elsim.strategies.strategies">
-<span id="elsim-strategies-strategies-module"></span><h2>elsim.strategies.strategies module<a class="headerlink" href="#module-elsim.strategies.strategies" title="Permalink to this heading"></a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="elsim.strategies.strategies.approval_optimal">
-<span class="sig-prename descclassname"><span class="pre">elsim.strategies.strategies.</span></span><span class="sig-name descname"><span class="pre">approval_optimal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.strategies.strategies.approval_optimal" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="elsim.strategies.approval_optimal">
+<span class="sig-prename descclassname"><span class="pre">elsim.strategies.</span></span><span class="sig-name descname"><span class="pre">approval_optimal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.strategies.approval_optimal" title="Permalink to this definition"></a></dt>
 <dd><p>Convert utilities to optimal approval voting ballots.</p>
 <p>Given a set of utilities for each voter-candidate pair, each voter is
 modeled as maximizing their expected utility, by approving any candidate
-that exceeds their mean utility over all candidates.[R5cc3e559bd86-1]_</p>
+that exceeds their mean utility over all candidates.[Rc1dad5cf4743-1]_</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
@@ -118,7 +105,7 @@ otherwise 0.</p>
 </dl>
 <p class="rubric">References</p>
 <div role="list" class="citation-list">
-<div class="citation" id="r5cc3e559bd86-1" role="doc-biblioentry">
+<div class="citation" id="rc1dad5cf4743-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p>S. Merrill III, “A Comparison of Efficiency of Multicandidate
 Electoral Systems”, American Journal of Political Science, vol. 28,
@@ -149,8 +136,8 @@ Voter 2 approves B and C.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="elsim.strategies.strategies.honest_normed_scores">
-<span class="sig-prename descclassname"><span class="pre">elsim.strategies.strategies.</span></span><span class="sig-name descname"><span class="pre">honest_normed_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_score</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.strategies.strategies.honest_normed_scores" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="elsim.strategies.honest_normed_scores">
+<span class="sig-prename descclassname"><span class="pre">elsim.strategies.</span></span><span class="sig-name descname"><span class="pre">honest_normed_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_score</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.strategies.honest_normed_scores" title="Permalink to this definition"></a></dt>
 <dd><p>Convert utilities into scores using honest (but normalized) strategy.</p>
 <p>Given a set of utilities for each voter-candidate pair, each voter is
 modeled as giving their favorite candidate a maximum score, least favorite
@@ -199,8 +186,8 @@ favorite scored at the max and min:</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="elsim.strategies.strategies.honest_rankings">
-<span class="sig-prename descclassname"><span class="pre">elsim.strategies.strategies.</span></span><span class="sig-name descname"><span class="pre">honest_rankings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.strategies.strategies.honest_rankings" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="elsim.strategies.honest_rankings">
+<span class="sig-prename descclassname"><span class="pre">elsim.strategies.</span></span><span class="sig-name descname"><span class="pre">honest_rankings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.strategies.honest_rankings" title="Permalink to this definition"></a></dt>
 <dd><p>Convert utilities into rankings using honest strategy.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -249,11 +236,11 @@ converted to rankings:</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="elsim.strategies.strategies.vote_for_k">
-<span class="sig-prename descclassname"><span class="pre">elsim.strategies.strategies.</span></span><span class="sig-name descname"><span class="pre">vote_for_k</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.strategies.strategies.vote_for_k" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="elsim.strategies.vote_for_k">
+<span class="sig-prename descclassname"><span class="pre">elsim.strategies.</span></span><span class="sig-name descname"><span class="pre">vote_for_k</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utilities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#elsim.strategies.vote_for_k" title="Permalink to this definition"></a></dt>
 <dd><p>Convert utilities to approval voting ballots, approving top k candidates.</p>
 <p>Given a set of utilities for each voter-candidate pair, each voter is
-modeled as voting for the top <cite>k</cite> candidates.[R3557484ae31c-1]_</p>
+modeled as voting for the top <cite>k</cite> candidates.[Ra6a88e09f828-1]_</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
@@ -280,7 +267,7 @@ otherwise 0.</p>
 </dl>
 <p class="rubric">References</p>
 <div role="list" class="citation-list">
-<div class="citation" id="r3557484ae31c-1" role="doc-biblioentry">
+<div class="citation" id="ra6a88e09f828-1" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p>Weber, Robert J. (1978). “Comparison of Public Choice Systems”.
 Cowles Foundation Discussion Papers. Cowles Foundation for Research in
@@ -309,7 +296,6 @@ Voter 2 approves B and C.</p>
 </div>
 </dd></dl>
 
-</section>
 </section>
 
 
