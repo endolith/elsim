@@ -74,6 +74,154 @@
 <h1>Welcome to elsim’s documentation!<a class="headerlink" href="#welcome-to-elsim-s-documentation" title="Permalink to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 </div>
+<p>[![CircleCI](<a class="reference external" href="https://circleci.com/gh/endolith/elsim.svg?style=shield)](https://circleci.com/gh/endolith/elsim">https://circleci.com/gh/endolith/elsim.svg?style=shield)](https://circleci.com/gh/endolith/elsim</a>)
+[![Actions Status](<a class="reference external" href="https://github.com/endolith/elsim/workflows/Python%20package/badge.svg)](https://github.com/endolith/elsim/actions">https://github.com/endolith/elsim/workflows/Python%20package/badge.svg)](https://github.com/endolith/elsim/actions</a>)
+[![codecov](<a class="reference external" href="https://codecov.io/gh/endolith/elsim/branch/master/graph/badge.svg?token=BZuePTP2dw)](https://codecov.io/gh/endolith/elsim">https://codecov.io/gh/endolith/elsim/branch/master/graph/badge.svg?token=BZuePTP2dw)](https://codecov.io/gh/endolith/elsim</a>)</p>
+<p>This is a library of functions for simulating thousands of elections held using different [voting methods](<a class="reference external" href="https://en.wikipedia.org/wiki/Electoral_system">https://en.wikipedia.org/wiki/Electoral_system</a>) ([Borda count](<a class="reference external" href="https://en.wikipedia.org/wiki/Borda_count">https://en.wikipedia.org/wiki/Borda_count</a>), [Approval voting](<a class="reference external" href="https://en.wikipedia.org/wiki/Approval_voting">https://en.wikipedia.org/wiki/Approval_voting</a>), etc.) under different voter models ([impartial culture](<a class="reference external" href="https://en.wikipedia.org/wiki/Impartial_culture">https://en.wikipedia.org/wiki/Impartial_culture</a>), [spatial model](<a class="reference external" href="https://en.wikipedia.org/wiki/Spatial_model_of_voting">https://en.wikipedia.org/wiki/Spatial_model_of_voting</a>), etc.) and estimating various metrics from them ([Social Utility Efficiency](<a class="reference external" href="https://en.wikipedia.org/wiki/Social_utility_efficiency">https://en.wikipedia.org/wiki/Social_utility_efficiency</a>) = Voter Satisfaction Efficiency = VSE, [Condorcet Efficiency](<a class="reference external" href="https://en.wikipedia.org/wiki/Condorcet_efficiency">https://en.wikipedia.org/wiki/Condorcet_efficiency</a>), [likelihood of Condorcet cycles](<a class="reference external" href="https://en.wikipedia.org/wiki/Condorcet_paradox#Likelihood_of_the_paradox">https://en.wikipedia.org/wiki/Condorcet_paradox#Likelihood_of_the_paradox</a>), etc.)</p>
+<p>For example, it can be used to reproduce Figure 1 from [Merrill 1984](<a class="reference external" href="https://www.jstor.org/stable/2110786">https://www.jstor.org/stable/2110786</a>):</p>
+<p>![](./examples/results/Merrill_1984_Figure_1._25_voters,_10000_iterations.png)</p>
+<p>Or the table of Effectiveness from [Weber 1977](<a class="reference external" href="https://elischolar.library.yale.edu/cowles-discussion-paper-series/732/">https://elischolar.library.yale.edu/cowles-discussion-paper-series/732/</a>):</p>
+<div class="line-block">
+<div class="line-block">
+<div class="line">| Standard | Vote-for-half | Borda |</div>
+</div>
+<div class="line">—: | ——-: | ————: | —-: |</div>
+<div class="line-block">
+<div class="line-block">
+<div class="line-block">
+<div class="line">2 |    81.37 |         81.71 | 81.41 |</div>
+<div class="line">3 |    75.10 |         75.00 | 86.53 |</div>
+<div class="line">4 |    69.90 |         79.92 | 89.47 |</div>
+<div class="line">5 |    65.02 |         79.09 | 91.34 |</div>
+<div class="line">6 |    61.08 |         81.20 | 92.61 |</div>
+</div>
+<div class="line">10 |    50.78 |         82.94 | 95.35 |</div>
+</div>
+<div class="line">255 |    12.78 |         86.37 | 99.80 |</div>
+</div>
+</div>
+<p>## Goals</p>
+<ul class="simple">
+<li><p>Fast (~25,000 elections per second on Core i7-9750H)</p></li>
+<li><p>Flexible</p></li>
+<li><p>Well-documented, easily-used and improved upon by other people</p></li>
+<li><p>Well-tested and bug-free</p></li>
+<li><p>Able to reproduce peer-reviewed research</p></li>
+</ul>
+<p>## Requirements
+See <cite>requirements.txt</cite>.  As of this README, it includes  [<cite>numpy</cite>](<a class="reference external" href="https://numpy.org/">https://numpy.org/</a>) and [<cite>scipy</cite>](<a class="reference external" href="https://www.scipy.org/)for">https://www.scipy.org/)for</a> the simulations, [<cite>tabulate</cite>](<a class="reference external" href="https://github.com/astanin/python-tabulate">https://github.com/astanin/python-tabulate</a>) for printing example tables, [<cite>joblib</cite>](<a class="reference external" href="https://joblib.readthedocs.io/en/latest/">https://joblib.readthedocs.io/en/latest/</a>) for parallelizing extreme examples, and  [<cite>pytest</cite>](<a class="reference external" href="https://docs.pytest.org/en/latest/">https://docs.pytest.org/en/latest/</a>), [<cite>hypothesis</cite>](<a class="reference external" href="https://hypothesis.readthedocs.io/en/latest/">https://hypothesis.readthedocs.io/en/latest/</a>), and [<cite>pytest-cov</cite>](<a class="reference external" href="https://github.com/pytest-dev/pytest-cov">https://github.com/pytest-dev/pytest-cov</a>) for running the tests.  All should be installable through <cite>conda</cite>.</p>
+<p>Optionally, <cite>elsim</cite> can use [<cite>numba</cite>](<a class="reference external" href="http://numba.pydata.org/">http://numba.pydata.org/</a>) for speed.  If not available, the code will still run, just more slowly.</p>
+<p>## Installation
+One possibility is to install with pip:</p>
+<blockquote>
+<div><p>pip install git+https://github.com/endolith/elsim.git</p>
+</div></blockquote>
+<p>## Documentation
+Currently just the docstrings of the submodules and functions themselves, in [<cite>numpydoc</cite> format](<a class="reference external" href="https://numpydoc.readthedocs.io/en/latest/format.html">https://numpydoc.readthedocs.io/en/latest/format.html</a>).</p>
+<p>## Usage
+Specify an election with three candidates (0, 1, 2), where two voters rank candidates 0 &gt; 2 &gt; 1, two voters rank candidates 1 &gt; 2 &gt; 0, and one ranks candidates 2 &gt; 0 &gt; 1:</p>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
+&gt;&gt;&gt; election = [[0, 2, 1],</p>
+<blockquote>
+<div><p>[0, 2, 1],
+[1, 2, 0],
+[1, 2, 0],
+[2, 0, 1]]</p>
+</div></blockquote>
+<p><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+<p>Calculate the winner using Black’s method:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">from</span> <span class="pre">elsim.methods</span> <span class="pre">import</span> <span class="pre">black</span>
+<span class="pre">&gt;&gt;&gt;</span> <span class="pre">black(election)</span>
+<span class="pre">2</span>
+<span class="pre">`</span></code></p>
+<p>Candidate 2 is the Condorcet winner, and wins under Black’s method.</p>
+<p>See [/examples](/examples) folder for more on what it can do, such as reproductions of previous research.</p>
+<p>## Submodules and chained functions</p>
+<p>Originally, the functions in submodules were meant to be chained together in a simple flow:</p>
+<ol class="arabic simple">
+<li><p>A function from <cite>elsim.elections</cite> takes parameters as input (number of candidates, number of voters, dispersion in spatial model, etc.) and produces an array of utilities (each voter’s appraisal of each candidate).</p></li>
+<li><p>Then a function from <cite>elsim.strategies</cite> converts each voter’s utilities into a ballot.</p></li>
+<li><p>Then a function from <cite>elsim.methods</cite> counts the collection of ballots and chooses a winner.</p></li>
+</ol>
+<p><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>mermaid
+flowchart LR</p>
+<blockquote>
+<div><p>Parameters – Election –&gt; Utilities
+Utilities – Strategy –&gt; Ballots
+Ballots – Method –&gt; Winner</p>
+</div></blockquote>
+<p><a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a></p>
+<p>However, while implementing many different types of simulations, it has become more complicated.  Some functions produce intermediate results, while others skip over multiple steps.  I’m no longer sure the best way to organize these functions into submodules.  Here is a diagram showing the flow of every function currently in the submodules:</p>
+<p><a href="#id17"><span class="problematic" id="id18">``</span></a><a href="#id19"><span class="problematic" id="id20">`</span></a>mermaid
+%%{ init: { ‘flowchart’: { ‘curve’: ‘monotoneX’ } } }%%
+flowchart LR</p>
+<blockquote>
+<div><p>%% elections.py
+Parameters – &lt;code&gt;normal_electorate&lt;/code&gt; –&gt; Positions[Spatial positions]
+Positions – &lt;code&gt;normed_dist_utilities&lt;/code&gt; –&gt; Utilities
+Parameters – &lt;code&gt;random_utilities&lt;/code&gt; –&gt; Utilities
+Parameters – &lt;code&gt;impartial_culture&lt;/code&gt; –&gt; ranked_ballots</p>
+<p>%% strategies.py
+Utilities – &lt;code&gt;approval_optimal&lt;/code&gt; –&gt; approval_ballots
+Utilities – &lt;code&gt;vote_for_k&lt;/code&gt; –&gt; approval_ballots
+Utilities – &lt;code&gt;honest_normed_scores&lt;/code&gt; –&gt; score_ballots</p>
+<blockquote>
+<div><p>Utilities – &lt;code&gt;honest_rankings&lt;/code&gt; –&gt; ranked_ballots</p>
+<dl class="simple">
+<dt>subgraph Ballots</dt><dd><p>approval_ballots[Approval ballots]
+score_ballots[Score ballots]
+ranked_ballots[Ranked ballots]</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+<p>%% approval.py
+approval_ballots – &lt;code&gt;approval&lt;/code&gt; –&gt; Winner
+score_ballots – &lt;code&gt;combined_approval&lt;/code&gt; –&gt; Winner</p>
+<p>%% condorcet.py (moved out of order so it renders with fewer line collisions)
+ranked_ballots – &lt;code&gt;ranked_election_to_matrix&lt;/code&gt; –&gt; Matrix
+Matrix – &lt;code&gt;condorcet_from_matrix&lt;/code&gt; –&gt; Winner
+ranked_ballots – &lt;code&gt;condorcet&lt;/code&gt; –&gt; Winner</p>
+<p>%% black.py
+ranked_ballots – &lt;code&gt;black&lt;/code&gt; –&gt; Winner</p>
+<p>%% borda.py
+ranked_ballots – &lt;code&gt;borda&lt;/code&gt; –&gt; Winner</p>
+<p>%% coombs.py
+ranked_ballots – &lt;code&gt;coombs&lt;/code&gt; –&gt; Winner</p>
+<p>%% fptp.py
+ranked_ballots – &lt;code&gt;fptp&lt;/code&gt; –&gt; Winner</p>
+<p>%% irv.py
+ranked_ballots – &lt;code&gt;irv&lt;/code&gt; –&gt; Winner</p>
+<p>%% runoff.py
+ranked_ballots – &lt;code&gt;runoff&lt;/code&gt; –&gt; Winner</p>
+<p>%% score.py
+score_ballots – &lt;code&gt;score&lt;/code&gt; –&gt; Winner</p>
+<p>%% star.py
+score_ballots – &lt;code&gt;star&lt;/code&gt; –&gt; Winner
+score_ballots – &lt;code&gt;matrix_from_scores&lt;/code&gt; –&gt; Matrix</p>
+<p>%% utility_winner.py
+Utilities – &lt;code&gt;utility_winner&lt;/code&gt; –&gt; Winner</p>
+</div></blockquote>
+<p><a href="#id21"><span class="problematic" id="id22">``</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a></p>
+<p>## Tests
+Tests can be run by installing the testing dependencies and then running <cite>pytest</cite> in the project folder.</p>
+<p>## Bugs / Requests
+File issues on the [GitHub issue tracker](<a class="reference external" href="https://github.com/endolith/elsim/issues">https://github.com/endolith/elsim/issues</a>).</p>
+<p>## Similar projects</p>
+<p>### Election simulators</p>
+<ul class="simple">
+<li><p>1D:
+- [Election Methods in Pictures (“Voteline”)](<a class="reference external" href="http://zesty.ca/voting/voteline/">http://zesty.ca/voting/voteline/</a>) by Ka-Ping Yee - 5 candidates, normal/uniform/bimodal distribution
+- [Comparing Voting Systems for a Normal Distribution of Voters](<a class="reference external" href="https://demonstrations.wolfram.com/ComparingVotingSystemsForANormalDistributionOfVoters/">https://demonstrations.wolfram.com/ComparingVotingSystemsForANormalDistributionOfVoters/</a>) - Wolfram demonstration clone</p></li>
+<li><p>2D:
+- [Voting Simulation Visualizations](<a class="reference external" href="http://zesty.ca/voting/sim/">http://zesty.ca/voting/sim/</a>) by Ka-Ping Yee - “Yee diagrams”
+- [Elections On The Plane](<a class="reference external" href="http://bolson.org/voting/sim_one_seat/www/spacegraph.html">http://bolson.org/voting/sim_one_seat/www/spacegraph.html</a>) - Yee diagrams by Brian Olson
+- [Yee Pictures illustrating voting method behavior](<a class="reference external" href="http://rangevoting.org/IEVS/Pictures.html">http://rangevoting.org/IEVS/Pictures.html</a>) by Warren D. Smith</p></li>
+<li><p>ND:
+- [Voter Satisfaction Efficiency](<a class="reference external" href="https://github.com/electology/vse-sim">https://github.com/electology/vse-sim</a>) by Jameson Quinn</p></li>
+</ul>
+<p>### Voting system implementations</p>
 </section>
 <section id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading"></a></h1>

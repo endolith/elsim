@@ -10,6 +10,10 @@ Welcome to elsim's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+.. include:: ../README.md
+   :start-line: 1
+   :end-line: -1
+
 
 
 Indices and tables
