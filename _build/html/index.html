@@ -16,6 +16,8 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
@@ -199,14 +201,14 @@
 <li><p>Then a function from <code class="docutils literal notranslate"><span class="pre">elsim.strategies</span></code> converts each voter’s utilities into a ballot.</p></li>
 <li><p>Then a function from <code class="docutils literal notranslate"><span class="pre">elsim.methods</span></code> counts the collection of ballots and chooses a winner.</p></li>
 </ol>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>flowchart LR
+<div class="mermaid">
+            flowchart LR
     Parameters -- Election --&gt; Utilities
     Utilities -- Strategy --&gt; Ballots
     Ballots -- Method --&gt; Winner
-</pre></div>
-</div>
-<p>However, while implementing many different types of simulations, it has become more complicated.  Some functions produce intermediate results, while others skip over multiple steps.  I’m no longer sure the best way to organize these functions into submodules.  Here is a diagram showing the flow of every function currently in the submodules:</p>
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>%%{ init: { &#39;flowchart&#39;: { &#39;curve&#39;: &#39;monotoneX&#39; } } }%%
+        </div><p>However, while implementing many different types of simulations, it has become more complicated.  Some functions produce intermediate results, while others skip over multiple steps.  I’m no longer sure the best way to organize these functions into submodules.  Here is a diagram showing the flow of every function currently in the submodules:</p>
+<div class="mermaid">
+            %%{ init: { 'flowchart': { 'curve': 'monotoneX' } } }%%
 flowchart LR
     %% elections.py
     Parameters -- &lt;code&gt;normal_electorate&lt;/code&gt; --&gt; Positions[Spatial positions]
@@ -262,9 +264,7 @@ flowchart LR
 
     %% utility_winner.py
     Utilities -- &lt;code&gt;utility_winner&lt;/code&gt; --&gt; Winner
-</pre></div>
-</div>
-</section>
+        </div></section>
 <section id="tests">
 <h2>Tests<a class="headerlink" href="#tests" title="Permalink to this heading"></a></h2>
 <p>Tests can be run by installing the testing dependencies and then running <code class="docutils literal notranslate"><span class="pre">pytest</span></code> in the project folder.</p>
