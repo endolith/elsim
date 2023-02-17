@@ -1,5 +1,5 @@
 elsim.methods module
-======================
+====================
 
 .. automodule:: elsim.methods
    :members:

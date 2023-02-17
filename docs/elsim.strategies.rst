@@ -1,5 +1,5 @@
 elsim.strategies module
-======================
+=======================
 
 .. automodule:: elsim.strategies
    :members:
