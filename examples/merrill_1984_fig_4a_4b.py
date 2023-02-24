@@ -88,9 +88,9 @@ merrill_fig_4b = {
 for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
                               ('4.b', 0.5, 0, merrill_fig_4b)):
 
-    count = {key: Counter() for key in (ranked_methods.keys() |
-                                        rated_methods.keys() |
-                                        {'SU max', 'RW'})}
+    utility_sums = {key: Counter() for key in (ranked_methods.keys() |
+                                               rated_methods.keys() |
+                                               {'SU max', 'RW'})}
     start_time = time.monotonic()
 
     for iteration in range(n_elections):
@@ -102,15 +102,15 @@ for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
 
             # Pick a random winner and accumulate utilities
             RW = randint(0, n_cands - 1)
-            count['RW'][n_cands] += utilities.sum(axis=0)[RW]
+            utility_sums['RW'][n_cands] += utilities.sum(axis=0)[RW]
 
             for name, method in rated_methods.items():
                 winner = method(utilities, tiebreaker='random')
-                count[name][n_cands] += utilities.sum(axis=0)[winner]
+                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
 
             for name, method in ranked_methods.items():
                 winner = method(rankings, tiebreaker='random')
-                count[name][n_cands] += utilities.sum(axis=0)[winner]
+                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
 
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
@@ -134,11 +134,11 @@ for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
     table = []
 
     # Calculate Social Utility Efficiency from summed utilities
-    x_uw, y_uw = zip(*sorted(count['SU max'].items()))
-    x_rw, y_rw = zip(*sorted(count['RW'].items()))
+    x_uw, y_uw = zip(*sorted(utility_sums['SU max'].items()))
+    x_rw, y_rw = zip(*sorted(utility_sums['RW'].items()))
     for method in ('Black', 'Coombs', 'Borda', 'Approval', 'Hare', 'Runoff',
                    'Plurality'):
-        x, y = zip(*sorted(count[method].items()))
+        x, y = zip(*sorted(utility_sums[method].items()))
         SUE = (np.array(y) - y_rw) / (np.array(y_uw) - y_rw)
         plt.plot(x, SUE*100, '-', label=method)
         table.append([method, *SUE*100])

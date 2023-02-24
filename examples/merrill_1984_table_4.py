@@ -68,7 +68,7 @@ results = []
 for disp, corr, D in conditions:
     print(disp, corr, D)
 
-    count = Counter()
+    utility_sums = Counter()
 
     for iteration in range(n_elections):
         v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
@@ -89,17 +89,17 @@ for disp, corr, D in conditions:
 
         # Pick a random winner and accumulate utilities
         RW = randint(0, n_cands - 1)
-        count['RW'] += utilities.sum(axis=0)[RW]
+        utility_sums['RW'] += utilities.sum(axis=0)[RW]
 
         for name, method in rated_methods.items():
             winner = method(utilities, tiebreaker='random')
-            count[name] += utilities.sum(axis=0)[winner]
+            utility_sums[name] += utilities.sum(axis=0)[winner]
 
         for name, method in ranked_methods.items():
             winner = method(rankings, tiebreaker='random')
-            count[name] += utilities.sum(axis=0)[winner]
+            utility_sums[name] += utilities.sum(axis=0)[winner]
 
-    results.append(count)
+    results.append(utility_sums)
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')

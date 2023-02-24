@@ -40,8 +40,8 @@ ranked_methods = {'Standard': fptp, 'Borda': borda}
 rated_methods = {'Vote-for-half': lambda utilities, tiebreaker:
                  approval(vote_for_k(utilities, 'half'), tiebreaker)}
 
-count = {key: Counter() for key in (ranked_methods.keys() |
-                                    rated_methods.keys() | {'UW'})}
+utility_sums = {key: Counter() for key in (ranked_methods.keys() |
+                                           rated_methods.keys() | {'UW'})}
 
 start_time = time.monotonic()
 
@@ -51,16 +51,16 @@ for iteration in range(n_elections):
 
         # Find the social utility winner and accumulate utilities
         UW = utility_winner(utilities)
-        count['UW'][n_cands] += utilities.sum(axis=0)[UW]
+        utility_sums['UW'][n_cands] += utilities.sum(axis=0)[UW]
 
         for name, method in rated_methods.items():
             winner = method(utilities, tiebreaker='random')
-            count[name][n_cands] += utilities.sum(axis=0)[winner]
+            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
 
         rankings = honest_rankings(utilities)
         for name, method in ranked_methods.items():
             winner = method(rankings, tiebreaker='random')
-            count[name][n_cands] += utilities.sum(axis=0)[winner]
+            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
@@ -78,10 +78,10 @@ plt.gca().set_prop_cycle(None)
 table = {}
 
 # Calculate Social Utility Efficiency from summed utilities
-x_uw, y_uw = zip(*sorted(count['UW'].items()))
+x_uw, y_uw = zip(*sorted(utility_sums['UW'].items()))
 average_utility = n_voters * n_elections / 2
 for method in ('Standard', 'Vote-for-half', 'Borda'):
-    x, y = zip(*sorted(count[method].items()))
+    x, y = zip(*sorted(utility_sums[method].items()))
     SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
     plt.plot(x, SUE*100, '-', label=method)
     table.update({method: SUE*100})

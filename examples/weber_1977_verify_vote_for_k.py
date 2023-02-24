@@ -71,36 +71,36 @@ rated_methods = {'Vote-for-1': lambda utilities, tiebreaker:
                  approval(vote_for_k(utilities, -1), tiebreaker),
                  }
 
-count = {key: Counter() for key in (ranked_methods.keys() |
-                                    rated_methods.keys() | {'UW'})}
+utility_sums = {key: Counter() for key in (
+    ranked_methods.keys() | rated_methods.keys() | {'UW'})}
 
 print(f'Doing {n_elections:,} elections, {n_voters:,} voters, '
       f'{n_cands_list} candidates')
 
 
 def func():
-    count = defaultdict(dict)
+    utility_sums = defaultdict(dict)
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
 
         # Find the social utility winner and accumulate utilities
         UW = utility_winner(utilities)
-        count['UW'][n_cands] = utilities.sum(axis=0)[UW]
+        utility_sums['UW'][n_cands] = utilities.sum(axis=0)[UW]
 
         for name, method in rated_methods.items():
             try:
                 winner = method(utilities, tiebreaker='random')
-                count[name][n_cands] = utilities.sum(axis=0)[winner]
+                utility_sums[name][n_cands] = utilities.sum(axis=0)[winner]
             except ValueError:
                 # Skip junk cases like vote-for-2 with 2 candidates
-                count[name][n_cands] = np.nan
+                utility_sums[name][n_cands] = np.nan
 
         rankings = honest_rankings(utilities)
         for name, method in ranked_methods.items():
             winner = method(rankings, tiebreaker='random')
-            count[name][n_cands] = utilities.sum(axis=0)[winner]
+            utility_sums[name][n_cands] = utilities.sum(axis=0)[winner]
 
-    return count
+    return utility_sums
 
 
 p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n_elections))
@@ -108,7 +108,7 @@ p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n_elections))
 for result in p:
     for method, d in result.items():
         for n_cands, value in d.items():
-            count[method][n_cands] += value
+            utility_sums[method][n_cands] += value
 
 plt.figure(f'Effectiveness, {n_voters} voters, {n_elections} elections')
 plt.title('The Effectiveness of Several Voting Systems')
@@ -129,11 +129,11 @@ plt.gca().set_prop_cycle(None)
 table = {}
 
 # Calculate Social Utility Efficiency from summed utilities
-x_uw, y_uw = zip(*sorted(count['UW'].items()))
+x_uw, y_uw = zip(*sorted(utility_sums['UW'].items()))
 average_utility = n_voters * n_elections / 2
 for method in ('Standard', 'Vote-for-1', 'Vote-for-2', 'Vote-for-3',
                'Vote-for-4', 'Vote-for-half', 'Vote-for-(n-1)'):
-    x, y = zip(*sorted(count[method].items()))
+    x, y = zip(*sorted(utility_sums[method].items()))
     SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
     plt.plot(x, SUE*100, '-', label=method)
     table.update({method.split('-')[-1]: SUE*100})

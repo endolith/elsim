@@ -42,8 +42,8 @@ ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
 rated_methods = {'Approval': lambda utilities, tiebreaker:
                  approval(approval_optimal(utilities), tiebreaker)}
 
-count = {key: Counter() for key in (ranked_methods.keys() |
-                                    rated_methods.keys() | {'UW'})}
+utility_sums = {key: Counter() for key in (ranked_methods.keys() |
+                                           rated_methods.keys() | {'UW'})}
 
 start_time = time.monotonic()
 
@@ -62,16 +62,16 @@ for iteration in range(n_elections):
 
         # Find the social utility winner and accumulate utilities
         UW = utility_winner(utilities)
-        count['UW'][n_cands] += utilities.sum(axis=0)[UW]
+        utility_sums['UW'][n_cands] += utilities.sum(axis=0)[UW]
 
         for name, method in rated_methods.items():
             winner = method(utilities, tiebreaker='random')
-            count[name][n_cands] += utilities.sum(axis=0)[winner]
+            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
 
         rankings = honest_rankings(utilities)
         for name, method in ranked_methods.items():
             winner = method(rankings, tiebreaker='random')
-            count[name][n_cands] += utilities.sum(axis=0)[winner]
+            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
 
 
 elapsed_time = time.monotonic() - start_time
@@ -101,10 +101,10 @@ plt.gca().set_prop_cycle(None)
 table = []
 
 # Calculate Social Utility Efficiency from summed utilities
-x_uw, y_uw = zip(*sorted(count['UW'].items()))
+x_uw, y_uw = zip(*sorted(utility_sums['UW'].items()))
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
-    x, y = zip(*sorted(count[method].items()))
+    x, y = zip(*sorted(utility_sums[method].items()))
     SUE = ((np.array(y) - n_voters * n_elections / 2) /
            (np.array(y_uw) - n_voters * n_elections / 2))
     plt.plot(x, SUE*100, '-', label=method)

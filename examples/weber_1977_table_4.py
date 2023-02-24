@@ -41,8 +41,8 @@ ranked_methods = {'Standard': fptp, 'Borda': borda}
 rated_methods = {'Approval': lambda utilities, tiebreaker:
                  approval(approval_optimal(utilities), tiebreaker)}
 
-count = {key: Counter() for key in (ranked_methods.keys() |
-                                    rated_methods.keys())}
+utility_sums = {key: Counter() for key in (ranked_methods.keys() |
+                                           rated_methods.keys())}
 
 start_time = time.monotonic()
 
@@ -52,12 +52,12 @@ for iteration in range(n_elections):
 
         for name, method in rated_methods.items():
             winner = method(utilities, tiebreaker='random')
-            count[name][n_voters] += utilities.sum(axis=0)[winner]
+            utility_sums[name][n_voters] += utilities.sum(axis=0)[winner]
 
         rankings = honest_rankings(utilities)
         for name, method in ranked_methods.items():
             winner = method(rankings, tiebreaker='random')
-            count[name][n_voters] += utilities.sum(axis=0)[winner]
+            utility_sums[name][n_voters] += utilities.sum(axis=0)[winner]
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
@@ -66,7 +66,7 @@ table = {}
 
 # Calculate the expected utilities over all elections
 for method in ('Standard', 'Borda', 'Approval'):
-    x, y = zip(*sorted(count[method].items()))
+    x, y = zip(*sorted(utility_sums[method].items()))
     table.update({method: np.array(y) / n_elections})
 
 print(tabulate(table, 'keys', showindex=n_voters_list,
