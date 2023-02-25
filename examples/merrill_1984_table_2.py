@@ -69,7 +69,7 @@ results = []
 for disp, corr, D in conditions:
     print(disp, corr, D)
 
-    count = Counter()
+    condorcet_winner_count = Counter()
 
     for iteration in range(n_elections):
         v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
@@ -91,17 +91,17 @@ for disp, corr, D in conditions:
         # If there is a Condorcet winner, analyze election, otherwise skip it
         CW = condorcet(rankings)
         if CW is not None:
-            count['CW'] += 1
+            condorcet_winner_count['CW'] += 1
 
             for name, method in ranked_methods.items():
                 if method(rankings, tiebreaker='random') == CW:
-                    count[name] += 1
+                    condorcet_winner_count[name] += 1
 
             for name, method in rated_methods.items():
                 if method(utilities, tiebreaker='random') == CW:
-                    count[name] += 1
+                    condorcet_winner_count[name] += 1
 
-    results.append(count)
+    results.append(condorcet_winner_count)
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')

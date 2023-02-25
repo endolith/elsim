@@ -88,9 +88,8 @@ merrill_fig_2d = {
 for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
                               ('2.d', 0.5, 0, merrill_fig_2d)):
 
-    count = {key: Counter() for key in (ranked_methods.keys() |
-                                        rated_methods.keys() |
-                                        {'CW'})}
+    condorcet_winner_count = {key: Counter() for key in (
+        ranked_methods.keys() | rated_methods.keys() | {'CW'})}
     start_time = time.monotonic()
 
     for iteration in range(n_elections):
@@ -104,15 +103,15 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
             # it
             CW = condorcet(rankings)
             if CW is not None:
-                count['CW'][n_cands] += 1
+                condorcet_winner_count['CW'][n_cands] += 1
 
                 for name, method in ranked_methods.items():
                     if method(rankings, tiebreaker='random') == CW:
-                        count[name][n_cands] += 1
+                        condorcet_winner_count[name][n_cands] += 1
 
                 for name, method in rated_methods.items():
                     if method(utilities, tiebreaker='random') == CW:
-                        count[name][n_cands] += 1
+                        condorcet_winner_count[name][n_cands] += 1
 
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
@@ -136,10 +135,10 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
     table = []
 
     # Of those elections with CW, likelihood that method chooses CW
-    x_cw, y_cw = zip(*sorted(count['CW'].items()))
+    x_cw, y_cw = zip(*sorted(condorcet_winner_count['CW'].items()))
     for method in ('Black', 'Coombs', 'Borda', 'Approval', 'Hare', 'Runoff',
                    'Plurality'):
-        x, y = zip(*sorted(count[method].items()))
+        x, y = zip(*sorted(condorcet_winner_count[method].items()))
         CE = np.array(y)/y_cw
         plt.plot(x, CE*100, '-', label=method)
         table.append([method, *CE*100])

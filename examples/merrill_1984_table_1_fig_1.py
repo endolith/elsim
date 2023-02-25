@@ -45,8 +45,8 @@ rated_methods = {'SU max': utility_winner,
                  'Approval': lambda utilities, tiebreaker:
                      approval(approval_optimal(utilities), tiebreaker)}
 
-count = {key: Counter() for key in (ranked_methods.keys() |
-                                    rated_methods.keys() | {'CW'})}
+condorcet_winner_count = {key: Counter() for key in (
+    ranked_methods.keys() | rated_methods.keys() | {'CW'})}
 
 start_time = time.monotonic()
 
@@ -69,15 +69,15 @@ for iteration in range(n_elections):
         # If there is a Condorcet winner, analyze election, otherwise skip it
         CW = condorcet(rankings)
         if CW is not None:
-            count['CW'][n_cands] += 1
+            condorcet_winner_count['CW'][n_cands] += 1
 
             for name, method in ranked_methods.items():
                 if method(rankings, tiebreaker='random') == CW:
-                    count[name][n_cands] += 1
+                    condorcet_winner_count[name][n_cands] += 1
 
             for name, method in rated_methods.items():
                 if method(utilities, tiebreaker='random') == CW:
-                    count[name][n_cands] += 1
+                    condorcet_winner_count[name][n_cands] += 1
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
@@ -108,16 +108,16 @@ plt.gca().set_prop_cycle(None)
 table = []
 
 # Of those elections with CW, likelihood that method chooses CW
-x_cw, y_cw = zip(*sorted(count['CW'].items()))
+x_cw, y_cw = zip(*sorted(condorcet_winner_count['CW'].items()))
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
-    x, y = zip(*sorted(count[method].items()))
+    x, y = zip(*sorted(condorcet_winner_count[method].items()))
     CE = np.array(y)/y_cw
     plt.plot(x, CE*100, '-', label=method)
     table.append([method, *np.array(y)/y_cw*100])
 
 # Likelihood that social utility maximizer is Condorcet Winner
-x, y = zip(*sorted(count['SU max'].items()))
+x, y = zip(*sorted(condorcet_winner_count['SU max'].items()))
 table.append(['SU max', *np.array(y)/y_cw*100])
 
 # Likelihood of Condorcet Winner (normalized by n elections)
