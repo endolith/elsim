@@ -10,7 +10,7 @@ S. Merrill III, "A Comparison of Efficiency of Multicandidate
 Electoral Systems", American Journal of Political Science, vol. 28,
 no. 1, pp. 23-48, 1984.  :doi:`10.2307/2110786`
 
-Results with 100_000 iterations:
+Results with 100_000 elections:
 
 4.a
 
@@ -56,7 +56,7 @@ from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import (honest_rankings, approval_optimal,
                               honest_normed_scores)
 
-n = 5_000  # Roughly 30 seconds each
+n_elections = 5_000  # Roughly 30 seconds each
 n_voters = 201
 n_cands_list = (2, 3, 4, 5, 6, 7)
 corr = 0.5
@@ -84,7 +84,7 @@ for fig, disp, ymin in (('4.a', 1.0, 55),
                                         {'SU max', 'RW'})}
     start_time = time.monotonic()
 
-    for iteration in range(n):
+    for iteration in range(n_elections):
         for n_cands in n_cands_list:
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp)
@@ -107,7 +107,7 @@ for fig, disp, ymin in (('4.a', 1.0, 55),
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
           '\n')
 
-    plt.figure(f'Figure {fig}. {n_voters} voters, {n} iterations',
+    plt.figure(f'Figure {fig}. {n_voters} voters, {n_elections} elections',
                figsize=(8, 6.5))
     plt.title(f'Figure {fig}: Social Utility Efficiency under Spatial-Model '
               f'Assumptions [Disp: {disp}]')

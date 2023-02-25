@@ -5,7 +5,7 @@ Weber, Robert J. (1978). "Comparison of Public Choice Systems".
 Cowles Foundation Discussion Papers. Cowles Foundation for Research in
 Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 
-50k iterations required for smooth lines.  Typical results with 1k voters:
+50k elections required for smooth lines.  Typical results with 1k voters:
 
 |    |    1 |     2 |     3 |     4 |   half |
 |---:|-----:|------:|------:|------:|-------:|
@@ -26,7 +26,7 @@ Increasing the number of voters to 100_000 improves the accuracy so that
 it matches Weber's results (which used an infinite number of voters), but this
 takes a very long time (hours) to simulate.
 
-Typical results with 100k voters, 100k iterations:
+Typical results with 100k voters, 100k elections:
 
 |    |    1 |     2 |     3 |     4 |   half |
 |---:|-----:|------:|------:|------:|-------:|
@@ -51,7 +51,7 @@ from elsim.strategies import honest_rankings, vote_for_k
 from weber_1977_expressions import (eff_standard, eff_vote_for_k,
                                     eff_vote_for_half)
 
-n = 10_000  # Roughly 60 seconds
+n_elections = 10_000  # Roughly 60 seconds
 n_voters = 1_000
 n_cands_list = np.arange(2, 11)
 
@@ -74,7 +74,7 @@ rated_methods = {'Vote-for-1': lambda utilities, tiebreaker:
 count = {key: Counter() for key in (ranked_methods.keys() |
                                     rated_methods.keys() | {'UW'})}
 
-print(f'Doing {n:,} iterations, {n_voters:,} voters, '
+print(f'Doing {n_elections:,} elections, {n_voters:,} voters, '
       f'{n_cands_list} candidates')
 
 
@@ -103,14 +103,14 @@ def func():
     return count
 
 
-p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n))
+p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n_elections))
 
 for result in p:
     for method, d in result.items():
         for n_cands, value in d.items():
             count[method][n_cands] += value
 
-plt.figure(f'Effectiveness, {n_voters} voters, {n} iterations')
+plt.figure(f'Effectiveness, {n_voters} voters, {n_elections} elections')
 plt.title('The Effectiveness of Several Voting Systems')
 for name, method in (('Standard', eff_standard),
                      ('Vote-for-1', lambda m: eff_vote_for_k(m, 1)),
@@ -130,7 +130,7 @@ table = {}
 
 # Calculate Social Utility Efficiency from summed utilities
 x_uw, y_uw = zip(*sorted(count['UW'].items()))
-average_utility = n_voters * n / 2
+average_utility = n_voters * n_elections / 2
 for method in ('Standard', 'Vote-for-1', 'Vote-for-2', 'Vote-for-3',
                'Vote-for-4', 'Vote-for-half', 'Vote-for-(n-1)'):
     x, y = zip(*sorted(count[method].items()))

@@ -40,7 +40,7 @@ from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings, approval_optimal
 
-n = 10_000  # Roughly 60 seconds
+n_elections = 10_000  # Roughly 60 seconds
 n_voters = 201
 n_cands = 5
 
@@ -71,7 +71,7 @@ for disp, corr, D in conditions:
 
     count = Counter()
 
-    for iteration in range(n):
+    for iteration in range(n_elections):
         v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                  disp=disp)
 
@@ -118,7 +118,7 @@ for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
     y = np.array([c[method] for c in results])
     table.append([method, *(y/y_cw*100)])
 
-# Likelihood of Condorcet Winner (normalized by n iterations)
-table.append(['CW', *(y_cw/n*100)])
+# Likelihood of Condorcet Winner (normalized by n elections)
+table.append(['CW', *(y_cw / n_elections * 100)])
 
 print(tabulate(table, header, tablefmt="pipe", floatfmt='.1f'))

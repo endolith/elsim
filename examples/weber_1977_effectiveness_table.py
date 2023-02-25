@@ -7,7 +7,7 @@ Weber, Robert J. (1978). "Comparison of Public Choice Systems".
 Cowles Foundation Discussion Papers. Cowles Foundation for Research in
 Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 
-Typical result with n = 100_000:
+Typical result with n_elections = 100_000:
 
 |     |   Standard |   Vote-for-half |   Borda |
 |----:|-----------:|----------------:|--------:|
@@ -31,7 +31,7 @@ from elsim.elections import random_utilities
 from elsim.strategies import honest_rankings, vote_for_k
 from weber_1977_expressions import eff_standard, eff_vote_for_half, eff_borda
 
-n = 2_000  # Roughly 60 seconds
+n_elections = 2_000  # Roughly 60 seconds
 n_voters = 1_000
 n_cands_list = (2, 3, 4, 5, 6, 10, 255)
 
@@ -45,7 +45,7 @@ count = {key: Counter() for key in (ranked_methods.keys() |
 
 start_time = time.monotonic()
 
-for iteration in range(n):
+for iteration in range(n_elections):
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
 
@@ -65,7 +65,7 @@ for iteration in range(n):
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
-plt.figure(f'Effectiveness, {n_voters} voters, {n} iterations')
+plt.figure(f'Effectiveness, {n_voters} voters, {n_elections} elections')
 plt.title('The Effectiveness of Several Voting Systems')
 for name, method in (('Standard', eff_standard),
                      ('Vote-for-half', eff_vote_for_half),
@@ -79,7 +79,7 @@ table = {}
 
 # Calculate Social Utility Efficiency from summed utilities
 x_uw, y_uw = zip(*sorted(count['UW'].items()))
-average_utility = n_voters * n / 2
+average_utility = n_voters * n_elections / 2
 for method in ('Standard', 'Vote-for-half', 'Borda'):
     x, y = zip(*sorted(count[method].items()))
     SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)

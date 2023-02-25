@@ -12,7 +12,7 @@ no. 1, pp. 23-48, 1984.  :doi:`10.2307/2110786`
 
 (Not including random society column)
 
-Typical result with 100_000 simulations:
+Typical result with 100_000 elections:
 
 | Disp      |   1.0 |   1.0 |   1.0 |   1.0 |   0.5 |   0.5 |   0.5 |   0.5 |
 | Corr      |   0.5 |   0.5 |   0.0 |   0.0 |   0.5 |   0.5 |   0.0 |   0.0 |
@@ -39,7 +39,7 @@ from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings, approval_optimal
 
-n = 10_000  # Roughly 60 seconds
+n_elections = 10_000  # Roughly 60 seconds
 n_voters = 201
 n_cands = 5
 
@@ -70,7 +70,7 @@ for disp, corr, D in conditions:
 
     count = Counter()
 
-    for iteration in range(n):
+    for iteration in range(n_elections):
         v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                  disp=disp)
 

@@ -32,7 +32,7 @@ from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
 from elsim.elections import random_utilities
 from elsim.strategies import honest_rankings, approval_optimal
 
-n = 10_000  # Roughly 30 seconds
+n_elections = 10_000  # Roughly 30 seconds
 n_voters = 25
 n_cands_list = (2, 3, 4, 5, 7, 10)
 
@@ -47,7 +47,7 @@ count = {key: Counter() for key in (ranked_methods.keys() |
 
 start_time = time.monotonic()
 
-for iteration in range(n):
+for iteration in range(n_elections):
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
 
@@ -88,7 +88,7 @@ merrill_table_1 = {
     'Black':     {2: 100.0, 3: 93.1, 4: 91.9, 5: 92.0, 7: 93.1, 10: 94.3},
     }
 
-plt.figure(f'Figure 3. {n_voters} voters, {n} iterations')
+plt.figure(f'Figure 3. {n_voters} voters, {n_elections} elections')
 plt.title('Figure 3: Efficiencies for Social Utility for a Random Society')
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
@@ -105,7 +105,8 @@ x_uw, y_uw = zip(*sorted(count['UW'].items()))
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
     x, y = zip(*sorted(count[method].items()))
-    SUE = (np.array(y) - n_voters * n / 2)/(np.array(y_uw) - n_voters * n / 2)
+    SUE = ((np.array(y) - n_voters * n_elections / 2) /
+           (np.array(y_uw) - n_voters * n_elections / 2))
     plt.plot(x, SUE*100, '-', label=method)
     table.append([method, *(SUE*100)])
 

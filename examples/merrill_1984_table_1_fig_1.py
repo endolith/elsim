@@ -34,7 +34,7 @@ from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
 from elsim.elections import random_utilities
 from elsim.strategies import honest_rankings, approval_optimal
 
-n = 10_000  # Roughly 15 seconds
+n_elections = 10_000  # Roughly 15 seconds
 n_voters = 25
 n_cands_list = (2, 3, 4, 5, 7, 10)
 
@@ -50,7 +50,7 @@ count = {key: Counter() for key in (ranked_methods.keys() |
 
 start_time = time.monotonic()
 
-for iteration in range(n):
+for iteration in range(n_elections):
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
 
@@ -95,7 +95,7 @@ merrill_table_1 = {
     'CW':        {2: 100.0, 3:  91.6, 4:  83.4, 5:  75.8, 7:  64.3, 10:  52.5},
     }
 
-plt.figure(f'Figure 1. {n_voters} voters, {n} iterations')
+plt.figure(f'Figure 1. {n_voters} voters, {n_elections} elections')
 plt.title('Figure 1: Condorcet Efficiencies for a Random Society')
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
@@ -120,8 +120,8 @@ for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
 x, y = zip(*sorted(count['SU max'].items()))
 table.append(['SU max', *np.array(y)/y_cw*100])
 
-# Likelihood of Condorcet Winner (normalized by n iterations)
-table.append(['CW', *np.asarray(y_cw)/n*100])
+# Likelihood of Condorcet Winner (normalized by n elections)
+table.append(['CW', *np.asarray(y_cw) / n_elections * 100])
 
 print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
 

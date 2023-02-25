@@ -10,7 +10,7 @@ Weber, Robert J. (1978). "Comparison of Public Choice Systems".
 Cowles Foundation Discussion Papers. Cowles Foundation for Research in
 Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 
-Typical result with n = 1_000_000:
+Typical result with n_elections = 1_000_000:
 
 |    |   Standard |   Borda |   Approval |
 |---:|-----------:|--------:|-----------:|
@@ -33,7 +33,7 @@ from elsim.methods import fptp, borda, approval
 from elsim.elections import random_utilities
 from elsim.strategies import honest_rankings, approval_optimal
 
-n = 30_000  # Roughly 30 seconds
+n_elections = 30_000  # Roughly 30 seconds
 n_voters_list = (2, 3, 4, 5, 10, 15, 20, 25, 30)
 n_cands = 3
 
@@ -46,7 +46,7 @@ count = {key: Counter() for key in (ranked_methods.keys() |
 
 start_time = time.monotonic()
 
-for iteration in range(n):
+for iteration in range(n_elections):
     for n_voters in n_voters_list:
         utilities = random_utilities(n_voters, n_cands)
 
@@ -64,10 +64,10 @@ print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
 table = {}
 
-# Calculate the expected utilities over all iterations
+# Calculate the expected utilities over all elections
 for method in ('Standard', 'Borda', 'Approval'):
     x, y = zip(*sorted(count[method].items()))
-    table.update({method: np.array(y) / n})
+    table.update({method: np.array(y) / n_elections})
 
 print(tabulate(table, 'keys', showindex=n_voters_list,
                tablefmt="pipe", floatfmt='.4f'))
