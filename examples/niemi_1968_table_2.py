@@ -34,27 +34,29 @@ n_voters_list = (3, 5, 7, 9, 11, 13, 15, 17)  # , 19, 21, 23, 25, 27, 29, 59)
 n_cands_list = (3, 4, 5, 6)
 
 # Simulate more than just one election per worker to improve efficiency
-batch_size = 10
+batch_size = 100
 n_batches = n_elections // batch_size
 assert n_batches * batch_size == n_elections
 
 
-def simulate_batch():
+def simulate_batch(n_voters, n_cands):
     condorcet_paradox_count = Counter()
-    for n_voters in n_voters_list:
-        for n_cands in n_cands_list:
-            # Reuse the same chunk of memory to save time
-            election = np.empty((n_voters, n_cands), dtype=np.uint8)
-            for iteration in range(batch_size):
-                election[:] = impartial_culture(n_voters, n_cands)
-                CW = condorcet(election)
-                if CW is None:
-                    condorcet_paradox_count[n_cands, n_voters] += 1
+    # Reuse the same chunk of memory to save time
+    election = np.empty((n_voters, n_cands), dtype=np.uint8)
+    for iteration in range(batch_size):
+        election[:] = impartial_culture(n_voters, n_cands)
+        CW = condorcet(election)
+        if CW is None:
+            condorcet_paradox_count[n_cands, n_voters] += 1
     return condorcet_paradox_count
 
 
-paradox_counts = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_batch)()
-                                                for i in range(n_batches))
+jobs = []
+for n_voters in n_voters_list:
+    for n_cands in n_cands_list:
+        jobs.extend([delayed(simulate_batch)(n_voters, n_cands)] * n_batches)
+
+paradox_counts = Parallel(n_jobs=-3, verbose=5)(jobs)
 is_CP = sum(paradox_counts, Counter())
 
 nm, P = zip(*sorted(is_CP.items()))

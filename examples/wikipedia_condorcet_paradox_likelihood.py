@@ -47,21 +47,23 @@ n_batches = n_elections // batch_size
 assert n_batches * batch_size == n_elections
 
 
-def simulate_batch():
+def simulate_batch(n_voters):
     condorcet_paradox_count = Counter()
-    for n_voters in WP_table:
-        # Reuse the same chunk of memory to save time
-        election = np.empty((n_voters, n_cands), dtype=np.uint8)
-        for iteration in range(batch_size):
-            election[:] = impartial_culture(n_voters, n_cands)
-            CW = condorcet(election)
-            if CW is None:
-                condorcet_paradox_count[n_voters] += 1
+    # Reuse the same chunk of memory to save time
+    election = np.empty((n_voters, n_cands), dtype=np.uint8)
+    for iteration in range(batch_size):
+        election[:] = impartial_culture(n_voters, n_cands)
+        CW = condorcet(election)
+        if CW is None:
+            condorcet_paradox_count[n_voters] += 1
     return condorcet_paradox_count
 
 
-paradox_counts = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_batch)()
-                                                for i in range(n_batches))
+jobs = []
+for n_voters in WP_table:
+    jobs.extend([delayed(simulate_batch)(n_voters)] * n_batches)
+
+paradox_counts = Parallel(n_jobs=-3, verbose=5)(jobs)
 is_CP = sum(paradox_counts, Counter())
 
 x, y = zip(*WP_table.items())
