@@ -132,3 +132,4 @@ for fig, disp, ymin in (('4.a', 1.0, 55),
     plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
     plt.ylim(85, 100.5)  # or ymin
     plt.xlim(1.8, 7.2)
+    plt.show()

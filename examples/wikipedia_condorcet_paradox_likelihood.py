@@ -76,6 +76,7 @@ plt.plot(x, CP*100, '-', label='Simulation')
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
+plt.show()
 
 table = [WP_table,
          {k: v/n_elections*100 for k, v in condorcet_paradox_counts.items()},

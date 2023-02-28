@@ -92,6 +92,7 @@ plt.plot(x, y, '.', label='Simulation')
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
+plt.show()
 
 table = [{k: v for k, v in niemi_table.items()
           if k in condorcet_paradox_counts},

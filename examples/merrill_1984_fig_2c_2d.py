@@ -152,3 +152,4 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
     plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
     plt.ylim(ymin, 102)
     plt.xlim(1.8, 7.2)
+    plt.show()

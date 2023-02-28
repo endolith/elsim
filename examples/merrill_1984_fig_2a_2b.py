@@ -34,3 +34,4 @@ for disp in (0.5, 1.0):
     plt.legend()
     plt.axis('square')
     plt.axis([-5, 5, -5, 5])
+    plt.show()
