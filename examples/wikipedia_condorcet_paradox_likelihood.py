@@ -63,13 +63,13 @@ jobs = []
 for n_voters in WP_table:
     jobs.extend([delayed(simulate_batch)(n_voters)] * n_batches)
 
-paradox_counts = Parallel(n_jobs=-3, verbose=5)(jobs)
-is_CP = sum(paradox_counts, Counter())
+results = Parallel(n_jobs=-3, verbose=5)(jobs)
+condorcet_paradox_counts = sum(results, Counter())
 
 x, y = zip(*WP_table.items())
 plt.plot(x, y, label='WP')
 
-x, y = zip(*sorted(is_CP.items()))
+x, y = zip(*sorted(condorcet_paradox_counts.items()))
 CP = np.asarray(y) / n_elections  # Likelihood of paradox
 plt.plot(x, CP*100, '-', label='Simulation')
 
@@ -78,7 +78,8 @@ plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
 
 table = [WP_table,
-         {k: v/n_elections*100 for k, v in is_CP.items()},
-         {k: abs(WP_table[k]-v/n_elections*100) for k, v in is_CP.items()}]
+         {k: v/n_elections*100 for k, v in condorcet_paradox_counts.items()},
+         {k: abs(WP_table[k]-v/n_elections*100)
+          for k, v in condorcet_paradox_counts.items()}]
 print(tabulate(table, "keys", showindex=['WP', 'Sim', 'Diff'], tablefmt="pipe",
                floatfmt='.3f'))

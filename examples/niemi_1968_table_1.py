@@ -79,13 +79,13 @@ jobs = []
 for n_cands in n_cands_list:
     jobs.extend([delayed(simulate_batch)(n_cands)] * n_batches)
 
-paradox_counts = Parallel(n_jobs=-3, verbose=5)(jobs)
-is_CP = sum(paradox_counts, Counter())
+results = Parallel(n_jobs=-3, verbose=5)(jobs)
+condorcet_paradox_counts = sum(results, Counter())
 
 x, y = zip(*niemi_table.items())
 plt.plot(x, y, label='Niemi')
 
-x, y = zip(*sorted(is_CP.items()))
+x, y = zip(*sorted(condorcet_paradox_counts.items()))
 y = np.asarray(y) / n_elections  # Percent likelihood of paradox
 plt.plot(x, y, '.', label='Simulation')
 
@@ -93,8 +93,10 @@ plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
 
-table = [{k: v for k, v in niemi_table.items() if k in is_CP},
-         {k: v/n_elections for k, v in is_CP.items()},
-         {k: abs(niemi_table[k]-v/n_elections) for k, v in is_CP.items()}]
+table = [{k: v for k, v in niemi_table.items()
+          if k in condorcet_paradox_counts},
+         {k: v/n_elections for k, v in condorcet_paradox_counts.items()},
+         {k: abs(niemi_table[k]-v/n_elections)
+          for k, v in condorcet_paradox_counts.items()}]
 print(tabulate(table, "keys", showindex=['Niemi', 'Sim', 'Diff'],
                tablefmt="pipe", floatfmt='.3f'))

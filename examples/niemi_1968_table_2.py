@@ -56,15 +56,16 @@ for n_voters in n_voters_list:
     for n_cands in n_cands_list:
         jobs.extend([delayed(simulate_batch)(n_voters, n_cands)] * n_batches)
 
-paradox_counts = Parallel(n_jobs=-3, verbose=5)(jobs)
-is_CP = sum(paradox_counts, Counter())
+results = Parallel(n_jobs=-3, verbose=5)(jobs)
+condorcet_paradox_counts = sum(results, Counter())
 
-nm, P = zip(*sorted(is_CP.items()))
+nm, P = zip(*sorted(condorcet_paradox_counts.items()))
 P = np.asarray(P) / n_elections  # Percent likelihood of paradox
 
 table = []
 for n in n_cands_list:
-    row = [q / n_elections for (x, y), q in sorted(is_CP.items()) if x == n]
+    row = [q / n_elections for (x, y), q in
+           sorted(condorcet_paradox_counts.items()) if x == n]
     table.append(row)
 
 print(tabulate(table, n_voters_list, tablefmt="pipe", showindex=n_cands_list,
