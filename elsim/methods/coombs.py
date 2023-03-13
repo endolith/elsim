@@ -22,9 +22,9 @@ def coombs(election, tiebreaker=None):
 
     If any candidate gets a majority of first-preference votes, they win.
     Otherwise, the candidate(s) with the most number of last-preference votes
-    is eliminated, votes for eliminated candidates are transferred according
-    to the voters' preference rankings, and a series of runoff elections are
-    held between the remainders until a candidate gets a majority.[1]_
+    is eliminated, votes for eliminated candidates are transferred according to
+    the voters' preference rankings, and a series of runoff elections are held
+    between the remainders until a candidate gets a majority.[1]_
 
     Parameters
     ----------
@@ -63,9 +63,9 @@ def coombs(election, tiebreaker=None):
                     ]
 
     In the first round, no candidate gets a majority, so Candidate B (1) is
-    eliminated, for receiving 3 out of 5 last-place votes.  Voter 2 and 3's
-    support of B is transferred to Candidate C (2), causing Candidate C to win,
-    with 3 out of 5 votes:
+    eliminated, with 3 out of 5 last-place votes.  Voter 2 and 3's
+    support of B is transferred to Candidate C (2), causing
+    Candidate C to win, with 3 out of 5 votes:
 
     >>> coombs(election)
     2
@@ -85,7 +85,7 @@ def coombs(election, tiebreaker=None):
         # tolist makes things 2-4x faster
         first_tallies_list = first_tallies.tolist()
 
-        # Did anyone get majority
+        # Did anyone get a majority?
         highest = max(first_tallies_list)
         if highest > n_voters / 2:
             return first_tallies_list.index(highest)

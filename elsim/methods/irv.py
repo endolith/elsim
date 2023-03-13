@@ -20,10 +20,10 @@ def irv(election, tiebreaker=None):
     Find the winner of an election using instant-runoff voting.
 
     If any candidate gets a majority of first-preference votes, they win.
-    Otherwise, the candidate(s) with the least number of votes is eliminated,
-    votes for eliminated candidates are transferred according to the voters'
-    preference rankings, and a series of runoff elections are held between the
-    remainders until a candidate gets a majority.[1]_
+    Otherwise, the candidate(s) with the least number of first-choice votes
+    is eliminated, votes for eliminated candidates are transferred according to
+    the voters' preference rankings, and a series of runoff elections are held
+    between the remainders until a candidate gets a majority.[1]_
 
     Also known as "the alternative vote", "ranked-choice voting", Hare's
     method, or Ware's method.
@@ -71,7 +71,8 @@ def irv(election, tiebreaker=None):
                     ]
 
     In the first round, no candidate gets a majority, so Candidate C (2) is
-    eliminated.  Voter 4's support is transferred to Candidate A (0), causing
+    eliminated, with 1 out of 5 first-place votes.  Voter 4's
+    support of C is transferred to Candidate A (0), causing
     Candidate A to win, with 3 out of 5 votes:
 
     >>> irv(election)
@@ -82,20 +83,22 @@ def irv(election, tiebreaker=None):
     n_cands = election.shape[1]
     eliminated = set()
     tiebreak = _get_tiebreak(tiebreaker)
-    pointer = np.zeros(n_voters, dtype=np.uint8)
-    tallies = np.empty(n_cands, dtype=np.uint)
+    first_pointer = np.zeros(n_voters, dtype=np.uint8)
+    first_tallies = np.empty(n_cands, dtype=np.uint)
     for round_ in range(n_cands):
-        _tally_at_pointer(tallies, election, pointer)
-        tallies_list = tallies.tolist()  # tolist makes things 2-4x faster
+        _tally_at_pointer(first_tallies, election, first_pointer)
 
-        # Did anyone get majority
-        highest = max(tallies_list)
+        # tolist makes things 2-4x faster
+        first_tallies_list = first_tallies.tolist()
+
+        # Did anyone get a majority?
+        highest = max(first_tallies_list)
         if highest > n_voters / 2:
-            return tallies_list.index(highest)
+            return first_tallies_list.index(highest)
 
         # If not, eliminate lowest
-        lowest = min(x for x in tallies_list if x != 0)  # faster?
-        low_scorers = _all_indices(tallies_list, lowest)
+        lowest = min(x for x in first_tallies_list if x != 0)  # faster?
+        low_scorers = _all_indices(first_tallies_list, lowest)
         loser = tiebreak(low_scorers)[0]
 
         # Handle no tiebreaker case
@@ -108,9 +111,9 @@ def irv(election, tiebreaker=None):
         # Make sure candidates who never got votes are also eliminated
         # TODO: In the future when round tallies are also output, this should
         # be its own round
-        eliminated.update(_all_indices(tallies_list, 0))
+        eliminated.update(_all_indices(first_tallies_list, 0))
 
         # Increment pointers until they point at non-eliminated candidates
-        _inc_pointer(election, pointer, eliminated)
+        _inc_pointer(election, first_pointer, eliminated)
 
     raise RuntimeError('Bug in IRV calculation')
