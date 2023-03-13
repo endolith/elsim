@@ -68,12 +68,12 @@ ranked_methods = {'Plurality': fptp, 'Top-2 Runoff': runoff, 'Hare RCV': irv,
 rated_methods = {'SU max': utility_winner,
                  'Approval (opt.)': lambda utilities, tiebreaker:
                      approval(approval_optimal(utilities), tiebreaker),
-                     'Score': lambda utilities, tiebreaker:
-                         score(honest_normed_scores(utilities, 5),
-                               tiebreaker),
-                     'STAR': lambda utilities, tiebreaker:
-                         star(honest_normed_scores(utilities, 5),
-                              tiebreaker),
+                 'Score': lambda utilities, tiebreaker:
+                     score(honest_normed_scores(utilities, 5),
+                           tiebreaker),
+                 'STAR': lambda utilities, tiebreaker:
+                     star(honest_normed_scores(utilities, 5),
+                          tiebreaker),
                  }
 
 for fig, disp, ymin in (('4.a', 1.0, 55),
