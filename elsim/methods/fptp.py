@@ -139,7 +139,7 @@ def sntv(election, n=1, tiebreaker=None):
                     [C, A, B],
                     ]
 
-    Candidate B (1) gets the most first-preference votes, and Candidate A (1)
+    Candidate B (1) gets the most first-preference votes, and Candidate A (0)
     comes in second.  If SNTV is electing two candidates, A and B will win:
 
     >>> sntv(election, 2)
@@ -172,7 +172,8 @@ def sntv(election, n=1, tiebreaker=None):
     # Tally all first preferences (with index of tally = candidate ID)
     tallies = np.bincount(first_preferences)
 
-    if len(np.nonzero(tallies)[0]) <= n:
+    # If fewer candidates receiving votes than desired, return them all
+    if np.count_nonzero(tallies) <= n:
         return set(first_preferences)
 
     # Find the set of candidates who have the highest tally
