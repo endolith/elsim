@@ -181,7 +181,6 @@ def complete_ranked_ballots(min_cands=3, max_cands=25, min_voters=1,
                                            max_size=max_voters))
 
 
-#TODO Test single-mark ballots
 @pytest.mark.parametrize("tiebreaker", ['random', 'order'])
 @given(election=complete_ranked_ballots(min_cands=1, max_cands=25,
                                         min_voters=1, max_voters=100))
@@ -196,6 +195,25 @@ def test_legit_winner(election, tiebreaker):
                                         min_voters=1, max_voters=100))
 def test_legit_winner_none(election):
     n_cands = np.shape(election)[1]
+    winner = fptp(election)
+    assert isinstance(winner, (int, type(None)))
+    assert winner in set(range(n_cands)) | {None}
+
+
+@pytest.mark.parametrize("tiebreaker", ['random', 'order'])
+@given(election=lists(integers(min_value=1, max_value=25),
+                      min_size=1, max_size=100))
+def test_legit_winner_single_mark(election, tiebreaker):
+    n_cands = 26  # TODO: Vary this?
+    winner = fptp(election, tiebreaker)
+    assert isinstance(winner, int)
+    assert winner in range(n_cands)
+
+
+@given(election=lists(integers(min_value=1, max_value=25),
+                      min_size=1, max_size=100))
+def test_legit_winner_none_single_mark(election):
+    n_cands = 26  # TODO: Vary this?
     winner = fptp(election)
     assert isinstance(winner, (int, type(None)))
     assert winner in set(range(n_cands)) | {None}
