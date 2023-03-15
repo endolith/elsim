@@ -123,6 +123,7 @@ flowchart LR
 
     %% fptp.py
     ranked_ballots -- <code>fptp</code> --> Winner
+    ranked_ballots -- <code>sntv</code> --> Winner
 
     %% irv.py
     ranked_ballots -- <code>irv</code> --> Winner

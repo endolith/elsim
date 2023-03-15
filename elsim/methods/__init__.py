@@ -10,7 +10,7 @@ from .borda import borda
 from .condorcet import (condorcet, condorcet_from_matrix,
                         ranked_election_to_matrix)
 from .coombs import coombs
-from .fptp import fptp
+from .fptp import fptp, sntv
 from .irv import irv
 from .runoff import runoff
 from .score import score

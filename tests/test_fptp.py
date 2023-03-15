@@ -181,6 +181,7 @@ def complete_ranked_ballots(min_cands=3, max_cands=25, min_voters=1,
                                            max_size=max_voters))
 
 
+#TODO Test single-mark ballots
 @pytest.mark.parametrize("tiebreaker", ['random', 'order'])
 @given(election=complete_ranked_ballots(min_cands=1, max_cands=25,
                                         min_voters=1, max_voters=100))
