@@ -7,7 +7,7 @@ Welcome to elsim's documentation!
 =================================
 
 .. toctree::
-   :maxdepth: 99
+   :maxdepth: 2
    :caption: Contents:
 
 .. mdinclude:: ../README.md
