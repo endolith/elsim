@@ -58,11 +58,6 @@ html_theme = 'sphinx_rtd_theme'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-# Add any extra paths that contain custom files (such as robots.txt or
-# .htaccess) here, relative to this directory. These files are copied
-# directly to the root of the documentation.
-html_extra_path = ['../examples']
-
 source_suffix = {
     '.rst': 'restructuredtext',
     '.md': 'markdown',
