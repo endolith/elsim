@@ -58,8 +58,26 @@ html_theme = 'sphinx_rtd_theme'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-
 source_suffix = {
     '.rst': 'restructuredtext',
     '.md': 'markdown',
 }
+
+
+# Copy ./examples/results images into documentation so they show up when
+# markdown files with relative paths are transcluded (suggested by ChatGPT-4)
+import os
+import shutil
+
+
+def copy_examples(app, docname):
+    if app.builder.name == 'html':
+        output_dir = os.path.join(app.outdir, 'examples', 'results')
+        source_dir = os.path.join(app.srcdir, '..', 'examples', 'results')
+        if not os.path.exists(output_dir):
+            os.makedirs(os.path.join(app.outdir, 'examples'))
+            shutil.copytree(source_dir, output_dir)
+
+
+def setup(app):
+    app.connect('build-finished', copy_examples)
