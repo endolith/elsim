@@ -63,6 +63,11 @@ source_suffix = {
     '.md': 'markdown',
 }
 
+# Map the markdown files to the m2r2 parser
+source_parsers = {
+    '.md': 'm2r2.parser.M2RParser',
+}
+
 
 # Copy ./examples/results images into documentation so they show up when
 # markdown files with relative paths are transcluded (suggested by ChatGPT-4)
