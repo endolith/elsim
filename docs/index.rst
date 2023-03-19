@@ -10,8 +10,8 @@ Welcome to elsim's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-.. include:: ../README.md
-   :parser: myst_parser.sphinx_
+.. mdinclude:: ../README.md
+
 
 
 Indices and tables
