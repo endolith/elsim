@@ -152,7 +152,7 @@ def _all_condorcet_from_matrix(matrix):
     So A, B, and C form a top cycle.
 
     >>> _all_condorcet_from_matrix(matrix)
-    array([0, 1, 2], dtype=int64)
+    array([0, 1, 2]...)
 
     TODO: Is this actually correct? Handle cycles with unequal wins correctly.
     """

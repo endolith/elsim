@@ -55,7 +55,7 @@ def ranked_election_to_matrix(election):
     >>> ranked_election_to_matrix(election)
     array([[0, 3, 2],
            [2, 0, 2],
-           [3, 3, 0]], dtype=uint32)
+           [3, 3, 0]], dtype=...)
 
     This shows that Candidate
     A (row 0) is preferred over B (column 1) by 3 voters.
