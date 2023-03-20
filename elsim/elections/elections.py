@@ -74,14 +74,14 @@ def random_utilities(n_voters, n_cands, random_state=None):
     --------
     Generate an election with 4 voters and 3 candidates:
 
-    >>> random_utilities(4, 3)
-    array([[0.805, 0.759, 0.969],
-           [0.392, 0.416, 0.898],
-           [0.008, 0.702, 0.107],
-           [0.663, 0.575, 0.174]])
+    >>> random_utilities(4, 3, random_state=1978)  # random_state for doctest
+    array([[0.93206637, 0.98841683, 0.31440049],
+           [0.9124727 , 0.77671832, 0.69045119],
+           [0.29916278, 0.08604875, 0.71802998],
+           [0.32856141, 0.16991956, 0.46150403]])
 
-    Here, Voter 1 prefers Candidate 2, and considers Candidate 0 and 1 roughly
-    similar.
+    Here, Voter 2 prefers Candidate 2, considers Candidate 0 mediocre, and
+    strongly dislikes Candidate 1.
     """
     rng = check_random_state(random_state)
 
@@ -147,13 +147,13 @@ def impartial_culture(n_voters, n_cands, random_state=None):
     --------
     Generate an election with 4 voters and 3 candidates:
 
-    >>> impartial_culture(4, 3)
+    >>> impartial_culture(4, 3, random_state=1968)  # random_state for doctest
     array([[0, 1, 2],
-           [2, 0, 1],
            [2, 1, 0],
+           [0, 2, 1],
            [1, 0, 2]], dtype=uint8)
 
-    Here, Voter 1 prefers Candidate 2, then Candidate 0, then Candidate 1.
+    Here, Voter 2 prefers Candidate 0, then Candidate 2, then Candidate 1.
     """
     # This method is much faster than generating integer sequences and then
     # shuffling them.

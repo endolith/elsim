@@ -30,24 +30,21 @@ def honest_rankings(utilities):
     Generate an election with 4 voters and 3 candidates:
 
     >>> from elsim.elections import random_utilities
-    >>> random_utilities(4, 3)
-    array([[0.805, 0.759, 0.969],
-           [0.392, 0.416, 0.898],
-           [0.008, 0.702, 0.107],
-           [0.663, 0.575, 0.174]])
+    >>> utilities = random_utilities(4, 3, random_state=1984)  # for doctest
+    >>> utilities
+    array([[0.19746307, 0.00903803, 0.78376658],
+           [0.08090381, 0.50265116, 0.55887602],
+           [0.74867306, 0.21977523, 0.12586929],
+           [0.64267652, 0.15365841, 0.77633876]])
 
-    Here, Voter 2 prefers Candidate 1, then 2, then 0, as we can see when
+    Here, Voter 3 prefers Candidate 2, then 0, then 1, as we can see when
     converted to rankings:
 
-    >>> utilities = np.array([[0.805, 0.759, 0.969],
-    ...                       [0.392, 0.416, 0.898],
-    ...                       [0.008, 0.702, 0.107],
-    ...                       [0.663, 0.575, 0.174]])
     >>> honest_rankings(utilities)
     array([[2, 0, 1],
            [2, 1, 0],
-           [1, 2, 0],
-           [0, 1, 2]], dtype=uint8)
+           [0, 1, 2],
+           [2, 0, 1]], dtype=uint8)
     """
     n_cands = utilities.shape[1]
 
