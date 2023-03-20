@@ -51,9 +51,9 @@ def approval(election, tiebreaker=None):
     Voter 2 approves B and C.
 
     >>> election = [[1, 1, 0],
-                    [0, 1, 1],
-                    [0, 1, 1],
-                    ]
+    ...             [0, 1, 1],
+    ...             [0, 1, 1],
+    ...             ]
 
     Candidate B (1) gets the most approvals and wins the election:
 
@@ -116,9 +116,9 @@ def combined_approval(election, tiebreaker=None):
     Voter 2 approves of A and disapproves of B and C.
 
     >>> election = [[+1, +1,  0],
-                    [ 0, +1, -1],
-                    [+1, -1, -1],
-                    ]
+    ...             [ 0, +1, -1],
+    ...             [+1, -1, -1],
+    ...             ]
 
     Candidate A (0) has the highest net approval and wins the election:
 

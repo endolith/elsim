@@ -51,8 +51,8 @@ def score(election, tiebreaker=None):
     Voter 2 hates A, and is lukewarm about B and C.
 
     >>> election = [[5, 5, 0],
-                    [0, 4, 5],
-                    [0, 3, 3]]
+    ...             [0, 4, 5],
+    ...             [0, 3, 3]]
 
     Candidate B (1) gets the highest score and wins the election:
 

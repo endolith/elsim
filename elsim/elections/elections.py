@@ -292,18 +292,18 @@ def normed_dist_utilities(voters, cands):
     Given an election with 3 voters and 3 candidates in a 2D space:
 
     >>> voters = ((1, 1),
-                  (6, 3),
-                  (1, 7))
+    ...           (6, 3),
+    ...           (1, 7))
     >>> cands = ((2, 3),
-                 (5, 1),
-                 (4, 6))
+    ...          (5, 1),
+    ...          (4, 6))
 
     Calculate their normalized utilities:
 
     >>> normed_dist_utilities(voters, cands)
-    array([[1.   , 0.509, 0.   ],
-           [0.   , 1.   , 0.224],
-           [0.763, 0.   , 1.   ]])
+    array([[1.        , 0.50932156, 0.        ],
+           [0.        , 1.        , 0.22361901],
+           [0.76268967, 0.        , 1.        ]])
     """
     # Find ideological distance between each voter and each candidate
     dists = cdist(voters, cands)

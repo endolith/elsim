@@ -56,11 +56,11 @@ def coombs(election, tiebreaker=None):
     Specify the ballots for the 5 voters:
 
     >>> election = [[A, C, B],
-                    [A, C, B],
-                    [B, C, A],
-                    [B, C, A],
-                    [C, A, B],
-                    ]
+    ...             [A, C, B],
+    ...             [B, C, A],
+    ...             [B, C, A],
+    ...             [C, A, B],
+    ...             ]
 
     In the first round, no candidate gets a majority, so Candidate B (1) is
     eliminated, with 3 out of 5 last-place votes.  Voter 2 and 3's

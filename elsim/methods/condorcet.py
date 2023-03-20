@@ -44,11 +44,11 @@ def ranked_election_to_matrix(election):
     Specify the ballots for the 5 voters:
 
     >>> election = [[A, C, B],
-                    [A, C, B],
-                    [B, C, A],
-                    [B, C, A],
-                    [C, A, B],
-                    ]
+    ...             [A, C, B],
+    ...             [B, C, A],
+    ...             [B, C, A],
+    ...             [C, A, B],
+    ...             ]
 
     Convert to a matrix:
 
@@ -120,8 +120,8 @@ def condorcet_from_matrix(matrix):
     Specify the pairwise comparison matrix for the election:
 
     >>> matrix = np.array([[0, 3, 2],
-                           [2, 0, 2],
-                           [3, 3, 0]])
+    ...                    [2, 0, 2],
+    ...                    [3, 3, 0]])
 
     Candidate
     A (row 0) is preferred over B (column 1) by 3 voters.
@@ -198,11 +198,11 @@ def condorcet(election):
     Specify the ballots for the 5 voters:
 
     >>> election = [[A, C, B],
-                    [A, C, B],
-                    [B, C, A],
-                    [B, C, A],
-                    [C, A, B],
-                    ]
+    ...             [A, C, B],
+    ...             [B, C, A],
+    ...             [B, C, A],
+    ...             [C, A, B],
+    ...             ]
 
     Candidate
     A is preferred over B by 3 voters.

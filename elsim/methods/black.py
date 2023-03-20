@@ -43,11 +43,11 @@ def black(election, tiebreaker=None):
     Specify the ballots for the 5 voters:
 
     >>> election = [[A, C, B],
-                    [A, C, B],
-                    [B, C, A],
-                    [B, C, A],
-                    [C, A, B],
-                    ]
+    ...             [A, C, B],
+    ...             [B, C, A],
+    ...             [B, C, A],
+    ...             [C, A, B],
+    ...             ]
 
     A is preferred over B by 3 voters.
     C is preferred over A by 3 voters.

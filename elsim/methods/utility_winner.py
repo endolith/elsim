@@ -54,13 +54,13 @@ def utility_winner(utilities, tiebreaker=None):
     Voter 2 hates A, and is lukewarm about B and C.
 
     >>> utilities = [[1.0, 1.0, 0.0],
-                     [0.1, 0.8, 1.0],
-                     [0.0, 0.5, 0.5],
-                     ]
+    ...              [0.1, 0.8, 1.0],
+    ...              [0.0, 0.5, 0.5],
+    ...              ]
 
     Candidate B (1) has the highest overall support and is the utility winner:
 
-    >>> utility_winner(election)
+    >>> utility_winner(utilities)
     1
     """
     utilities = np.asarray(utilities)

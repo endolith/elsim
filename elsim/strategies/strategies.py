@@ -29,6 +29,7 @@ def honest_rankings(utilities):
     --------
     Generate an election with 4 voters and 3 candidates:
 
+    >>> from elsim.elections import random_utilities
     >>> random_utilities(4, 3)
     array([[0.805, 0.759, 0.969],
            [0.392, 0.416, 0.898],
@@ -39,9 +40,9 @@ def honest_rankings(utilities):
     converted to rankings:
 
     >>> utilities = np.array([[0.805, 0.759, 0.969],
-                              [0.392, 0.416, 0.898],
-                              [0.008, 0.702, 0.107],
-                              [0.663, 0.575, 0.174]])
+    ...                       [0.392, 0.416, 0.898],
+    ...                       [0.008, 0.702, 0.107],
+    ...                       [0.663, 0.575, 0.174]])
     >>> honest_rankings(utilities)
     array([[2, 0, 1],
            [2, 1, 0],
@@ -96,9 +97,9 @@ def honest_normed_scores(utilities, max_score=5):
     Voter 2 hates A, and is lukewarm about B and C.
 
     >>> utilities = [[1.0, 1.0, 0.0],
-                     [0.1, 0.8, 1.0],
-                     [0.0, 0.5, 0.5],
-                     ]
+    ...              [0.1, 0.8, 1.0],
+    ...              [0.0, 0.5, 0.5],
+    ...              ]
 
     Each voter fills out a 0-5 Score ballot with their favorite and least
     favorite scored at the max and min:
@@ -164,9 +165,9 @@ def approval_optimal(utilities):
     Voter 2 hates A, and is lukewarm about B and C.
 
     >>> utilities = [[1.0, 1.0, 0.0],
-                     [0.1, 0.8, 1.0],
-                     [0.0, 0.5, 0.5],
-                     ]
+    ...              [0.1, 0.8, 1.0],
+    ...              [0.0, 0.5, 0.5],
+    ...              ]
 
     Each voter optimally chooses their approval threshold based on their mean
     utility:
@@ -227,9 +228,9 @@ def vote_for_k(utilities, k):
     Voter 2 hates A, and is lukewarm about B and C.
 
     >>> utilities = [[1.0, 1.0, 0.0],
-                     [0.1, 0.8, 1.0],
-                     [0.0, 0.5, 0.5],
-                     ]
+    ...              [0.1, 0.8, 1.0],
+    ...              [0.0, 0.5, 0.5],
+    ...              ]
 
     Each voter approves of their top-two candidates:
     Voter 0 approves A and B.

@@ -64,11 +64,11 @@ def irv(election, tiebreaker=None):
     Specify the ballots for the 5 voters:
 
     >>> election = [[A, C, B],
-                    [A, C, B],
-                    [B, C, A],
-                    [B, C, A],
-                    [C, A, B],
-                    ]
+    ...             [A, C, B],
+    ...             [B, C, A],
+    ...             [B, C, A],
+    ...             [C, A, B],
+    ...             ]
 
     In the first round, no candidate gets a majority, so Candidate C (2) is
     eliminated, with 1 out of 5 first-place votes.  Voter 4's

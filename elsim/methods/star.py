@@ -44,8 +44,8 @@ def matrix_from_scores(election):
     Voter 2 hates A, is lukewarm about B and likes C.
 
     >>> election = [[5, 5, 0],
-                    [0, 4, 5],
-                    [0, 3, 4]]
+    ...             [0, 4, 5],
+    ...             [0, 3, 4]]
 
     So, candidate B is preferred over A by 2 voters, while one is indifferent
     between them.  C is preferred over A by 2 voters, while A is preferred
@@ -141,9 +141,9 @@ def _all_condorcet_from_matrix(matrix):
     Specify the pairwise comparison matrix for the election:
 
     >>> matrix = np.array([[0, 7, 4, 4],
-                           [3, 0, 6, 4],
-                           [6, 4, 0, 4],
-                           [3, 3, 3, 0]])
+    ...                    [3, 0, 6, 4],
+    ...                    [6, 4, 0, 4],
+    ...                    [3, 3, 3, 0]])
 
     Candidate
     A (row 0) is preferred over B (column 1) and D (column 3).
@@ -216,8 +216,8 @@ def star(election, tiebreaker=None):
     Voter 2 hates A, is lukewarm about B and likes C.
 
     >>> election = [[5, 5, 0],
-                    [0, 4, 5],
-                    [0, 3, 4]]
+    ...             [0, 4, 5],
+    ...             [0, 3, 4]]
 
     Candidates B and C (1 and 2) get the highest scores (12 and 9).  Of these,
     C is preferred on more ballots, and wins the election:

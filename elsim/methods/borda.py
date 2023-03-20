@@ -56,11 +56,11 @@ def borda(election, tiebreaker=None):
     Specify the ballots for the 5 voters:
 
     >>> election = [[A, C, B],
-                    [A, C, B],
-                    [B, C, A],
-                    [B, C, A],
-                    [C, A, B],
-                    ]
+    ...             [A, C, B],
+    ...             [B, C, A],
+    ...             [B, C, A],
+    ...             [C, A, B],
+    ...             ]
 
     Candidate A gets a total of 3+3+1+1+2 = 10 points.
     Candidate B gets a total of 1+1+3+3+1 =  9 points.

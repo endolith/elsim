@@ -49,12 +49,12 @@ def fptp(election, tiebreaker=None):
     Specify the ballots for the 5 voters:
 
     >>> election = [[A, C, B],
-                    [A, C, B],
-                    [B, A, C],
-                    [B, C, A],
-                    [B, C, A],
-                    [C, A, B],
-                    ]
+    ...             [A, C, B],
+    ...             [B, A, C],
+    ...             [B, C, A],
+    ...             [B, C, A],
+    ...             [C, A, B],
+    ...             ]
 
     Candidate B (1) gets the most first-preference votes, and is the winner:
 
@@ -132,12 +132,12 @@ def sntv(election, n=1, tiebreaker=None):
     Specify the ballots for the 5 voters:
 
     >>> election = [[A, C, B],
-                    [A, C, B],
-                    [B, A, C],
-                    [B, C, A],
-                    [B, C, A],
-                    [C, A, B],
-                    ]
+    ...             [A, C, B],
+    ...             [B, A, C],
+    ...             [B, C, A],
+    ...             [B, C, A],
+    ...             [C, A, B],
+    ...             ]
 
     Candidate B (1) gets the most first-preference votes, and Candidate A (0)
     comes in second.  If SNTV is electing two candidates, A and B will win:

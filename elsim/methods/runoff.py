@@ -58,11 +58,11 @@ def runoff(election, tiebreaker=None):
     Specify the ballots for the 5 voters:
 
     >>> election = [[A, C, B],
-                    [A, C, B],
-                    [B, C, A],
-                    [B, C, A],
-                    [C, A, B],
-                    ]
+    ...             [A, C, B],
+    ...             [B, C, A],
+    ...             [B, C, A],
+    ...             [C, A, B],
+    ...             ]
 
     In the first round, no candidate gets a majority, so Candidate C (2) is
     eliminated.  A runoff is held between the top two: Candidates A (0) and
