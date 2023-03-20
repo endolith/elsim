@@ -20,6 +20,7 @@
 project = 'elsim'
 copyright = '2023, endolith'
 author = 'endolith'
+html_favicon = 'favicon.png'
 
 # The full version, including alpha/beta/rc tags
 release = '0.1'
