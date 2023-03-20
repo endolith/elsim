@@ -32,10 +32,15 @@ release = '0.1'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.extlinks',
     'numpydoc',
     'm2r2',
     'sphinxcontrib.mermaid',
     ]
+
+extlinks = {
+    'doi': ('https://dx.doi.org/%s', 'doi:'),
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
