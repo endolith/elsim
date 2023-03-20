@@ -39,8 +39,8 @@ extensions = [
     ]
 
 extlinks = {
-    'doi': ('https://dx.doi.org/%s', 'doi:'),
-    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article: '),
+    'doi': ('https://dx.doi.org/%s', 'doi:%s'),
+    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article: %s'),
 }
 
 # Add any paths that contain templates here, relative to this directory.
