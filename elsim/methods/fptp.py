@@ -32,7 +32,7 @@ def fptp(election, tiebreaker=None):
 
     References
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Plurality_voting
+    .. [1] :wikipedia:`Plurality voting`
 
     Examples
     --------
@@ -115,7 +115,7 @@ def sntv(election, n=1, tiebreaker=None):
 
     References
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Single_non-transferable_vote
+    .. [1] :wikipedia:`Single non-transferable vote`
 
     Examples
     --------

@@ -45,8 +45,8 @@ def irv(election, tiebreaker=None):
 
     References
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Instant-runoff_voting
-    .. [2] https://en.wikipedia.org/wiki/Exhaustive_ballot
+    .. [1] :wikipedia:`Instant-runoff voting`
+    .. [2] :wikipedia:`Exhaustive ballot`
 
     Examples
     --------

@@ -36,7 +36,7 @@ def score(election, tiebreaker=None):
 
     References
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Score_voting
+    .. [1] :wikipedia:`Score voting`
 
     Examples
     --------
