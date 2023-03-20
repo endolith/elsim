@@ -23,7 +23,7 @@ def irv(election, tiebreaker=None):
     Otherwise, the candidate(s) with the least number of first-choice votes
     is eliminated, votes for eliminated candidates are transferred according to
     the voters' preference rankings, and a series of runoff elections are held
-    between the remainders until a candidate gets a majority.[1]_
+    between the remainders until a candidate gets a majority. [1]_
 
     Also known as "the alternative vote", "ranked-choice voting", Hare's
     method, or Ware's method.
@@ -31,7 +31,7 @@ def irv(election, tiebreaker=None):
     The votes in each instant-runoff round are calculated from the same set of
     ranked ballots.  If voters are honest and consistent between rounds, then
     this is also equivalent to the exhaustive ballot method, which uses actual
-    separate runoff elections.[2]_
+    separate runoff elections. [2]_
 
     Parameters
     ----------

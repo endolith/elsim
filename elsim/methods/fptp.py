@@ -18,7 +18,7 @@ def fptp(election, tiebreaker=None):
     """
     Find the winner of an election using first-past-the-post / plurality rule.
 
-    The candidate with the largest number of first preferences wins.[1]_
+    The candidate with the largest number of first preferences wins. [1]_
 
     Parameters
     ----------
@@ -101,7 +101,7 @@ def sntv(election, n=1, tiebreaker=None):
     Find winners of an election using the single non-transferable vote rule.
 
     This is a multi-winner generalization of `fptp`.
-    The candidates with the largest number of first preferences win.[1]_
+    The candidates with the largest number of first preferences win. [1]_
 
     Parameters
     ----------

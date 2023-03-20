@@ -32,12 +32,12 @@ def random_utilities(n_voters, n_cands, random_state=None):
     """
     Generate utilities using the impartial culture / random society model.
 
-    The random society[1]_ or random uniform utilities[2]_ model selects
+    The random society [1]_ or random uniform utilities [2]_ model selects
     independent candidate utilities for each voter from a uniform distribution
     in the interval [0, 1).
 
     This model is unrealistic, but is commonly used because it has some
-    worst-case properties and is comparable between researchers.[3]_
+    worst-case properties and is comparable between researchers. [3]_
 
     Parameters
     ----------
@@ -98,7 +98,7 @@ def impartial_culture(n_voters, n_cands, random_state=None):
     set of all possible preference rankings using a uniform distribution.
 
     This model is unrealistic, but is commonly used because it has some
-    worst-case properties and is comparable between researchers.[2]_
+    worst-case properties and is comparable between researchers. [2]_
 
     Parameters
     ----------
@@ -128,7 +128,7 @@ def impartial_culture(n_voters, n_cands, random_state=None):
     Notes
     -----
     This implementation first generates a set of independent, uniformly
-    distributed random utilities, which are then converted into rankings.[1]_
+    distributed random utilities, which are then converted into rankings. [1]_
 
     It can (extremely rarely) generate tied utilities, which are always ranked
     in order from lowest to highest, so there is a very slight bias in favor of

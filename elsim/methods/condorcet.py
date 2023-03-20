@@ -8,7 +8,7 @@ def ranked_election_to_matrix(election):
     Convert a ranked election to a pairwise comparison matrix.
 
     Each entry in the matrix gives the total number of votes obtained by the
-    row candidate over the column candidate.[1]_
+    row candidate over the column candidate. [1]_
 
     Parameters
     ----------
@@ -167,7 +167,7 @@ def condorcet(election):
     Find the winner of a ranked ballot election using a Condorcet method.
 
     This does not contain any "tiebreakers"; those will be implemented by
-    other methods' functions.  It is not a Condorcet completion method.[1]_
+    other methods' functions.  It is not a Condorcet completion method. [1]_
 
     Parameters
     ----------

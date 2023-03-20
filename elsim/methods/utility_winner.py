@@ -19,7 +19,7 @@ def utility_winner(utilities, tiebreaker=None):
     Find the utilitarian winner of an election. (Dummy "election method").
 
     Given a set of utilities for each voter-candidate pair, find the candidate
-    who maximizes summed utility across all voters.[1]_
+    who maximizes summed utility across all voters. [1]_
 
     Parameters
     ----------

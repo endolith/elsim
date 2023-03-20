@@ -20,7 +20,7 @@ def borda(election, tiebreaker=None):
 
     A voter's lowest-ranked candidate receives 1 point, second-lowest receives
     2 points, and so on.  All points are summed, and the highest-scoring
-    candidate wins.[1]_
+    candidate wins. [1]_
 
     Parameters
     ----------

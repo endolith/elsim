@@ -20,10 +20,10 @@ def runoff(election, tiebreaker=None):
 
     If any candidate gets a majority of first-preference votes, they win.
     Otherwise, a runoff election is held between the two highest-voted
-    candidates.[1]_
+    candidates. [1]_
 
     The votes in the first and second rounds are calculated from the same set
-    of ranked ballots, so this is actually the contingent vote method.[2]_  If
+    of ranked ballots, so this is actually the contingent vote method. [2]_  If
     voters are honest and consistent between rounds, then the two methods are
     equivalent.  It can also be considered "top-two IRV", and is closely
     related to the supplementary vote (which restricts rankings to two).

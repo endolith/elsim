@@ -18,7 +18,7 @@ def approval(election, tiebreaker=None):
     """
     Find the winner of an election using approval voting.
 
-    The candidate with the largest number of approvals wins.[1]_
+    The candidate with the largest number of approvals wins. [1]_
 
     Parameters
     ----------
@@ -83,7 +83,7 @@ def combined_approval(election, tiebreaker=None):
     Find the winner of an election using combined approval voting.
 
     Also known as balanced approval or dis&approval voting, the candidate with
-    the largest number of approvals minus disapprovals wins.[1]_
+    the largest number of approvals minus disapprovals wins. [1]_
 
     Parameters
     ----------

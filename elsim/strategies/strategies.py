@@ -129,7 +129,7 @@ def approval_optimal(utilities):
 
     Given a set of utilities for each voter-candidate pair, each voter is
     modeled as maximizing their expected utility, by approving any candidate
-    that exceeds their mean utility over all candidates.[1]_
+    that exceeds their mean utility over all candidates. [1]_
 
     Parameters
     ----------
@@ -188,7 +188,7 @@ def vote_for_k(utilities, k):
     Convert utilities to approval voting ballots, approving top k candidates.
 
     Given a set of utilities for each voter-candidate pair, each voter is
-    modeled as voting for the top `k` candidates.[1]_
+    modeled as voting for the top `k` candidates. [1]_
 
     Parameters
     ----------

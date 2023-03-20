@@ -169,7 +169,7 @@ def star(election, tiebreaker=None):
     """
     Find the winner of an election using STAR voting.
 
-    The more-preferred of the two highest-scoring candidates wins.[1]_
+    The more-preferred of the two highest-scoring candidates wins. [1]_
 
     Parameters
     ----------
@@ -195,11 +195,11 @@ def star(election, tiebreaker=None):
     -----
     If there is a tie during the scoring round (three or more candidates tied
     for highest score, or two or more tied for second highest), it is broken
-    using a Condorcet method between the tied candidates.[2]_
+    using a Condorcet method between the tied candidates. [2]_
 
     If there is a tie during the automatic runoff (neither candidate is
     preferred more than the other) then it is broken in favor of the
-    higher-scoring candidate.[2]_
+    higher-scoring candidate. [2]_
 
     If there is still a tie in either round, it is broken according to the
     `tiebreaker` parameter.

@@ -24,7 +24,7 @@ def coombs(election, tiebreaker=None):
     Otherwise, the candidate(s) with the most number of last-preference votes
     is eliminated, votes for eliminated candidates are transferred according to
     the voters' preference rankings, and a series of runoff elections are held
-    between the remainders until a candidate gets a majority.[1]_
+    between the remainders until a candidate gets a majority. [1]_
 
     Parameters
     ----------

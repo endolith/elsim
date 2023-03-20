@@ -18,7 +18,7 @@ def score(election, tiebreaker=None):
     """
     Find the winner of an election using score (or range) voting.
 
-    The candidate with the highest score wins.[1]_
+    The candidate with the highest score wins. [1]_
 
     Parameters
     ----------
