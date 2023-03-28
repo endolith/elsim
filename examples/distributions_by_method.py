@@ -1,7 +1,6 @@
 """
 Show the winner distributions and bias of different voting methods.
 """
-import time
 import random
 from collections import defaultdict
 import numpy as np
@@ -27,8 +26,6 @@ disp = 2
 batch = 10
 n_batches = n_elections // batch
 assert n_batches * batch == n_elections
-
-start_time = time.monotonic()
 
 
 def human_format(num):
@@ -118,9 +115,6 @@ def func():
 p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n_batches))
 
 winners = {k: [v for d in p for v in d[k]] for k in p[0]}
-
-elapsed_time = time.monotonic() - start_time
-print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
 fig, ax = plt.subplots(nrows=len(winners), num=title, sharex=True,
                        constrained_layout=True, figsize=(7.5, 9.5))
