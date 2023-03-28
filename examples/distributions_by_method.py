@@ -5,21 +5,18 @@ import random
 from collections import defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
-from seaborn import displot, kdeplot, histplot
+from seaborn import kdeplot, histplot
 from joblib import Parallel, delayed
-from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
-                           black, utility_winner, star)
-from elsim.elections import (normal_electorate, normed_dist_utilities,
-                             elections_rng)
-from elsim.strategies import (honest_rankings, approval_optimal,
-                              honest_normed_scores)
+from elsim.methods import fptp, runoff, irv, black, utility_winner, star
+from elsim.elections import normal_electorate, normed_dist_utilities
+from elsim.strategies import honest_rankings, honest_normed_scores
 
 n_elections = 100_000  # Several minutes
 n_voters = 10_000
 n_cands = 7
 cand_dist = 'normal'
 u_width = 10
-disp = 2
+disp = 0.5
 
 
 # Do more than just one election per worker to improve efficiency

@@ -6,14 +6,11 @@ import random
 from collections import defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
-from seaborn import displot, kdeplot, histplot
+from seaborn import kdeplot, histplot
 from joblib import Parallel, delayed
-from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
-                           black, utility_winner, star)
-from elsim.elections import (normal_electorate, normed_dist_utilities,
-                             elections_rng)
-from elsim.strategies import (honest_rankings, approval_optimal,
-                              honest_normed_scores)
+from elsim.methods import fptp, irv, black, utility_winner, star
+from elsim.elections import normal_electorate, normed_dist_utilities
+from elsim.strategies import honest_rankings, honest_normed_scores
 
 n_elections = 100_000  # Several minutes
 n_voters = 10_000
@@ -34,7 +31,8 @@ def human_format(num):
         num /= 1000.0
 
 
-title = f'{human_format(n_elections)} elections, '
+method = 'STAR'
+title = f'{method}, {human_format(n_elections)} elections, '
 title += f'{human_format(n_voters)} voters, '
 
 # For plotting only
@@ -63,34 +61,39 @@ def func():
                 # Same shape
                 c = np.atleast_2d(c).T
 
-            # # Random winner method.  Votes don't matter at all.
-            # winner = random.sample(range(n_cands), 1)[0]
-            # winners['RW'].append(c[winner][0])
+            if 'Random' not in method:
+                utilities = normed_dist_utilities(v, c)
 
-            # # Random ballot method.  Pick one voter and go with their choice.
-            # winning_voter = random.sample(range(n_voters), 1)[0]
-            # dists = abs(v[winning_voter] - c)
-            # winner = np.argmin(dists)
-            # winners['RB'].append(c[winner][0])
+            if method in {'FPTP', 'Hare RCV', 'Condorcet RCV (Black)'}:
+                rankings = honest_rankings(utilities)
 
-            # # FPTP voting method.
-            utilities = normed_dist_utilities(v, c)
-            # rankings = honest_rankings(utilities)
-            # winner = fptp(rankings, tiebreaker='random')
-            # winners['FPTP'].append(c[winner][0])
+            if method == 'Random Winner':  # Votes don't matter at all.
+                winner = random.sample(range(n_cands), 1)[0]
 
-            # # Instant-runoff
-            # winner = irv(rankings, tiebreaker='random')
-            # winners[n_cands].append(c[winner][0])
+            # Pick one voter and go with their choice.
+            if method == 'Random Ballot':
+                winning_voter = random.sample(range(n_voters), 1)[0]
+                dists = abs(v[winning_voter] - c)
+                winner = np.argmin(dists)
 
-            # STAR voting
-            ballots = honest_normed_scores(utilities)
-            winner = star(ballots, tiebreaker='random')
+            if method == 'FPTP':
+                winner = fptp(rankings, tiebreaker='random')
+
+            if method == 'Hare RCV':
+                winner = irv(rankings, tiebreaker='random')
+
+            if method == 'STAR':
+                ballots = honest_normed_scores(utilities)
+                winner = star(ballots, tiebreaker='random')
+
+            if method == 'Condorcet RCV (Black)':
+                winner = black(rankings, tiebreaker='random')
+
+            # (on normalized utilities though, so STAR can do better)
+            if method == 'Utility Winner':
+                winner = utility_winner(utilities, tiebreaker='random')
+
             winners[n_cands].append(c[winner][0])
-
-            # # Utility winner (on normalized utilities though, so STAR can do better)
-            # winner = utility_winner(utilities, tiebreaker='random')
-            # winners['UW'] = c[winner][0]
 
     return winners
 
