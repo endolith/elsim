@@ -36,7 +36,7 @@ def human_format(num):
         num /= 1000.0
 
 
-title = f'1-dimensional, {human_format(n_elections)} elections, '
+title = f'{human_format(n_elections)} elections, '
 title += f'{human_format(n_voters)} voters, '
 title += f'{human_format(n_cands)} '
 title += cand_dist + 'ly-distributed candidates'

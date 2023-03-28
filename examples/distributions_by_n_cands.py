@@ -36,7 +36,6 @@ def human_format(num):
 
 title = f'{human_format(n_elections)} elections, '
 title += f'{human_format(n_voters)} voters, '
-# title += f'{human_format(n_cands)} '
 
 # For plotting only
 v, c = normal_electorate(n_voters, 1000, dims=1)
