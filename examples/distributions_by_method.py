@@ -1,6 +1,5 @@
 """
-Show the distribution bias of different voting methods.
-
+Show the winner distributions and bias of different voting methods.
 """
 import time
 import random

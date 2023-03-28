@@ -1,6 +1,6 @@
 """
-Show the distribution bias of different voting methods.
-
+Show how the winner distribution and bias of a voting method change with
+varying dispersion of candidates.
 """
 import time
 import random
