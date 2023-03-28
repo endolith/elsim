@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from seaborn import kdeplot, histplot
 from joblib import Parallel, delayed
-from elsim.methods import fptp, runoff, irv, black, utility_winner, star
+from elsim.methods import fptp, runoff, irv, black, star
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings, honest_normed_scores
 
@@ -87,10 +87,6 @@ def func():
         # Condorcet RCV
         winner = black(rankings, tiebreaker='random')
         winners['Condorcet Ranked-Choice Voting (Black)'].append(c[winner][0])
-
-        # # Utility winner (on normalized utilities though, so STAR can do better)
-        # winner = utility_winner(utilities, tiebreaker='random')
-        # winners['UW'] = c[winner][0]
 
         # Ideal winner method.  Votes don't matter at all; pick the center.
         winner = np.argmin(abs(c))
