@@ -27,13 +27,6 @@ batch = 10
 n_batches = n_elections // batch
 assert n_batches * batch == n_elections
 
-# ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
-#                   'Borda': borda, 'Coombs': coombs, 'Black': black}
-
-# rated_methods = {'SU max': utility_winner,
-#                  'Approval': lambda utilities, tiebreaker:
-#                      approval(approval_optimal(utilities), tiebreaker)}
-
 start_time = time.monotonic()
 
 
