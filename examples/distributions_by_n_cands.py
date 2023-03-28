@@ -102,11 +102,19 @@ p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n_batches))
 winners = {k: [v for d in p for v in d[k]] for k in p[0]}
 
 fig, ax = plt.subplots(nrows=len(winners), num=title, sharex=True,
-                       constrained_layout=True, figsize=(9, 9))
-ax[0].set_title(title)
+                       constrained_layout=True, figsize=(7.5, 9.5))
+fig.suptitle(title)
 for n, n_cands in enumerate(winners):
     histplot(winners[n_cands], ax=ax[n], label=f'{n_cands} cands',
              stat='density')
-    kdeplot(v[:, 0], ax=ax[n], ls=':', label='Voters')
+    ax[n].set_yticklabels([])  # Don't care about numbers
+    ax[n].set_ylabel("")  # No "density"
+
+    tmp = ax[n].twinx()
+    kdeplot(v[:, 0], ax=tmp, ls=':', label='Voters')  # Label doesn't work
+    ax[n].plot([], [], ls=':', label='Voters')  # Dummy label hack
+    tmp.set_yticklabels([])  # Don't care about numbers
+    tmp.set_ylabel("")  # No "density"
+
     ax[n].legend()
-ax[0].set_xlim(-3, 3)
+ax[0].set_xlim(-2.5, 2.5)
