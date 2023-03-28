@@ -16,7 +16,7 @@ from elsim.elections import (normal_electorate, normed_dist_utilities,
 from elsim.strategies import (honest_rankings, approval_optimal,
                               honest_normed_scores)
 
-n_iter = 100_000  # Several minutes
+n_elections = 100_000  # Several minutes
 n_voters = 10_000
 n_cands = 7
 cand_dist = 'normal'
@@ -24,10 +24,10 @@ u_width = 10
 disps_list = np.geomspace(4, 0.25, 9)
 
 
-# Do more than just one iteration per worker to improve efficiency
+# Do more than just one election per worker to improve efficiency
 batch = 10
-n_batches = n_iter // batch
-assert n_batches * batch == n_iter
+n_batches = n_elections // batch
+assert n_batches * batch == n_elections
 
 # ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
 #                   'Borda': borda, 'Coombs': coombs, 'Black': black}
@@ -46,7 +46,7 @@ def human_format(num):
         num /= 1000.0
 
 
-title = f'1-dimensional, {human_format(n_iter)} iterations, '
+title = f'1-dimensional, {human_format(n_elections)} elections, '
 title += f'{human_format(n_voters)} voters, '
 title += f'{human_format(n_cands)} '
 title += cand_dist + 'ly-distributed candidates'
