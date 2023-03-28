@@ -19,7 +19,6 @@ cand_dist = 'normal'
 u_width = 10
 disps_list = np.geomspace(4, 0.25, 9)
 
-
 # Do more than just one election per worker to improve efficiency
 batch = 10
 n_batches = n_elections // batch
@@ -34,20 +33,13 @@ def human_format(num):
 
 
 method = 'FPTP'
-title = f'{method}, {human_format(n_elections)} elections, '
+title = f'{method}, {human_format(n_elections)} 1D elections, '
 title += f'{human_format(n_voters)} voters, '
 title += f'{human_format(n_cands)} '
 title += cand_dist + 'ly-distributed candidates'
 
 # For plotting only
 v, c = normal_electorate(n_voters, 1000, dims=1)
-
-if cand_dist == 'uniform':
-    # Replace with uniform distribution of candidates
-    # c = elections_rng.uniform(-2.5, 2.5, n_cands)
-    c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
-    # Same shape
-    c = np.atleast_2d(c).T
 
 
 def func():
@@ -57,10 +49,8 @@ def func():
             v, c = normal_electorate(n_voters, n_cands, dims=1, disp=disp)
 
             if cand_dist == 'uniform':
-                # Replace with uniform distribution of candidates
-                # c = elections_rng.uniform(-2.5, 2.5, n_cands)
-                c = np.random.uniform(-2.5, 2.5, n_cands)
-                # Same shape
+                # Replace with uniform distribution of candidates of same shape
+                c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
                 c = np.atleast_2d(c).T
 
             if 'Random' not in method:
@@ -101,7 +91,6 @@ def func():
 
 
 p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n_batches))
-
 winners = {k: [v for d in p for v in d[k]] for k in p[0]}
 
 fig, ax = plt.subplots(nrows=len(winners), num=title, sharex=True,

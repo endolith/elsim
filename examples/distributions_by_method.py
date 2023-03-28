@@ -18,7 +18,6 @@ cand_dist = 'normal'
 u_width = 10
 disp = 0.5
 
-
 # Do more than just one election per worker to improve efficiency
 batch = 10
 n_batches = n_elections // batch
@@ -32,7 +31,7 @@ def human_format(num):
         num /= 1000.0
 
 
-title = f'1-dimensional, {human_format(n_elections)} elections, '
+title = f'{human_format(n_elections)} 1D elections, '
 title += f'{human_format(n_voters)} voters, '
 title += f'{human_format(n_cands)} '
 title += cand_dist + 'ly-dist. candidates'
@@ -41,13 +40,6 @@ title += f', {disp:.2f} dispersion'
 # For plotting only
 v, c = normal_electorate(n_voters, 1000, dims=1)
 
-if cand_dist == 'uniform':
-    # Replace with uniform distribution of candidates
-    # c = elections_rng.uniform(-2.5, 2.5, n_cands)
-    c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
-    # Same shape
-    c = np.atleast_2d(c).T
-
 
 def func():
     winners = defaultdict(list)
@@ -55,10 +47,8 @@ def func():
         v, c = normal_electorate(n_voters, n_cands, dims=1, disp=disp)
 
         if cand_dist == 'uniform':
-            # Replace with uniform distribution of candidates
-            # c = elections_rng.uniform(-2.5, 2.5, n_cands)
+            # Replace with uniform distribution of candidates of same shape
             c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
-            # Same shape
             c = np.atleast_2d(c).T
 
         # Random winner method.  Votes don't matter at all.
@@ -110,7 +100,6 @@ def func():
 
 
 p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n_batches))
-
 winners = {k: [v for d in p for v in d[k]] for k in p[0]}
 
 fig, ax = plt.subplots(nrows=len(winners), num=title, sharex=True,

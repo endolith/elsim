@@ -16,7 +16,8 @@ n_elections = 100_000  # Several minutes
 n_voters = 10_000
 n_cands_list = [2, 3, 4, 5, 6, 7, 11, 15, 25]
 cand_dist = 'normal'
-
+u_width = 10
+disp = 1.0
 
 # Do more than just one election per worker to improve efficiency
 batch = 10
@@ -32,33 +33,23 @@ def human_format(num):
 
 
 method = 'STAR'
-title = f'{method}, {human_format(n_elections)} elections, '
+title = f'{method}, {human_format(n_elections)} 1D elections, '
 title += f'{human_format(n_voters)} voters, '
+title += cand_dist + 'ly-distributed candidates'
 
 # For plotting only
 v, c = normal_electorate(n_voters, 1000, dims=1)
-
-# if cand_dist == 'uniform':
-#     # Replace with uniform distribution of candidates
-#     # c = elections_rng.uniform(-2.5, 2.5, n_cands)
-#     c = np.random.uniform(-2.5, 2.5, n_cands)
-#     # Same shape
-#     c = np.atleast_2d(c).T
-
-title += cand_dist + ' candidates'
 
 
 def func():
     winners = defaultdict(list)
     for n_cands in n_cands_list:
         for iteration in range(batch):
-            v, c = normal_electorate(n_voters, n_cands, dims=1)
+            v, c = normal_electorate(n_voters, n_cands, dims=1, disp=disp)
 
             if cand_dist == 'uniform':
-                # Replace with uniform distribution of candidates
-                # c = elections_rng.uniform(-2.5, 2.5, n_cands)
-                c = np.random.uniform(-2.5, 2.5, n_cands)
-                # Same shape
+                # Replace with uniform distribution of candidates of same shape
+                c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
                 c = np.atleast_2d(c).T
 
             if 'Random' not in method:
