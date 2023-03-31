@@ -279,7 +279,8 @@ Source: [merrill_1984_fig_4a_4b.py](merrill_1984_fig_4a_4b.py)
 
 Somewhat similar to:
 
-Edith Elkind, Piotr Faliszewski, et al. (2019) [What Do Multiwinner Voting Rules Do?](https://arxiv.org/abs/1901.09217)
+* Edith Elkind, Piotr Faliszewski, et al. (2019) [What Do Multiwinner Voting Rules Do?](https://arxiv.org/abs/1901.09217)
+* Kiran Tomlinson, Johan Ugander, Jon Kleinberg (2023) [Moderation in instant runoff voting](https://arxiv.org/abs/2303.09734)
 
 ### By method
 
