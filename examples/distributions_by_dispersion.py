@@ -42,7 +42,7 @@ title += cand_dist + 'ly-distributed candidates'
 v, c = normal_electorate(n_voters, 1000, dims=1)
 
 
-def func():
+def simulate_batch():
     winners = defaultdict(list)
     for disp in disps_list:
         for iteration in range(batch):
@@ -90,7 +90,8 @@ def func():
     return winners
 
 
-p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n_batches))
+p = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_batch)()
+                                   for i in range(n_batches))
 winners = {k: [v for d in p for v in d[k]] for k in p[0]}
 
 fig, ax = plt.subplots(nrows=len(winners), num=title, sharex=True,
