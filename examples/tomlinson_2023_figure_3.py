@@ -5,20 +5,20 @@ import random
 from collections import defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
-from seaborn import kdeplot, histplot
+from seaborn import histplot
 from joblib import Parallel, delayed
 from elsim.methods import (fptp, runoff, irv, black, star, coombs, borda,
                            approval)
-from elsim.elections import normal_electorate, normed_dist_utilities
+from elsim.elections import normed_dist_utilities
 from elsim.strategies import (honest_rankings, honest_normed_scores,
                               approval_optimal)
 
 n_elections = 1_000_000  # Roughly 80 minutes on a 2019 6-core i7-9750H
 n_voters = 1_000
-n_cands = 7
-cand_dist = 'normal'
-u_width = 10
-disp = 0.5
+n_cands = 5
+cand_dist = 'uniform'
+u_width = 5
+disp = 1
 
 # Simulate more than just one election per worker to improve efficiency
 batch_size = 100
@@ -36,10 +36,12 @@ def human_format(num):
 def simulate_batch():
     winners = defaultdict(list)
     for iteration in range(batch_size):
-        v, c = normal_electorate(n_voters, n_cands, dims=1, disp=disp)
+        # v, c = normal_electorate(n_voters, n_cands, dims=1, disp=disp)
 
         if cand_dist == 'uniform':
             # Replace with uniform distribution of candidates of same shape
+            v = np.random.uniform(-u_width/2, +u_width/2, n_voters)
+            v = np.atleast_2d(v).T
             c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
             c = np.atleast_2d(c).T
 
@@ -106,15 +108,11 @@ winners = {k: [v for d in p for v in d[k]] for k in p[0]}
 
 title = f'{human_format(n_elections)} 1D elections, '
 title += f'{human_format(n_voters)} voters, '
-title += f'{human_format(n_cands)} '
-title += cand_dist + 'ly-dist. candidates'
-title += f', {disp:.2f} dispersion'
-
-# For plotting only
-v, c = normal_electorate(n_voters, 1000, dims=1)
+title += f'{human_format(n_cands)} candidates'
+title += ', both ' + cand_dist
 
 fig, ax = plt.subplots(nrows=len(winners), num=title, sharex=True,
-                       constrained_layout=True, figsize=(7.5, 9.5))
+                       constrained_layout=True, figsize=(5.5, 9.5))
 fig.suptitle(title)
 for n, method in enumerate(winners.keys()):
     histplot(winners[method], ax=ax[n], label='Winners', stat='density')
@@ -123,10 +121,8 @@ for n, method in enumerate(winners.keys()):
     ax[n].set_ylabel("")  # No "density"
 
     tmp = ax[n].twinx()
-    kdeplot(v[:, 0], ax=tmp, ls=':', label='Voters')  # Label doesn't work
-    ax[n].plot([], [], ls=':', label='Voters')  # Dummy label hack
     tmp.set_yticklabels([])  # Don't care about numbers
     tmp.set_ylabel("")  # No "density"
 
 ax[0].set_xlim(-2.5, 2.5)
-ax[0].legend()
+ax[1].legend()
