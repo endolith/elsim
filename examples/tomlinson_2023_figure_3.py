@@ -7,11 +7,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from seaborn import kdeplot, histplot
 from joblib import Parallel, delayed
-from elsim.methods import fptp, runoff, irv, black, star
+from elsim.methods import (fptp, runoff, irv, black, star, coombs, borda,
+                           approval)
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.strategies import honest_rankings, honest_normed_scores
+from elsim.strategies import (honest_rankings, honest_normed_scores,
+                              approval_optimal)
 
-n_elections = 1_000_000  # Roughly 11 minutes on a 2019 6-core i7-9750H
+n_elections = 1_000_000  # Roughly 80 minutes on a 2019 6-core i7-9750H
 n_voters = 1_000
 n_cands = 7
 cand_dist = 'normal'
@@ -69,10 +71,22 @@ def simulate_batch():
         winners['Ranked-Choice Voting (Hare) / '
                 'Alternative Vote / Instant-Runoff'].append(c[winner][0])
 
+        # Approval voting
+        winner = approval(approval_optimal(utilities), tiebreaker='random')
+        winners['Approval Voting ("optimal" strategy)'].append(c[winner][0])
+
         # STAR voting
         ballots = honest_normed_scores(utilities)
         winner = star(ballots, tiebreaker='random')
         winners['STAR Voting'].append(c[winner][0])
+
+        # Borda count
+        winner = borda(rankings, tiebreaker='random')
+        winners['Borda count'].append(c[winner][0])
+
+        # Coombs method
+        winner = coombs(rankings, tiebreaker='random')
+        winners["Coombs' method"].append(c[winner][0])
 
         # Condorcet RCV
         winner = black(rankings, tiebreaker='random')
