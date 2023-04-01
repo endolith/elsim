@@ -33,13 +33,6 @@ def human_format(num):
 
 
 method = 'FPTP'
-title = f'{method}, {human_format(n_elections)} 1D elections, '
-title += f'{human_format(n_voters)} voters, '
-title += f'{human_format(n_cands)} '
-title += cand_dist + 'ly-distributed candidates'
-
-# For plotting only
-v, c = normal_electorate(n_voters, 1000, dims=1)
 
 
 def simulate_batch():
@@ -94,6 +87,14 @@ print(f'{n_batches} tasks total:')
 p = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_batch)()
                                    for i in range(n_batches))
 winners = {k: [v for d in p for v in d[k]] for k in p[0]}
+
+title = f'{method}, {human_format(n_elections)} 1D elections, '
+title += f'{human_format(n_voters)} voters, '
+title += f'{human_format(n_cands)} '
+title += cand_dist + 'ly-distributed candidates'
+
+# For plotting only
+v, c = normal_electorate(n_voters, 1000, dims=1)
 
 fig, ax = plt.subplots(nrows=len(winners), num=title, sharex=True,
                        constrained_layout=True, figsize=(7.5, 9.5))
