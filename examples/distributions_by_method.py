@@ -51,13 +51,13 @@ def simulate_batch():
         # winner = np.argmin(dists)
         # winners['RB'].append(c[winner][0])
 
-        # FPTP voting method.
+        # FPTP voting method
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
         winner = fptp(rankings, tiebreaker='random')
         winners['First Past The Post / Plurality'].append(c[winner][0])
 
-        # FPTP voting method.
+        # Top-two runoff
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
         winner = runoff(rankings, tiebreaker='random')
