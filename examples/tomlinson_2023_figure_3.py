@@ -1,6 +1,7 @@
 """
 Show the winner distributions and bias of different voting methods.
 """
+import pickle
 from collections import defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
@@ -123,3 +124,9 @@ for n, method in enumerate(winners.keys()):
 
 ax[0].set_xlim(-2.5, 2.5)
 ax[0].legend()
+
+# These take so long and kernel crashes!
+plt.savefig(title + '.png')
+
+with open(title + '.pkl', "wb") as file:
+    pickle.dump(winners, file)
