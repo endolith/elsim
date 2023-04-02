@@ -25,6 +25,10 @@ n_batches = n_elections // batch_size
 assert n_batches * batch_size == n_elections
 
 
+def ceildiv(a, b):
+    return -(a // -b)
+
+
 def human_format(num):
     for unit in ['', 'k', 'M', 'B', 'T']:
         if abs(num) < 1000:
@@ -54,7 +58,7 @@ def simulate_batch():
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
         winner = runoff(rankings, tiebreaker='random')
-        winners['Top-Two Runoff / Top-Two Primary / Two-Round System / '
+        winners['Top-Two Runoff/Primary / Two-Round System / '
                 'Contingent Vote'].append(c[winner][0])
 
         # Instant-runoff
@@ -100,9 +104,13 @@ title += f'{human_format(n_voters)} voters, '
 title += f'{human_format(n_cands)} candidates'
 title += ', both ' + cand_dist
 
-fig, ax = plt.subplots(nrows=len(winners), num=title, sharex=True,
-                       constrained_layout=True, figsize=(5.5, 9.5))
+fig, ax = plt.subplots(nrows=ceildiv(len(winners), 2), ncols=2, num=title,
+                       sharex=True, constrained_layout=True,
+                       figsize=(11, 9.5))
 fig.suptitle(title)
+
+ax = ax.T.flatten()  # Flatten the ax array for easier indexing
+
 for n, method in enumerate(winners.keys()):
     histplot(winners[method], ax=ax[n], label='Winners', stat='density')
     ax[n].set_title(method, loc='left')
@@ -114,4 +122,4 @@ for n, method in enumerate(winners.keys()):
     tmp.set_ylabel("")  # No "density"
 
 ax[0].set_xlim(-2.5, 2.5)
-ax[1].legend()
+ax[0].legend()
