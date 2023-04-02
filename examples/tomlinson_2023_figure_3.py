@@ -11,7 +11,7 @@ from elsim.methods import (fptp, runoff, irv, black, star, coombs, borda,
                            approval)
 from elsim.elections import normed_dist_utilities
 from elsim.strategies import (honest_rankings, honest_normed_scores,
-                              approval_optimal)
+                              approval_optimal, vote_for_k)
 
 n_elections = 1_000_000  # Roughly 80 minutes on a 2019 6-core i7-9750H
 n_voters = 1_000
@@ -19,6 +19,7 @@ n_cands = 5
 cand_dist = 'uniform'
 u_width = 5
 disp = 1
+vote_for = n_cands//2
 
 # Simulate more than just one election per worker to improve efficiency
 batch_size = 100
@@ -70,6 +71,11 @@ def simulate_batch():
         # Approval voting
         winner = approval(approval_optimal(utilities), tiebreaker='random')
         winners['Approval Voting ("optimal" strategy)'].append(c[winner][0])
+
+        # Approval voting
+        winner = approval(vote_for_k(utilities, vote_for), tiebreaker='random')
+        winners[f'Approval Voting "(Vote-for-{vote_for}"'
+                ' strategy)'].append(c[winner][0])
 
         # STAR voting
         ballots = honest_normed_scores(utilities)
