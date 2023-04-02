@@ -1,7 +1,6 @@
 """
 Show the winner distributions and bias of different voting methods.
 """
-import random
 from collections import defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
@@ -44,16 +43,6 @@ def simulate_batch():
             v = np.atleast_2d(v).T
             c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
             c = np.atleast_2d(c).T
-
-        # Random winner method.  Votes don't matter at all.
-        winner = random.sample(range(n_cands), 1)[0]
-        winners['Random winner (candidate distribution)'].append(c[winner][0])
-
-        # # Random ballot method.  Pick one voter and go with their choice.
-        # winning_voter = random.sample(range(n_voters), 1)[0]
-        # dists = abs(v[winning_voter] - c)
-        # winner = np.argmin(dists)
-        # winners['RB'].append(c[winner][0])
 
         # FPTP voting method
         utilities = normed_dist_utilities(v, c)
