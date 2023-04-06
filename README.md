@@ -1,4 +1,5 @@
 # Election Simulator 3000
+
 [![CircleCI](https://circleci.com/gh/endolith/elsim.svg?style=shield)](https://circleci.com/gh/endolith/elsim)
 [![Actions Status](https://github.com/endolith/elsim/workflows/Python%20package/badge.svg)](https://github.com/endolith/elsim/actions)
 [![codecov](https://codecov.io/gh/endolith/elsim/branch/master/graph/badge.svg?token=BZuePTP2dw)](https://codecov.io/gh/endolith/elsim)
@@ -7,7 +8,7 @@ This is a library of functions for simulating thousands of elections held using 
 
 For example, it can be used to reproduce Figure 1 from [Merrill 1984](https://www.jstor.org/stable/2110786):
 
-![](./examples/results/Merrill_1984_Figure_1._25_voters,_10000_iterations.png)
+![Graph of Condorcet Efficiencies for a Random Society for Plurality, Runoff, Hare, Approval, Borda, Coomsb, Black compared to Merrill's results](./examples/results/Merrill_1984_Figure_1._25_voters,_10000_iterations.png)
 
 Or the table of Effectiveness from [Weber 1977](https://elischolar.library.yale.edu/cowles-discussion-paper-series/732/):
 
@@ -30,19 +31,25 @@ Or the table of Effectiveness from [Weber 1977](https://elischolar.library.yale.
 - Able to reproduce peer-reviewed research
 
 ## Requirements
+
 See `requirements.txt`.  As of this README, it includes  [`numpy`](https://numpy.org/) and [`scipy`](https://www.scipy.org/) for the simulations, [`tabulate`](https://github.com/astanin/python-tabulate) for printing example tables, [`joblib`](https://joblib.readthedocs.io/en/latest/) for parallelizing extreme examples, and  [`pytest`](https://docs.pytest.org/en/latest/), [`hypothesis`](https://hypothesis.readthedocs.io/en/latest/), and [`pytest-cov`](https://github.com/pytest-dev/pytest-cov) for running the tests.  All should be installable through `conda`.
 
 Optionally, `elsim` can use [`numba`](http://numba.pydata.org/) for speed.  If not available, the code will still run, just more slowly.
 
 ## Installation
+
 One possibility is to install with pip:
 
-    pip install git+https://github.com/endolith/elsim.git
+```sh
+pip install git+https://github.com/endolith/elsim.git
+```
 
 ## Documentation
+
 Currently just the docstrings of the submodules and functions themselves, in [`numpydoc` format](https://numpydoc.readthedocs.io/en/latest/format.html).
 
 ## Usage
+
 Specify an election with three candidates (0, 1, 2), where two voters rank candidates 0 > 2 > 1, two voters rank candidates 1 > 2 > 0, and one ranks candidates 2 > 0 > 1:
 
 ```python
@@ -95,13 +102,13 @@ flowchart LR
     Utilities -- <code>approval_optimal</code> --> approval_ballots
     Utilities -- <code>vote_for_k</code> --> approval_ballots
     Utilities -- <code>honest_normed_scores</code> --> score_ballots
-	Utilities -- <code>honest_rankings</code> --> ranked_ballots
+    Utilities -- <code>honest_rankings</code> --> ranked_ballots
 
-	subgraph Ballots
-		approval_ballots[Approval ballots]
-		score_ballots[Score ballots]
-		ranked_ballots[Ranked ballots]
-	end
+    subgraph Ballots
+        approval_ballots[Approval ballots]
+        score_ballots[Score ballots]
+        ranked_ballots[Ranked ballots]
+    end
 
     %% approval.py
     approval_ballots -- <code>approval</code> --> Winner
@@ -143,9 +150,11 @@ flowchart LR
 ```
 
 ## Tests
+
 Tests can be run by installing the testing dependencies and then running `pytest` in the project folder.
 
 ## Bugs / Requests
+
 File issues on the [GitHub issue tracker](https://github.com/endolith/elsim/issues).
 
 ## Similar projects
@@ -164,4 +173,4 @@ File issues on the [GitHub issue tracker](https://github.com/endolith/elsim/issu
 
 ### Voting system implementations
 
-* [See the list on Electowiki](https://electowiki.org/wiki/Voting_links#Election_calculators)
+- [See the list on Electowiki](https://electowiki.org/wiki/Voting_links#Election_calculators)
