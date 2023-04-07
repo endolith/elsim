@@ -284,18 +284,18 @@ Somewhat similar to:
 
 ### By method
 
-![](./results/100k_1D_elections,_10k_voters,_7_normally-dist._candidates,_0.50_dispersion.png)
+![](./results/1M_1D_elections,_1k_voters,_7_normally-dist._candidates,_0.50_dispersion.png)
 
 Source: [distributions_by_method.py](distributions_by_method.py)
 
 ### By number of candidates
 
-![](./results/STAR,_100k_1D_elections,_10k_voters,_normally-distributed_candidates.png)
+![](./results/STAR,_1M_1D_elections,_1k_voters,_normally-distributed_candidates.png)
 
 Source: [distributions_by_n_cands.py](distributions_by_n_cands.py)
 
 ### By relative candidate dispersion
 
-![](./results/Hare_RCV,_100k_1D_elections,_10k_voters,_7_normally-distributed_candidates.png)
+![](./results/Hare_RCV,_1M_1D_elections,_1k_voters,_7_normally-distributed_candidates.png)
 
 Source: [distributions_by_dispersion.py](distributions_by_dispersion.py)
