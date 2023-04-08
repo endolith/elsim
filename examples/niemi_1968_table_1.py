@@ -79,6 +79,7 @@ jobs = []
 for n_cands in n_cands_list:
     jobs.extend([delayed(simulate_batch)(n_cands)] * n_batches)
 
+print(f'{len(jobs)} tasks total:')
 results = Parallel(n_jobs=-3, verbose=5)(jobs)
 condorcet_paradox_counts = sum(results, Counter())
 

@@ -74,9 +74,6 @@ rated_methods = {'Vote-for-1': lambda utilities, tiebreaker:
 utility_sums = {key: Counter() for key in (
     ranked_methods.keys() | rated_methods.keys() | {'UW'})}
 
-print(f'Doing {n_elections:,} elections, {n_voters:,} voters, '
-      f'{n_cands_list} candidates')
-
 
 def func():
     utility_sums = defaultdict(dict)
@@ -103,6 +100,8 @@ def func():
     return utility_sums
 
 
+print(f'Doing {n_elections:,} elections (tasks), {n_voters:,} voters, '
+      f'{n_cands_list} candidates')
 p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n_elections))
 
 for result in p:
