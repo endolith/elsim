@@ -18,10 +18,10 @@ cand_dist = 'normal'
 u_width = 10
 disp = 0.5
 
-# Do more than just one election per worker to improve efficiency
-batch = 10
-n_batches = n_elections // batch
-assert n_batches * batch == n_elections
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 100
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
 
 
 def human_format(num):
@@ -43,7 +43,7 @@ v, c = normal_electorate(n_voters, 1000, dims=1)
 
 def simulate_batch():
     winners = defaultdict(list)
-    for iteration in range(batch):
+    for iteration in range(batch_size):
         v, c = normal_electorate(n_voters, n_cands, dims=1, disp=disp)
 
         if cand_dist == 'uniform':
