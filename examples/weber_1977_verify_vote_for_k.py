@@ -75,7 +75,7 @@ utility_sums = {key: Counter() for key in (
     ranked_methods.keys() | rated_methods.keys() | {'UW'})}
 
 
-def func():
+def simulate_election():
     utility_sums = defaultdict(dict)
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
@@ -102,7 +102,8 @@ def func():
 
 print(f'Doing {n_elections:,} elections (tasks), {n_voters:,} voters, '
       f'{n_cands_list} candidates')
-p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n_elections))
+p = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_election)()
+                                   for i in range(n_elections))
 
 for result in p:
     for method, d in result.items():
