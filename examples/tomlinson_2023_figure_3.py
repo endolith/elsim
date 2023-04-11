@@ -7,13 +7,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from seaborn import histplot
 from joblib import Parallel, delayed
-from elsim.methods import (fptp, runoff, irv, black, star, coombs, borda,
-                           approval)
+from elsim.methods import fptp, irv
 from elsim.elections import normed_dist_utilities
-from elsim.strategies import (honest_rankings, honest_normed_scores,
-                              approval_optimal, vote_for_k)
+from elsim.strategies import honest_rankings
 
-n_elections = 1_000_000  # Roughly 80 minutes on a 2019 6-core i7-9750H
+n_elections = 1_000  # Roughly 80 minutes on a 2019 6-core i7-9750H
 n_voters = 1_000
 n_cands = 5
 cand_dist = 'uniform'
@@ -41,14 +39,11 @@ def human_format(num):
 def simulate_batch():
     winners = defaultdict(list)
     for iteration in range(batch_size):
-        # v, c = normal_electorate(n_voters, n_cands, dims=1, disp=disp)
 
-        if cand_dist == 'uniform':
-            # Replace with uniform distribution of candidates of same shape
-            v = np.random.uniform(-u_width/2, +u_width/2, n_voters)
-            v = np.atleast_2d(v).T
-            c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
-            c = np.atleast_2d(c).T
+        v = np.random.uniform(-u_width/2, +u_width/2, n_voters)
+        v = np.atleast_2d(v).T
+        c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
+        c = np.atleast_2d(c).T
 
         # FPTP voting method
         utilities = normed_dist_utilities(v, c)
@@ -56,47 +51,10 @@ def simulate_batch():
         winner = fptp(rankings, tiebreaker='random')
         winners['First Past The Post / Plurality'].append(c[winner][0])
 
-        # Top-two runoff
-        utilities = normed_dist_utilities(v, c)
-        rankings = honest_rankings(utilities)
-        winner = runoff(rankings, tiebreaker='random')
-        winners['Top-Two Runoff/Primary / Two-Round System / '
-                'Contingent Vote'].append(c[winner][0])
-
         # Instant-runoff
         winner = irv(rankings, tiebreaker='random')
         winners['Ranked-Choice Voting (Hare) / '
                 'Alternative Vote / Instant-Runoff'].append(c[winner][0])
-
-        # Approval voting
-        winner = approval(approval_optimal(utilities), tiebreaker='random')
-        winners['Approval Voting ("optimal" strategy)'].append(c[winner][0])
-
-        # Approval voting
-        winner = approval(vote_for_k(utilities, vote_for), tiebreaker='random')
-        winners[f'Approval Voting "(Vote-for-{vote_for}"'
-                ' strategy)'].append(c[winner][0])
-
-        # STAR voting
-        ballots = honest_normed_scores(utilities)
-        winner = star(ballots, tiebreaker='random')
-        winners['STAR Voting'].append(c[winner][0])
-
-        # Borda count
-        winner = borda(rankings, tiebreaker='random')
-        winners['Borda count'].append(c[winner][0])
-
-        # Coombs method
-        winner = coombs(rankings, tiebreaker='random')
-        winners["Coombs' method"].append(c[winner][0])
-
-        # Condorcet RCV
-        winner = black(rankings, tiebreaker='random')
-        winners['Condorcet Ranked-Choice Voting (Black)'].append(c[winner][0])
-
-        # Ideal winner method.  Votes don't matter at all; pick the center.
-        winner = np.argmin(abs(c))
-        winners['Best possible winner (nearest center)'].append(c[winner][0])
 
     return winners
 
