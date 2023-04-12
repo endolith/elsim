@@ -67,7 +67,7 @@ def simulate_batch(n_cands):
     condorcet_paradox_count = Counter()
     # Reuse the same chunk of memory to save time
     election = np.empty((n_voters, n_cands), dtype=np.uint8)
-    for iteration in range(batch_size):
+    for _ in range(batch_size):
         election[:] = impartial_culture(n_voters, n_cands)
         CW = condorcet(election)
         if CW is None:

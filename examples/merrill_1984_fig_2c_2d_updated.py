@@ -45,6 +45,7 @@ discrepancies, as great as 7%. This may just be random variation from not
 running as many simulations, however the Coombs results are consistently
 high.
 """
+
 import time
 from collections import Counter
 import numpy as np
@@ -81,7 +82,7 @@ for fig, disp, ymin in (('2.c', 1.0, 50),
         ranked_methods.keys() | rated_methods.keys() | {'CW'})}
     start_time = time.monotonic()
 
-    for iteration in range(n_elections):
+    for _ in range(n_elections):
         for n_cands in n_cands_list:
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp)

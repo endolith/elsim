@@ -102,8 +102,9 @@ def simulate_election():
 
 print(f'Doing {n_elections:,} elections (tasks), {n_voters:,} voters, '
       f'{n_cands_list} candidates')
-p = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_election)()
-                                   for i in range(n_elections))
+p = Parallel(n_jobs=-3, verbose=5)(
+    delayed(simulate_election)() for _ in range(n_elections)
+)
 
 for result in p:
     for method, d in result.items():
@@ -136,7 +137,7 @@ for method in ('Standard', 'Vote-for-1', 'Vote-for-2', 'Vote-for-3',
     x, y = zip(*sorted(utility_sums[method].items()))
     SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
     plt.plot(x, SUE*100, '-', label=method)
-    table.update({method.split('-')[-1]: SUE*100})
+    table[method.split('-')[-1]] = SUE*100
 
 print(tabulate(table, 'keys', showindex=[str(x) for x in n_cands_list],
                tablefmt="pipe", floatfmt='.1f'))

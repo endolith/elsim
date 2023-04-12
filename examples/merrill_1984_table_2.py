@@ -31,6 +31,7 @@ Typical result:
 Many of these values match the paper closely, but some are consistently off by
 up to 4%.
 """
+
 import time
 from collections import Counter
 import numpy as np
@@ -71,7 +72,7 @@ for disp, corr, D in conditions:
 
     condorcet_winner_count = Counter()
 
-    for iteration in range(n_elections):
+    for _ in range(n_elections):
         v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                  disp=disp)
 

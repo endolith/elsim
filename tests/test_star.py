@@ -15,7 +15,7 @@ def collect_random_results(method, election):
     """
     random.seed(2014)  # Deterministic test
     winners = set()
-    for trial in range(10):
+    for _ in range(10):
         winner = method(election, tiebreaker='random')
         assert isinstance(winner, int)
         winners.add(winner)

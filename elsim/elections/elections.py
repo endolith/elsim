@@ -158,8 +158,7 @@ def impartial_culture(n_voters, n_cands, random_state=None):
     # This method is much faster than generating integer sequences and then
     # shuffling them.
     utilities = random_utilities(n_voters, n_cands, random_state)
-    rankings = honest_rankings(utilities)
-    return rankings
+    return honest_rankings(utilities)
 
 
 def normal_electorate(n_voters, n_cands, dims=2, corr=0.0, disp=1.0,

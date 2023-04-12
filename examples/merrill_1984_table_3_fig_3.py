@@ -22,6 +22,7 @@ Typical result:
 | Coombs    | 100.0 | 90.2 | 86.8 | 85.2 | 84.0 | 82.9 |
 | Black     | 100.0 | 92.9 | 92.0 | 92.1 | 93.2 | 94.6 |
 """
+
 import time
 from collections import Counter
 import numpy as np
@@ -47,7 +48,7 @@ utility_sums = {key: Counter() for key in (ranked_methods.keys() |
 
 start_time = time.monotonic()
 
-for iteration in range(n_elections):
+for _ in range(n_elections):
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
 

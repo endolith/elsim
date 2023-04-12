@@ -161,8 +161,7 @@ def _all_condorcet_from_matrix(matrix):
 
     matrix = matrix.astype(np.uint)
     wins = (matrix > matrix.T).sum(axis=1)
-    winners = (wins == wins.max()).nonzero()[0]
-    return winners
+    return (wins == wins.max()).nonzero()[0]
 
 
 def star(election, tiebreaker=None):
@@ -257,21 +256,17 @@ def star(election, tiebreaker=None):
         # candidate who was preferred head-to-head by more voters."
         matrix = matrix_from_scores(election[:, first_set])
         winner = condorcet_from_matrix(matrix)
-        if winner is None:
-            # There was a tie or cycle in both scores and preferences.
-            # Tiebreak randomly
-            # TODO: Shouldn't need to convert to list
-            # TODO: This should just call a condorcet function between the tied
-            # score candidates
-            # TODO: Should handle two CWs tied, Smith set(??), etc.
-            result = tiebreak(list(_all_condorcet_from_matrix(matrix)), 1)
-            if result[0] is None:
-                return None
-            else:
-                return int(result[0])  # TODO: don't convert back and forth?
-        else:
+        if winner is not None:
             # There is a single Condorcet winner, so they will also win runoff
             return winner
+        # There was a tie or cycle in both scores and preferences.
+        # Tiebreak randomly
+        # TODO: Shouldn't need to convert to list
+        # TODO: This should just call a condorcet function between the tied
+        # score candidates
+        # TODO: Should handle two CWs tied, Smith set(??), etc.
+        result = tiebreak(list(_all_condorcet_from_matrix(matrix)), 1)
+        return None if result[0] is None else int(result[0])
     elif len(first_set) == 1:
         # One candidate has highest score
         first = first_set[0]
@@ -287,18 +282,7 @@ def star(election, tiebreaker=None):
             # candidate who was preferred head-to-head by more voters."
             matrix = matrix_from_scores(election[:, second_set])
             winner = condorcet_from_matrix(matrix)
-            if winner is None:
-                # There was still a tie or cycle.
-                # '3. Ties which can be broken as above are known as simple
-                # ties and should be broken as above. Ties which can not be
-                # broken as above are considered "True Ties."
-                # "In the event that a true tie arises you can opt to resolve
-                # it with a random tiebreaker"
-                second = tiebreak(second_set, 1)[0]
-            else:
-                # There was a Condorcet winner among the tied candidates.
-                # Map back to their original index.
-                second = second_set[winner]
+            second = tiebreak(second_set, 1)[0] if winner is None else second_set[winner]
         if second is None:
             return None
     else:
@@ -311,12 +295,12 @@ def star(election, tiebreaker=None):
         # "1. Ties in the Runoff Round should be broken in favor of the
         # candidate who was scored higher if possible."
         winner = _scorewise_compare(tallies, first, second)
-        if winner is None:  # Tied in both scores and preferences
-            # '3. Ties which can be broken as above are known as simple
-            # ties and should be broken as above. Ties which can not be
-            # broken as above are considered "True Ties."
-            # "In the event that a true tie arises you can opt to resolve
-            # it with a random tiebreaker"
-            winner = tiebreak([first, second], 1)[0]
+    if winner is None:  # Tied in both scores and preferences
+        # '3. Ties which can be broken as above are known as simple
+        # ties and should be broken as above. Ties which can not be
+        # broken as above are considered "True Ties."
+        # "In the event that a true tie arises you can opt to resolve
+        # it with a random tiebreaker"
+        winner = tiebreak([first, second], 1)[0]
 
     return winner

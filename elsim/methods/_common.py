@@ -115,10 +115,7 @@ def _random_tiebreak(winners, n=1):
     Given an iterable of possibly tied `winners`, select `n` candidates at
     random.  If `n` is larger than `winners`, it is returned unchanged.
     """
-    if len(winners) <= n:
-        return winners
-    else:
-        return random.sample(winners, n)
+    return winners if len(winners) <= n else random.sample(winners, n)
 
 
 def _no_tiebreak(winners, n=1):
@@ -126,7 +123,4 @@ def _no_tiebreak(winners, n=1):
     Given an iterable of possibly tied `winners`, return None if there are more
     than `n` tied.  If `n` is larger than `winners`, it is returned unchanged.
     """
-    if len(winners) <= n:
-        return winners
-    else:
-        return [None]
+    return winners if len(winners) <= n else [None]

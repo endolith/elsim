@@ -38,7 +38,7 @@ method = 'FPTP'
 def simulate_batch():
     winners = defaultdict(list)
     for disp in disps_list:
-        for iteration in range(batch_size):
+        for _ in range(batch_size):
             v, c = normal_electorate(n_voters, n_cands, dims=1, disp=disp)
 
             if cand_dist == 'uniform':
@@ -84,14 +84,15 @@ def simulate_batch():
 
 
 print(f'{n_batches} tasks total:')
-p = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_batch)()
-                                   for i in range(n_batches))
+p = Parallel(n_jobs=-3, verbose=5)(
+    delayed(simulate_batch)() for _ in range(n_batches)
+)
 winners = {k: [v for d in p for v in d[k]] for k in p[0]}
 
 title = f'{method}, {human_format(n_elections)} 1D elections, '
 title += f'{human_format(n_voters)} voters, '
 title += f'{human_format(n_cands)} '
-title += cand_dist + 'ly-distributed candidates'
+title += f'{cand_dist}ly-distributed candidates'
 
 # For plotting only
 v, c = normal_electorate(n_voters, 1000, dims=1)

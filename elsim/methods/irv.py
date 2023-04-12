@@ -85,7 +85,7 @@ def irv(election, tiebreaker=None):
     tiebreak = _get_tiebreak(tiebreaker)
     first_pointer = np.zeros(n_voters, dtype=np.uint8)
     first_tallies = np.empty(n_cands, dtype=np.uint)
-    for round_ in range(n_cands):
+    for _ in range(n_cands):
         _tally_at_pointer(first_tallies, election, first_pointer)
 
         # tolist makes things 2-4x faster

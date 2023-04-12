@@ -150,13 +150,11 @@ def condorcet_from_matrix(matrix):
 
     # Brute force numba version is 4× faster (in part because it halts early)
     for runner in range(n_cands):
-        wins = 0
-        for opponent in range(n_cands):
-            if runner == opponent:
-                continue
-            else:
-                if matrix[runner, opponent] > matrix[opponent, runner]:
-                    wins += 1
+        wins = sum(
+            runner != opponent
+            and matrix[runner, opponent] > matrix[opponent, runner]
+            for opponent in range(n_cands)
+        )
         if wins == n_cands - 1:
             return runner
     return None

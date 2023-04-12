@@ -186,25 +186,22 @@ def sntv(election, n=1, tiebreaker=None):
     worst_top = top_candidates[0]
     best_not_top = sorted_indices[-n-1]
 
-    # There might be more than one with the same tally.  Or some with one tally
-    # and some with another
-    if tallies[worst_top] == tallies[best_not_top]:
-        # There is a tie that extends beyond top candidates
-
-        # Finalists who are not tied with a non-finalist
-        untied_winners = sorted_indices[tallies[sorted_indices] >
-                                        tallies[worst_top]]
-
-        # Finalists and non-finalists who are tied
-        tied_candidates = np.where(tallies == tallies[worst_top])[0]
-
-        # Break any ties using specified method
-        tiebreak = _get_tiebreak(tiebreaker)
-        n_needed = n - len(untied_winners)
-        tie_winners = tiebreak(list(tied_candidates), n_needed)
-        if tie_winners == [None]:
-            return None
-        return set(untied_winners) | set(tie_winners)
-    else:
+    if tallies[worst_top] != tallies[best_not_top]:
         # TODO: Maybe should use arrays for deterministic randomness?
         return set(top_candidates)
+    # There is a tie that extends beyond top candidates
+
+    # Finalists who are not tied with a non-finalist
+    untied_winners = sorted_indices[tallies[sorted_indices] >
+                                    tallies[worst_top]]
+
+    # Finalists and non-finalists who are tied
+    tied_candidates = np.where(tallies == tallies[worst_top])[0]
+
+    # Break any ties using specified method
+    tiebreak = _get_tiebreak(tiebreaker)
+    n_needed = n - len(untied_winners)
+    tie_winners = tiebreak(list(tied_candidates), n_needed)
+    if tie_winners == [None]:
+        return None
+    return set(untied_winners) | set(tie_winners)

@@ -44,6 +44,7 @@ The general trend is similar to Merrill's, but there are significant
 discrepancies.  It is smoother, so maybe the original just had lower number of
 simulations.
 """
+
 import time
 from collections import Counter
 from random import randint
@@ -84,7 +85,7 @@ for fig, disp, ymin in (('4.a', 1.0, 55),
                                                {'SU max', 'RW'})}
     start_time = time.monotonic()
 
-    for iteration in range(n_elections):
+    for _ in range(n_elections):
         for n_cands in n_cands_list:
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp)

@@ -218,7 +218,7 @@ if __name__ == '__main__':
                              ('Best Vote-for-or-against-k',
                               eff_best_vote_for_or_against_k),
                              ('Borda', eff_borda)):
-            table.update({name: method(array(m_cands_list))})
+            table[name] = method(array(m_cands_list))
 
     print(tabulate(table, 'keys', showindex=m_cands_list[:-1] + ('∞',),
                    tablefmt="pipe", floatfmt='.2%'))

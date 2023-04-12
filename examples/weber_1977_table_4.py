@@ -25,6 +25,7 @@ Typical result with n_elections = 1_000_000:
 | 30 |    16.0177 | 16.1577 |    16.1669 |
 
 """
+
 import time
 from collections import Counter
 import numpy as np
@@ -46,7 +47,7 @@ utility_sums = {key: Counter() for key in (ranked_methods.keys() |
 
 start_time = time.monotonic()
 
-for iteration in range(n_elections):
+for _ in range(n_elections):
     for n_voters in n_voters_list:
         utilities = random_utilities(n_voters, n_cands)
 
@@ -67,7 +68,7 @@ table = {}
 # Calculate the expected utilities over all elections
 for method in ('Standard', 'Borda', 'Approval'):
     x, y = zip(*sorted(utility_sums[method].items()))
-    table.update({method: np.array(y) / n_elections})
+    table[method] = np.array(y) / n_elections
 
 print(tabulate(table, 'keys', showindex=n_voters_list,
                tablefmt="pipe", floatfmt='.4f'))

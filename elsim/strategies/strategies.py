@@ -179,8 +179,7 @@ def approval_optimal(utilities):
 
     """
     means = np.mean(utilities, 1)
-    approvals = (utilities > means[:, np.newaxis]).astype(np.uint8)
-    return approvals
+    return (utilities > means[:, np.newaxis]).astype(np.uint8)
 
 
 def vote_for_k(utilities, k):

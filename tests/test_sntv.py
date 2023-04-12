@@ -13,7 +13,7 @@ def collect_random_results(method, election):
     """
     random.seed(47)  # Deterministic test
     winners = set()
-    for trial in range(10):
+    for _ in range(10):
         winner = method(election, tiebreaker='random')
         assert isinstance(winner, set)
         winners.update(winner)
@@ -262,10 +262,10 @@ def test_legit_winner_single_mark(election, tiebreaker, n):
                       min_size=1, max_size=100),
        n=integers(min_value=1, max_value=25))
 def test_legit_winner_none_single_mark(election, n):
-    n_cands = 26  # TODO: Vary this?
     winners = sntv(election, n)
     assert isinstance(winners, (set, type(None)))
     if winners is not None:
+        n_cands = 26  # TODO: Vary this?
         assert 0 < len(winners) <= n_cands
         assert winners <= set(range(n_cands))
 

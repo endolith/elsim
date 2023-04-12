@@ -19,6 +19,7 @@ Typical result with n_elections = 100_000:
 |  10 |      50.78 |           82.94 |   95.35 |
 | 255 |      12.78 |           86.37 |   99.80 |
 """
+
 # TODO: Standard is consistently ~1% high, while Borda is very accurate
 # TODO: Best Vote-for-or-against-k is not implemneted yet
 import time
@@ -45,7 +46,7 @@ utility_sums = {key: Counter() for key in (ranked_methods.keys() |
 
 start_time = time.monotonic()
 
-for iteration in range(n_elections):
+for _ in range(n_elections):
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
 
@@ -84,7 +85,7 @@ for method in ('Standard', 'Vote-for-half', 'Borda'):
     x, y = zip(*sorted(utility_sums[method].items()))
     SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
     plt.plot(x, SUE*100, '-', label=method)
-    table.update({method: SUE*100})
+    table[method] = SUE*100
 
 print(tabulate(table, 'keys', showindex=n_cands_list,
                tablefmt="pipe", floatfmt='.2f'))
