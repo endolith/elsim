@@ -22,6 +22,7 @@ With n_elections = 10_000_000 (which takes forever):
 """
 from collections import Counter
 import numpy as np
+from scipy.stats import binomtest
 import matplotlib.pyplot as plt
 from tabulate import tabulate
 from joblib import Parallel, delayed
@@ -72,7 +73,14 @@ plt.plot(x, y, label='WP')
 
 x, y = zip(*sorted(condorcet_paradox_counts.items()))
 CP = np.asarray(y) / n_elections  # Likelihood of paradox
-plt.plot(x, CP*100, '-', label='Simulation')
+
+# Add 95% confidence interval error bars (Clopper-Pearson exact method)
+ci = np.empty((2, len(y)))
+for i in range(len(y)):
+    ci[:, i] = binomtest(y[i], n_elections).proportion_ci()
+yerr = ci - CP
+yerr[0] = -yerr[0]
+plt.errorbar(x, CP*100, yerr*100, fmt='-', label='Simulation')
 
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')

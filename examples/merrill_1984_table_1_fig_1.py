@@ -27,6 +27,7 @@ Typical result:
 import time
 from collections import Counter
 import numpy as np
+from scipy.stats import binomtest
 import matplotlib.pyplot as plt
 from tabulate import tabulate
 from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
@@ -113,7 +114,14 @@ for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
     x, y = zip(*sorted(condorcet_winner_count[method].items()))
     CE = np.array(y)/y_cw
-    plt.plot(x, CE*100, '-', label=method)
+
+    # Add 95% confidence interval error bars (Clopper-Pearson exact method)
+    ci = np.empty((2, len(y)))
+    for i in range(len(y)):
+        ci[:, i] = binomtest(y[i], y_cw[i]).proportion_ci()
+    yerr = ci - CE
+    yerr[0] = -yerr[0]
+    plt.errorbar(x, CE*100, yerr*100, fmt='-', label=method)
     table.append([method, *np.array(y)/y_cw*100])
 
 # Likelihood that social utility maximizer is Condorcet Winner

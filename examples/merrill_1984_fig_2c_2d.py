@@ -44,6 +44,7 @@ high.
 import time
 from collections import Counter
 import numpy as np
+from scipy.stats import binomtest
 import matplotlib.pyplot as plt
 from tabulate import tabulate
 from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
@@ -140,7 +141,14 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
                    'Plurality'):
         x, y = zip(*sorted(condorcet_winner_count[method].items()))
         CE = np.array(y)/y_cw
-        plt.plot(x, CE*100, '-', label=method)
+
+        # Add 95% confidence interval error bars (Clopper-Pearson exact method)
+        ci = np.empty((2, len(y)))
+        for i in range(len(y)):
+            ci[:, i] = binomtest(y[i], y_cw[i]).proportion_ci()
+        yerr = ci - CE
+        yerr[0] = -yerr[0]
+        plt.errorbar(x, CE*100, yerr*100, fmt='-', label=method)
         table.append([method, *CE*100])
 
     print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
