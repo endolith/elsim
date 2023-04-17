@@ -299,3 +299,19 @@ Source: [distributions_by_n_cands.py](distributions_by_n_cands.py)
 ![](./results/Hare_RCV,_1M_1D_elections,_1k_voters,_7_normally-distributed_candidates.png)
 
 Source: [distributions_by_dispersion.py](distributions_by_dispersion.py)
+
+## Tomlinson 2023
+
+Kiran Tomlinson, Johan Ugander, Jon Kleinberg (2023) [Moderation in instant runoff voting](https://arxiv.org/abs/2303.09734)
+
+### Figure  3
+
+![](./results/Tomlinson_2023_1M_1D_elections,_1k_voters,_both_uniform.png)
+
+Source: [tomlinson_2023_figure_3.py](tomlinson_2023_figure_3.py)
+
+### Figure 3  comparison with other systems
+
+![](./results/Tomlinson_2023_1M_1D_elections,_1k_voters,_7_candidates,_both_uniform_updated.png)
+
+Source: [tomlinson_2023_figure_3_updated.py](tomlinson_2023_figure_3_updated.py)
