@@ -1,5 +1,14 @@
 """
-Show the winner distributions and bias of different voting methods.
+Reproduce Figure 3
+
+The distributions of the winning position with k = 3, 4, 5 candidates and
+continuous 1-Euclidean voters (both uniformly distributed) under plurality and
+IRV.
+
+from
+
+Kiran Tomlinson, Johan Ugander, Jon Kleinberg (2023) Moderation in instant
+runoff voting https://arxiv.org/abs/2303.09734
 """
 import pickle
 from collections import defaultdict
