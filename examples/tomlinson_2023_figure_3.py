@@ -11,13 +11,12 @@ from elsim.methods import fptp, irv
 from elsim.elections import normed_dist_utilities
 from elsim.strategies import honest_rankings
 
-n_elections = 1_000  # Roughly 80 minutes on a 2019 6-core i7-9750H
+n_elections = 1_000_000  # Roughly 80 minutes on a 2019 6-core i7-9750H
 n_voters = 1_000
-n_cands = 5
+n_cands_list = (3, 4, 5)
 cand_dist = 'uniform'
 u_width = 5
 disp = 1
-vote_for = n_cands//2
 
 # Simulate more than just one election per worker to improve efficiency
 batch_size = 100
@@ -36,7 +35,7 @@ def human_format(num):
         num /= 1000.0
 
 
-def simulate_batch():
+def simulate_batch(n_cands):
     winners = defaultdict(list)
     for iteration in range(batch_size):
 
@@ -49,48 +48,49 @@ def simulate_batch():
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
         winner = fptp(rankings, tiebreaker='random')
-        winners['First Past The Post / Plurality'].append(c[winner][0])
+        winners['Plurality'].append(c[winner][0])
 
         # Instant-runoff
         winner = irv(rankings, tiebreaker='random')
-        winners['Ranked-Choice Voting (Hare) / '
-                'Alternative Vote / Instant-Runoff'].append(c[winner][0])
+        winners['IRV'].append(c[winner][0])
 
     return winners
 
 
-print(f'{n_batches} tasks total:')
-p = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_batch)()
-                                   for i in range(n_batches))
-winners = {k: [v for d in p for v in d[k]] for k in p[0]}
-
 title = f'{human_format(n_elections)} 1D elections, '
 title += f'{human_format(n_voters)} voters, '
-title += f'{human_format(n_cands)} candidates'
-title += ', both ' + cand_dist
+title += 'both ' + cand_dist
 
-fig, ax = plt.subplots(nrows=ceildiv(len(winners), 2), ncols=2, num=title,
+fig, ax = plt.subplots(nrows=2, ncols=3, num=title,
                        sharex=True, constrained_layout=True,
-                       figsize=(11, 9.5))
+                       figsize=(11, 5))
 fig.suptitle(title)
 
-ax = ax.T.flatten()  # Flatten the ax array for easier indexing
+for n_cands in n_cands_list:
+    print(f'{n_batches} tasks total:')
 
-for n, method in enumerate(winners.keys()):
-    histplot(winners[method], ax=ax[n], label='Winners', stat='density')
-    ax[n].set_title(method, loc='left')
-    ax[n].set_yticklabels([])  # Don't care about numbers
-    ax[n].set_ylabel("")  # No "density"
+    p = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_batch)(n_cands)
+                                       for i in range(n_batches))
+    winners = {k: [v for d in p for v in d[k]] for k in p[0]}
 
-    tmp = ax[n].twinx()
-    tmp.set_yticklabels([])  # Don't care about numbers
-    tmp.set_ylabel("")  # No "density"
+    for n, method in enumerate(winners.keys()):
+        histplot(winners[method], ax=ax[n, n_cands-3],
+                 label='Winners', stat='density')
+        ax[n, n_cands-3].set_title(f'{method}, {n_cands} candidates',
+                                   loc='left')
+        ax[n, n_cands-3].set_yticklabels([])  # Don't care about numbers
+        ax[n, n_cands-3].set_ylabel("")  # No "density"
 
-ax[0].set_xlim(-2.5, 2.5)
-ax[0].legend()
+        tmp = ax[n, n_cands-3].twinx()
+        tmp.set_yticklabels([])  # Don't care about numbers
+        tmp.set_ylabel("")  # No "density"
 
-# These take so long and kernel crashes!
-plt.savefig(title + '.png')
+    ax[0, n_cands-3].set_xlim(-2.5, 2.5)
 
-with open(title + '.pkl', "wb") as file:
-    pickle.dump(winners, file)
+    # These take so long and kernel crashes!
+    plt.savefig(title + '.png')
+
+    with open(title + '.pkl', "wb") as file:
+        pickle.dump(winners, file)
+
+ax[0, 0].legend()
