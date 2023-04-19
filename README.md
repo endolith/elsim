@@ -46,7 +46,7 @@ pip install git+https://github.com/endolith/elsim.git
 
 ## Documentation
 
-Currently just the docstrings of the submodules and functions themselves, in [`numpydoc` format](https://numpydoc.readthedocs.io/en/latest/format.html).
+Currently just the docstrings of the submodules and functions themselves, in [`numpydoc` format](https://numpydoc.readthedocs.io/en/latest/format.html).  Now being rendered at https://endolith.github.io/elsim/
 
 ## Usage
 
