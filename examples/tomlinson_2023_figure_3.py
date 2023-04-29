@@ -20,11 +20,9 @@ from elsim.methods import fptp, irv
 from elsim.elections import normed_dist_utilities
 from elsim.strategies import honest_rankings
 
-n_elections = 1_000_000  # Roughly 80 minutes on a 2019 6-core i7-9750H
+n_elections = 1_000_000  # Roughly 6 minutes on a 2019 6-core i7-9750H
 n_voters = 1_000
 n_cands_list = (3, 4, 5)
-cand_dist = 'uniform'
-u_width = 5
 disp = 1
 
 # Simulate more than just one election per worker to improve efficiency
@@ -48,10 +46,14 @@ def simulate_batch(n_cands):
     winners = defaultdict(list)
     for iteration in range(batch_size):
 
-        v = np.random.uniform(-u_width/2, +u_width/2, n_voters)
-        v = np.atleast_2d(v).T
-        c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
-        c = np.atleast_2d(c).T
+        # "voters and candidates come from the uniform distribution on [0, 1]"
+        v = np.random.uniform(0, 1, n_voters)
+        # But remove any run-to-run random bias, because we want to match ideal
+        # points of the actual set of voters, not their expected value.
+        v = (v - v.mean() + 0.5)[:, np.newaxis]
+
+        c = np.random.uniform(0, 1, n_cands)
+        c = (c - v.mean() + 0.5)[:, np.newaxis]
 
         # FPTP voting method
         utilities = normed_dist_utilities(v, c)
@@ -68,7 +70,7 @@ def simulate_batch(n_cands):
 
 title = f'{human_format(n_elections)} 1D elections, '
 title += f'{human_format(n_voters)} voters, '
-title += 'both ' + cand_dist
+title += 'both uniform'
 
 fig, ax = plt.subplots(nrows=2, ncols=3, num=title,
                        sharex=True, constrained_layout=True,
@@ -94,7 +96,13 @@ for n_cands in n_cands_list:
         tmp.set_yticklabels([])  # Don't care about numbers
         tmp.set_ylabel("")  # No "density"
 
-    ax[0, n_cands-3].set_xlim(-2.5, 2.5)
+    ax[0, n_cands-3].set_xlim(-0.05, 1.05)
+
+    # "the probability that the winning candidate produced by IRV lies outside
+    # the interval [1/6, 5/6] goes to 0 as the number of candidates k goes to
+    # infinity"
+    ax[1, n_cands-3].axvline(1/6, linestyle='--')
+    ax[1, n_cands-3].axvline(5/6, linestyle='--')
 
     # These take so long and kernel crashes!
     plt.savefig(title + '.png')
