@@ -104,10 +104,10 @@ for n_cands in n_cands_list:
     ax[1, n_cands-3].axvline(1/6, linestyle='--')
     ax[1, n_cands-3].axvline(5/6, linestyle='--')
 
-    # These take so long and kernel crashes!
-    plt.savefig(title + '.png')
-
-    with open(title + '.pkl', "wb") as file:
-        pickle.dump(winners, file)
-
 ax[0, 0].legend()
+
+# These take so long and kernel crashes!
+plt.savefig(title + '.png')
+
+with open(title + '.pkl', "wb") as file:
+    pickle.dump(winners, file)
