@@ -22,6 +22,8 @@ Or the table of Effectiveness from [Weber 1977](https://elischolar.library.yale.
 |   10 |    50.78 |         82.94 | 95.35 |
 |  255 |    12.78 |         86.37 | 99.80 |
 
+See [/examples](./examples) folder for more on what it can do, such as reproductions of previous research.
+
 ## Goals
 
 - Fast (~25,000 elections per second on Core i7-9750H)
@@ -54,10 +56,10 @@ Specify an election with three candidates (0, 1, 2), where two voters rank candi
 
 ```python
 >>> election = [[0, 2, 1],
-                [0, 2, 1],
-                [1, 2, 0],
-                [1, 2, 0],
-                [2, 0, 1]]
+...             [0, 2, 1],
+...             [1, 2, 0],
+...             [1, 2, 0],
+...             [2, 0, 1]]
 ```
 
 Calculate the winner using Black's method:
@@ -69,8 +71,6 @@ Calculate the winner using Black's method:
 ```
 
 Candidate 2 is the Condorcet winner, and wins under Black's method.
-
-See [/examples](./examples) folder for more on what it can do, such as reproductions of previous research.
 
 ## Submodules and chained functions
 
