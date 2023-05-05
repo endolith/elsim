@@ -71,8 +71,7 @@ def coombs(election, tiebreaker=None):
     2
     """
     election = np.asarray(election)
-    n_voters = election.shape[0]
-    n_cands = election.shape[1]
+    n_voters, n_cands = election.shape
     eliminated = set()
     tiebreak = _get_tiebreak(tiebreaker)
     first_pointer = np.zeros(n_voters, dtype=np.uint8)
