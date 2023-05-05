@@ -1,17 +1,10 @@
 import numpy as np
-from elsim.methods._common import (_all_indices, _order_tiebreak_keep,
-                                   _random_tiebreak, _no_tiebreak)
+from elsim.methods._common import (_all_indices, _get_tiebreak, _no_tiebreak,
+                                   _order_tiebreak_keep, _random_tiebreak)
 
 _tiebreak_map = {'order': _order_tiebreak_keep,
                  'random': _random_tiebreak,
                  None: _no_tiebreak}
-
-
-def _get_tiebreak(tiebreaker):
-    try:
-        return _tiebreak_map[tiebreaker]
-    except KeyError:
-        raise ValueError('Tiebreaker not understood')
 
 
 def borda(election, tiebreaker=None):
@@ -89,5 +82,5 @@ def borda(election, tiebreaker=None):
     winners = _all_indices(total_tally, highest)
 
     # Break any ties using specified method
-    tiebreak = _get_tiebreak(tiebreaker)
+    tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
     return tiebreak(winners)[0]

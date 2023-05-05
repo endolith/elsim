@@ -1,18 +1,11 @@
 import numpy as np
-from elsim.methods._common import (_all_indices, _tally_at_pointer,
-                                   _inc_pointer, _order_tiebreak_elim,
-                                   _random_tiebreak, _no_tiebreak)
+from elsim.methods._common import (_all_indices, _get_tiebreak, _inc_pointer,
+                                   _no_tiebreak, _order_tiebreak_elim,
+                                   _random_tiebreak, _tally_at_pointer)
 
 _tiebreak_map = {'order': _order_tiebreak_elim,
                  'random': _random_tiebreak,
                  None: _no_tiebreak}
-
-
-def _get_tiebreak(tiebreaker):
-    try:
-        return _tiebreak_map[tiebreaker]
-    except KeyError:
-        raise ValueError('Tiebreaker not understood')
 
 
 def irv(election, tiebreaker=None):
@@ -81,7 +74,7 @@ def irv(election, tiebreaker=None):
     election = np.asarray(election)
     n_voters, n_cands = election.shape
     eliminated = set()
-    tiebreak = _get_tiebreak(tiebreaker)
+    tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
     first_pointer = np.zeros(n_voters, dtype=np.uint8)
     first_tallies = np.empty(n_cands, dtype=np.uint)
     for round_ in range(n_cands):

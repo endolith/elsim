@@ -130,3 +130,10 @@ def _no_tiebreak(winners, n=1):
         return winners
     else:
         return [None]
+
+
+def _get_tiebreak(tiebreaker, tiebreak_map):
+    try:
+        return tiebreak_map[tiebreaker]
+    except KeyError:
+        raise ValueError(f'Tiebreaker {tiebreaker} not understood')

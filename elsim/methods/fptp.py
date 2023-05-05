@@ -1,17 +1,10 @@
 import numpy as np
-from elsim.methods._common import (_all_indices, _order_tiebreak_keep,
-                                   _random_tiebreak, _no_tiebreak)
+from elsim.methods._common import (_all_indices, _get_tiebreak, _no_tiebreak,
+                                   _order_tiebreak_keep, _random_tiebreak)
 
 _tiebreak_map = {'order': _order_tiebreak_keep,
                  'random': _random_tiebreak,
                  None: _no_tiebreak}
-
-
-def _get_tiebreak(tiebreaker):
-    try:
-        return _tiebreak_map[tiebreaker]
-    except KeyError:
-        raise ValueError('Tiebreaker not understood')
 
 
 def fptp(election, tiebreaker=None):
@@ -92,7 +85,7 @@ def fptp(election, tiebreaker=None):
     winners = _all_indices(tallies, highest_tally)
 
     # Break any ties using specified method
-    tiebreak = _get_tiebreak(tiebreaker)
+    tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
     return tiebreak(winners)[0]
 
 
@@ -199,7 +192,7 @@ def sntv(election, n=1, tiebreaker=None):
         tied_candidates = np.where(tallies == tallies[worst_top])[0]
 
         # Break any ties using specified method
-        tiebreak = _get_tiebreak(tiebreaker)
+        tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
         n_needed = n - len(untied_winners)
         tie_winners = tiebreak(list(tied_candidates), n_needed)
         if tie_winners == [None]:

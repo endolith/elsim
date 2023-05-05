@@ -1,17 +1,10 @@
 import numpy as np
-from elsim.methods._common import (_all_indices, _order_tiebreak_keep,
-                                   _random_tiebreak, _no_tiebreak)
+from elsim.methods._common import (_all_indices, _get_tiebreak, _no_tiebreak,
+                                   _order_tiebreak_keep, _random_tiebreak)
 
 _tiebreak_map = {'order': _order_tiebreak_keep,
                  'random': _random_tiebreak,
                  None: _no_tiebreak}
-
-
-def _get_tiebreak(tiebreaker):
-    try:
-        return _tiebreak_map[tiebreaker]
-    except KeyError:
-        raise ValueError('Tiebreaker not understood')
 
 
 def runoff(election, tiebreaker=None):
@@ -79,7 +72,7 @@ def runoff(election, tiebreaker=None):
     highest = sorted(tallies)[-2:]
     high_scorers = _all_indices(tallies, highest[-1])
 
-    tiebreak = _get_tiebreak(tiebreaker)
+    tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
     finalists = tiebreak(high_scorers, 2)
     # Handle no tiebreaker case
     if None in finalists:
