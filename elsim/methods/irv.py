@@ -1,4 +1,5 @@
 import numpy as np
+
 from elsim.methods._common import (_all_indices, _get_tiebreak, _inc_pointer,
                                    _no_tiebreak, _order_tiebreak_elim,
                                    _random_tiebreak, _tally_at_pointer)

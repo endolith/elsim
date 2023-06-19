@@ -47,9 +47,11 @@ high.
 """
 import time
 from collections import Counter
+
 import numpy as np
 import matplotlib.pyplot as plt
 from tabulate import tabulate
+
 from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
                            black, utility_winner, condorcet, score, star)
 from elsim.elections import normal_electorate, normed_dist_utilities

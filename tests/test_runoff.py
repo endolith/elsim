@@ -1,8 +1,10 @@
 import random
+
 import numpy as np
 import pytest
 from hypothesis.strategies import integers, permutations, lists
 from hypothesis import given
+
 from elsim.methods import runoff
 
 

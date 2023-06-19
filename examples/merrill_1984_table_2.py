@@ -33,8 +33,10 @@ up to 4%.
 """
 import time
 from collections import Counter
+
 import numpy as np
 from tabulate import tabulate
+
 from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
                            black, utility_winner, condorcet)
 from elsim.elections import normal_electorate, normed_dist_utilities

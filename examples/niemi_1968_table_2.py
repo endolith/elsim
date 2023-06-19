@@ -22,9 +22,11 @@ Example output with n_elections = 1_000_000:
 
 """
 from collections import Counter
+
 import numpy as np
 from tabulate import tabulate
 from joblib import Parallel, delayed
+
 from elsim.methods import condorcet
 from elsim.elections import impartial_culture
 

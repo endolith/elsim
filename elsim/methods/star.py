@@ -1,4 +1,5 @@
 import numpy as np
+
 from elsim.methods._common import (_all_indices, _get_tiebreak, _no_tiebreak,
                                    _order_tiebreak_keep, _random_tiebreak)
 from elsim.methods.condorcet import condorcet_from_matrix
