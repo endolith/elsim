@@ -6,7 +6,7 @@ Probabilities of No Majority Winner, P(m, n), for Equally Likely Rank Orders
 from
 
 Niemi, R. G.; Weisberg, H. (1968). "A mathematical solution for the probability
-of the paradox of voting". Behavioral Science. 13 (4): 317–323.
+of the paradox of voting". Behavioral Science. 13 (4): 317-323.
 :doi:`10.1002/bs.3830130406` PMID 5663898.
 
 (Not including m = ∞ case which is covered by niemi_1968_table_1.py)

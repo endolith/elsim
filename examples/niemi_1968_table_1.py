@@ -7,7 +7,7 @@ is No Majority Winner, for Equally Likely Rank Orders
 from
 
 Niemi, R. G.; Weisberg, H. (1968). "A mathematical solution for the probability
-of the paradox of voting". Behavioral Science. 13 (4): 317–323.
+of the paradox of voting". Behavioral Science. 13 (4): 317-323.
 :doi:`10.1002/bs.3830130406` PMID 5663898.
 
 Example output with n_elections = 1_000, n_voters = 100_000 (16 minutes):
