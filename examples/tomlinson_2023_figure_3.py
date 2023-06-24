@@ -82,9 +82,9 @@ fig.suptitle(title)
 for n_cands in n_cands_list:
     print(f'{n_batches} tasks total:')
 
-    p = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_batch)(n_cands)
-                                       for i in range(n_batches))
-    winners = {k: [v for d in p for v in d[k]] for k in p[0]}
+    results = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_batch)(n_cands)
+                                             for i in range(n_batches))
+    winners = {k: [v for d in results for v in d[k]] for k in results[0]}
 
     for n, method in enumerate(winners.keys()):
         histplot(winners[method], ax=ax[n, n_cands-3],

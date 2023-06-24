@@ -104,10 +104,10 @@ def simulate_election():
 
 print(f'Doing {n_elections:,} elections (tasks), {n_voters:,} voters, '
       f'{n_cands_list} candidates')
-p = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_election)()
-                                   for i in range(n_elections))
+results = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_election)()
+                                         for i in range(n_elections))
 
-for result in p:
+for result in results:
     for method, d in result.items():
         for n_cands, value in d.items():
             utility_sums[method][n_cands] += value
