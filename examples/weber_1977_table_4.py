@@ -27,11 +27,13 @@ Typical result with n_elections = 1_000_000:
 """
 import time
 from collections import Counter
+
 import numpy as np
 from tabulate import tabulate
-from elsim.methods import fptp, borda, approval
+
 from elsim.elections import random_utilities
-from elsim.strategies import honest_rankings, approval_optimal
+from elsim.methods import approval, borda, fptp
+from elsim.strategies import approval_optimal, honest_rankings
 
 n_elections = 30_000  # Roughly 30 seconds
 n_voters_list = (2, 3, 4, 5, 10, 15, 20, 25, 30)

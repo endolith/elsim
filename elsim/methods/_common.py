@@ -4,12 +4,13 @@ slow, so I made this numba solution, but then discovered np.add.at, which is
 faster than the previous solutions, but still slower than numba.  So I'm using
 numba as a "soft" dependency, falling back on numpy if not installed.
 """
-import warnings
 import random
+import warnings
+
 import numpy as np
 
 try:
-    from numba import njit, NumbaPendingDeprecationWarning
+    from numba import NumbaPendingDeprecationWarning, njit
 
     # Reflected set will be replaced in numba 0.46 and removed in 0.47.
     warnings.simplefilter("ignore", category=NumbaPendingDeprecationWarning)

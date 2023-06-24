@@ -43,13 +43,15 @@ high.
 """
 import time
 from collections import Counter
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 from tabulate import tabulate
-from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
-                           black, utility_winner, condorcet)
+
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.strategies import honest_rankings, approval_optimal
+from elsim.methods import (approval, black, borda, condorcet, coombs, fptp,
+                           irv, runoff, utility_winner)
+from elsim.strategies import approval_optimal, honest_rankings
 
 n_elections = 10_000  # Roughly 30 seconds each
 n_voters = 201

@@ -15,15 +15,17 @@ runoff voting https://arxiv.org/abs/2303.09734
 """
 import pickle
 from collections import defaultdict
-import numpy as np
+
 import matplotlib.pyplot as plt
-from seaborn import histplot
+import numpy as np
 from joblib import Parallel, delayed
-from elsim.methods import (fptp, runoff, irv, black, star, coombs, borda,
-                           approval)
+from seaborn import histplot
+
 from elsim.elections import normed_dist_utilities
-from elsim.strategies import (honest_rankings, honest_normed_scores,
-                              approval_optimal, vote_for_k)
+from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
+                           star)
+from elsim.strategies import (approval_optimal, honest_normed_scores,
+                              honest_rankings, vote_for_k)
 
 n_elections = 1_000_000  # Roughly 80 minutes on a 2019 6-core i7-9750H
 n_voters = 1_000

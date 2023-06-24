@@ -21,12 +21,14 @@ With n_elections = 10_000_000 (which takes forever):
 
 """
 from collections import Counter
-import numpy as np
+
 import matplotlib.pyplot as plt
-from tabulate import tabulate
+import numpy as np
 from joblib import Parallel, delayed
-from elsim.methods import condorcet
+from tabulate import tabulate
+
 from elsim.elections import impartial_culture
+from elsim.methods import condorcet
 
 # Number of voters vs percent of elections with Condorcet paradox.
 WP_table = {3:   5.556,

@@ -24,11 +24,11 @@ Example output with n_elections = 1_000_000:
 from collections import Counter
 
 import numpy as np
-from tabulate import tabulate
 from joblib import Parallel, delayed
+from tabulate import tabulate
 
-from elsim.methods import condorcet
 from elsim.elections import impartial_culture
+from elsim.methods import condorcet
 
 # It needs many simulations to get similar accuracy as the analytical results
 n_elections = 100_000  # Roughly 30 seconds

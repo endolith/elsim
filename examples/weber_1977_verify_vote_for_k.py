@@ -41,15 +41,17 @@ Typical results with 100k voters, 100k elections:
 | 10 | 49.7 |  66.4 |  75.9 |  81.5 |   83.0 |
 """
 from collections import Counter, defaultdict
-import numpy as np
+
 import matplotlib.pyplot as plt
-from tabulate import tabulate
+import numpy as np
 from joblib import Parallel, delayed
-from elsim.methods import (fptp, utility_winner, approval)
+from tabulate import tabulate
+
 from elsim.elections import random_utilities
+from elsim.methods import approval, fptp, utility_winner
 from elsim.strategies import honest_rankings, vote_for_k
-from weber_1977_expressions import (eff_standard, eff_vote_for_k,
-                                    eff_vote_for_half)
+from weber_1977_expressions import (eff_standard, eff_vote_for_half,
+                                    eff_vote_for_k)
 
 n_elections = 10_000  # Roughly 60 seconds
 n_voters = 1_000

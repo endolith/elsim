@@ -23,13 +23,15 @@ Typical result with n_elections = 100_000:
 # TODO: Best Vote-for-or-against-k is not implemneted yet
 import time
 from collections import Counter
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 from tabulate import tabulate
-from elsim.methods import (fptp, borda, utility_winner, approval)
+
 from elsim.elections import random_utilities
+from elsim.methods import approval, borda, fptp, utility_winner
 from elsim.strategies import honest_rankings, vote_for_k
-from weber_1977_expressions import eff_standard, eff_vote_for_half, eff_borda
+from weber_1977_expressions import eff_borda, eff_standard, eff_vote_for_half
 
 n_elections = 2_000  # Roughly 60 seconds
 n_voters = 1_000

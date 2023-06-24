@@ -12,6 +12,7 @@ Electoral Systems", American Journal of Political Science, vol. 28,
 no. 1, pp. 23-48, 1984.  :doi:`10.2307/2110786`
 """
 import matplotlib.pyplot as plt
+
 from elsim.elections import normal_electorate
 
 n_voters = 201

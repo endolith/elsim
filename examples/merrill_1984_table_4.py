@@ -32,12 +32,14 @@ up to 9%.
 import time
 from collections import Counter
 from random import randint
+
 import numpy as np
 from tabulate import tabulate
-from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
-                           black, utility_winner)
+
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.strategies import honest_rankings, approval_optimal
+from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
+                           utility_winner)
+from elsim.strategies import approval_optimal, honest_rankings
 
 n_elections = 10_000  # Roughly 60 seconds
 n_voters = 201

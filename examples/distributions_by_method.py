@@ -3,13 +3,15 @@ Show the winner distributions and bias of different voting methods.
 """
 import random
 from collections import defaultdict
-import numpy as np
+
 import matplotlib.pyplot as plt
-from seaborn import kdeplot, histplot
+import numpy as np
 from joblib import Parallel, delayed
-from elsim.methods import fptp, runoff, irv, black, star
+from seaborn import histplot, kdeplot
+
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.strategies import honest_rankings, honest_normed_scores
+from elsim.methods import black, fptp, irv, runoff, star
+from elsim.strategies import honest_normed_scores, honest_rankings
 
 n_elections = 1_000_000  # Roughly 11 minutes on a 2019 6-core i7-9750H
 n_voters = 1_000

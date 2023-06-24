@@ -12,12 +12,14 @@ runoff voting https://arxiv.org/abs/2303.09734
 """
 import pickle
 from collections import defaultdict
-import numpy as np
+
 import matplotlib.pyplot as plt
-from seaborn import histplot
+import numpy as np
 from joblib import Parallel, delayed
-from elsim.methods import fptp, irv
+from seaborn import histplot
+
 from elsim.elections import normed_dist_utilities
+from elsim.methods import fptp, irv
 from elsim.strategies import honest_rankings
 
 n_elections = 1_000_000  # Roughly 6 minutes on a 2019 6-core i7-9750H

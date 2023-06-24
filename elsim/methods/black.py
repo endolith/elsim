@@ -1,5 +1,5 @@
-from elsim.methods.condorcet import condorcet
 from elsim.methods.borda import borda
+from elsim.methods.condorcet import condorcet
 
 
 def black(election, tiebreaker=None):

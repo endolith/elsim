@@ -1,6 +1,8 @@
 import numbers
+
 import numpy as np
 from scipy.spatial.distance import cdist
+
 from elsim.strategies import honest_rankings
 
 elections_rng = np.random.default_rng()

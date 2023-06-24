@@ -21,7 +21,7 @@ table from page 19:
 | 10 |     49.79% |          82.99% |                       88.09% |  95.35% |
 | ∞  |      0.00% |          86.60% |                       92.25% | 100.00% |
 """
-from numpy import sqrt, round
+from numpy import round, sqrt
 from numpy.testing import assert_, assert_almost_equal
 
 
@@ -207,8 +207,8 @@ def test_cases():
 if __name__ == '__main__':
     test_cases()
 
-    from tabulate import tabulate
     from numpy import array
+    from tabulate import tabulate
 
     table = {}
     m_cands_list = (2, 3, 4, 5, 6, 10, 1e30)

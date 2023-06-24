@@ -47,14 +47,16 @@ simulations.
 import time
 from collections import Counter
 from random import randint
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 from tabulate import tabulate
-from elsim.methods import (fptp, runoff, irv, approval, borda, coombs,
-                           black, utility_winner, score, star)
+
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.strategies import (honest_rankings, approval_optimal,
-                              honest_normed_scores)
+from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
+                           score, star, utility_winner)
+from elsim.strategies import (approval_optimal, honest_normed_scores,
+                              honest_rankings)
 
 n_elections = 5_000  # Roughly 30 seconds each
 n_voters = 201

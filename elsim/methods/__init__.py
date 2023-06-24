@@ -14,5 +14,5 @@ from .fptp import fptp, sntv
 from .irv import irv
 from .runoff import runoff
 from .score import score
-from .star import star, matrix_from_scores
+from .star import matrix_from_scores, star
 from .utility_winner import utility_winner

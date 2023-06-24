@@ -21,8 +21,9 @@ Condorcet:
     Candidate 0 is preferred over Candidate 2 by 3 of 5 voters.
     Candidate 0 is therefore the Condorcet winner.
 """
-from hypothesis import given, assume, settings
-from hypothesis.strategies import lists, permutations, integers
+from hypothesis import assume, given, settings
+from hypothesis.strategies import integers, lists, permutations
+
 from elsim.methods import condorcet, irv
 
 

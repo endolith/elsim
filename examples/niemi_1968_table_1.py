@@ -36,12 +36,14 @@ Many candidates, with n_elections = 10_000, n_voters = 100_000 (3.5 hours)
 
 """
 from collections import Counter
-import numpy as np
+
 import matplotlib.pyplot as plt
-from tabulate import tabulate
+import numpy as np
 from joblib import Parallel, delayed
-from elsim.methods import condorcet
+from tabulate import tabulate
+
 from elsim.elections import impartial_culture
+from elsim.methods import condorcet
 
 # Probability That There Is No Majority Winner
 niemi_table = [.0000, .0000, .0877, .1755, .2513, .3152, .3692, .4151, .4545,
