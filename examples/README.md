@@ -85,7 +85,7 @@ Reproduce table from p. 19 of *Reproducing Voting Systems* using Monte Carlo met
 |   10 |    50.78 |         82.94 | 95.35 |
 |  255 |    12.78 |         86.37 | 99.80 |
 
-![](./results/Weber_1977_Effectiveness,_1000_voters,_10000_iterations.png)
+![](./results/Weber_1977_Effectiveness,_1000_voters,_10000_elections.png)
 
 Source: [weber_1977_effectiveness_table.py](weber_1977_effectiveness_table.py)
 
@@ -121,7 +121,7 @@ Compare Monte Carlo method with closed-form expressions for Vote-for-k method
 |    9 | 51.8 | 68.5 | 77.8 | 82.0 | 82.0 |
 |   10 | 49.7 | 66.4 | 75.9 | 81.5 | 83.0 |
 
-![](./results/Weber_1977_Vote-for-k,_1000_voters,_10000_iterations.png)
+![](./results/Weber_1977_Vote-for-k,_1000_voters,_10000_elections.png)
 
 Source: [weber_1977_verify_vote_for_k.py](weber_1977_verify_vote_for_k.py)
 
@@ -145,7 +145,7 @@ Reproduction of Condorcet efficiency (CE) and social utility efficiency (SUE) ta
 | SU max    | 100.0 |  84.1 |  79.6 |  78.4 |  77.3 |  77.5 |
 | CW        | 100.0 |  91.7 |  83.1 |  75.6 |  64.3 |  52.9 |
 
-![](./results/Merrill_1984_Figure_1._25_voters,_10000_iterations.png)
+![](./results/Merrill_1984_Figure_1._25_voters,_10000_elections.png)
 
 Source: [merrill_1984_table_1_fig_1.py](merrill_1984_table_1_fig_1.py)
 
@@ -191,7 +191,7 @@ Source: [merrill_1984_fig_2a_2b.py](merrill_1984_fig_2a_2b.py)
 | Runoff    | 100.0 |  94.1 |  87.1 |  79.7 |  72.8 |  66.1 |
 | Plurality | 100.0 |  80.6 |  67.6 |  57.4 |  49.3 |  42.6 |
 
-![](./results/Merrill_1984_Figure_2.c._201_voters,_10000_iterations.png)
+![](./results/Merrill_1984_Figure_2.c._201_voters,_10000_elections.png)
 
 #### 2.d
 
@@ -205,7 +205,7 @@ Source: [merrill_1984_fig_2a_2b.py](merrill_1984_fig_2a_2b.py)
 | Runoff    | 100.0 |  72.2 |  50.6 |  35.3 |  24.4 |  16.9 |
 | Plurality | 100.0 |  55.9 |  34.7 |  21.5 |  13.5 |   8.5 |
 
-![](./results/Merrill_1984_Figure_2.d._201_voters,_10000_iterations.png)
+![](./results/Merrill_1984_Figure_2.d._201_voters,_10000_elections.png)
 
 Source: [merrill_1984_fig_2c_2d.py](merrill_1984_fig_2c_2d.py)
 
@@ -221,7 +221,7 @@ Source: [merrill_1984_fig_2c_2d.py](merrill_1984_fig_2c_2d.py)
 | Coombs    | 100.0 | 90.2 | 86.8 | 85.2 | 84.0 | 82.9 |
 | Black     | 100.0 | 92.9 | 92.0 | 92.1 | 93.2 | 94.6 |
 
-![](./results/Merrill_1984_Figure_3._25_voters,_10000_iterations.png)
+![](./results/Merrill_1984_Figure_3._25_voters,_10000_elections.png)
 
 Source: [merrill_1984_table_3_fig_3.py](merrill_1984_table_3_fig_3.py)
 
@@ -257,7 +257,7 @@ Source: [merrill_1984_table_4.py](merrill_1984_table_4.py)
 | Runoff    | 100.0 | 94.1 | 92.0 | 90.5 | 87.4 |
 | Plurality | 100.0 | 84.4 | 77.3 | 72.0 | 64.8 |
 
-![](./results/Merrill_1984_Figure_4.a._201_voters,_10000_iterations.png)
+![](./results/Merrill_1984_Figure_4.a._201_voters,_10000_elections.png)
 
 #### 4.b
 
@@ -271,7 +271,7 @@ Source: [merrill_1984_table_4.py](merrill_1984_table_4.py)
 | Runoff    | 100.0 | 70.1 | 51.4 | 36.8 |  13.6 |
 | Plurality | 100.0 | 50.0 | 23.2 |  4.0 | -24.7 |
 
-![](./results/Merrill_1984_Figure_4.b._201_voters,_10000_iterations.png)
+![](./results/Merrill_1984_Figure_4.b._201_voters,_10000_elections.png)
 
 Source: [merrill_1984_fig_4a_4b.py](merrill_1984_fig_4a_4b.py)
 
