@@ -224,7 +224,7 @@ def star(election, tiebreaker=None):
     election = np.asarray(election)
 
     if election.min() < 0:
-        raise ValueError
+        raise ValueError('Scores cannot be negative')
 
     if election.shape[1] == 1:
         # Only 1 candidate: that candidate wins.
