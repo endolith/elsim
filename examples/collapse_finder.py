@@ -31,7 +31,7 @@ def print_candidates_and_tallies(c, tallies):
     assert len(c) == len(tallies)
 
     table = [
-        ["Cand pos:"] + [f"{i:.1f}" for i in c[:, 0]],
+        ["Cand pos:"] + [f"{i:.3f}" for i in c[:, 0]],
         ["Tallies:"] + list(tallies)
     ]
 
@@ -81,6 +81,7 @@ for trial in range(n_elections):
     if set(loser_indices) != set(best_indices):
         continue
 
+    print('\n===================')
     print(f'{n_losers} best candidates eliminated in FPTP primary.')
     print(f'Found after {trial} trials')
     print_candidates_and_tallies(c, tallies)
@@ -88,6 +89,75 @@ for trial in range(n_elections):
     # print(f'Tallies: {tallies}')
     print(f'Least tallied:     {set(loser_indices)}')
     print(f'Closest to origin: {set(best_indices)}')
+
+    # Remaining candidates proceed to RCV general
+    c = np.delete(c, loser_indices, axis=0)
+    utilities = normed_dist_utilities(v, c)
+    rankings = honest_rankings(utilities)
+    election = np.asarray(rankings)
+    first_preferences = election[:, 0]
+    tallies = np.bincount(first_preferences)
+    print('Final five:')
+    print_candidates_and_tallies(c, tallies)
+
+    # Find the 3 best candidates
+    best_indices = closest_to_origin_indices(c, 3)
+
+    # Eliminate the lowest-voted
+    loser = np.argmin(tallies)
+    print(f'{loser} eliminated')
+
+    # To find worst-case scenario, eliminated needs to be in best set
+    if loser not in set(best_indices):
+        continue
+
+    # Eliminate and do it again
+    c = np.delete(c, loser, axis=0)
+    utilities = normed_dist_utilities(v, c)
+    rankings = honest_rankings(utilities)
+    election = np.asarray(rankings)
+    first_preferences = election[:, 0]
+    tallies = np.bincount(first_preferences)
+    print('Final four:')
+    print_candidates_and_tallies(c, tallies)
+
+    # Eliminate the lowest-voted again
+    loser = np.argmin(tallies)
+    print(f'{loser} eliminated')
+
+    # To find worst-case scenario, eliminated needs to be in best set
+    if loser not in set(best_indices):
+        continue
+
+    # Eliminate and do it a third time
+    c = np.delete(c, loser, axis=0)
+    utilities = normed_dist_utilities(v, c)
+    rankings = honest_rankings(utilities)
+    election = np.asarray(rankings)
+    first_preferences = election[:, 0]
+    tallies = np.bincount(first_preferences)
+    print('Final three:')
+    print_candidates_and_tallies(c, tallies)
+
+    # Eliminate the lowest-voted again
+    loser = np.argmin(tallies)
+    print(f'{loser} eliminated')
+
+    # To find worst-case scenario, eliminated needs to be in best set
+    if loser not in set(best_indices):
+        continue
+
+    # Eliminate and do it a fourth time
+    c = np.delete(c, loser, axis=0)
+    utilities = normed_dist_utilities(v, c)
+    rankings = honest_rankings(utilities)
+    election = np.asarray(rankings)
+    first_preferences = election[:, 0]
+    tallies = np.bincount(first_preferences)
+    print('Final two:')
+    print_candidates_and_tallies(c, tallies)
+
+    print(f'After {trial} trials')
 
     break
 
