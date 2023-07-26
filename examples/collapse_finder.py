@@ -30,6 +30,10 @@ def top_n_indices(arr, n):
     return arr.argsort()[-n:][::-1]
 
 
+def bottom_n_indices(arr, n):
+    return arr.argsort()[:n]
+
+
 # ChatGPT
 def closest_to_origin_indices(arr, n):
     dist = np.linalg.norm(arr, axis=1)
@@ -54,19 +58,17 @@ for trial in range(n_elections):
     tallies = np.bincount(first_preferences)
 
     # Find the set of 5 candidates who have the highest tally
-    n = 5
-    winner_indices = top_n_indices(tallies, n)
-
-    # Find the remaining losers
-    loser_indices = set(range(n_cands)) - set(winner_indices)
+    n_finalists = 5
+    n_losers = n_cands - n_finalists
+    loser_indices = bottom_n_indices(tallies, n_losers)
 
     # Find the best candidates
-    best_indices = closest_to_origin_indices(c, n_cands - n)
+    best_indices = closest_to_origin_indices(c, n_losers)
 
     if set(loser_indices) != set(best_indices):
         continue
 
-    print(f'{n} best candidates eliminated in FPTP primary.')
+    print(f'{n_losers} best candidates eliminated in FPTP primary.')
     print(f'Found after {trial} trials')
     print(c, tallies, set(loser_indices), set(best_indices))
     break
