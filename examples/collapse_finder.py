@@ -40,6 +40,7 @@ n_elections = 10_000
 n_failures = 0
 for trial in range(n_elections):
     v, c = normal_electorate(n_voters, n_cands, dims=1, disp=1)
+    c = np.sort(c, axis=0)  # just for ease of viewing
     utilities = normed_dist_utilities(v, c)
     rankings = honest_rankings(utilities)
 
@@ -65,7 +66,7 @@ for trial in range(n_elections):
     if set(loser_indices) != set(best_indices):
         continue
 
-    print('found after', trial)
+    print('4 best candidates eliminated, found after', trial)
     print(c, tallies, set(loser_indices), set(best_indices))
     break
 
