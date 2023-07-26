@@ -36,9 +36,9 @@ def closest_to_origin_indices(arr, n):
     return dist.argsort()[:n]
 
 
-n_elections = 1_00_000
+n_elections = 100_000
 n_failures = 0
-for trial in range(10000):
+for trial in range(n_elections):
     v, c = normal_electorate(n_voters, n_cands, dims=1)
     utilities = normed_dist_utilities(v, c)
     rankings = honest_rankings(utilities)
