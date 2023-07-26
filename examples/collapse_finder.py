@@ -58,10 +58,10 @@ n_failures = 0
 for trial in range(n_elections):
     v, c = normal_electorate(n_voters, n_cands, dims=1, disp=1)
     c = np.sort(c, axis=0)  # just for ease of viewing
+
+    # First remove the least tallied candidates in FPTP primary
     utilities = normed_dist_utilities(v, c)
     rankings = honest_rankings(utilities)
-
-    # First remove the least 4 in FPTP ballot
     election = np.asarray(rankings)
 
     # Get first preferences from election array
