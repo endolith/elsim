@@ -13,7 +13,7 @@ from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods import fptp, irv
 from elsim.strategies import honest_rankings
 
-n_voters = 1_0 # 00
+n_voters = 1_000 # 00
 n_cands = 9
 cand_dist = 'normal'
 
@@ -31,11 +31,14 @@ def top_n_indices(arr, n):
 
 
 # ChatGPT
-def closest_to_zero_indices(arr, n):
-    return np.abs(arr).argsort(axis=0)[:n]
+def closest_to_origin_indices(arr, n):
+    dist = np.linalg.norm(arr, axis=1)
+    return dist.argsort()[:n]
 
 
-for trial in range(1000):
+n_elections = 1_00_000
+n_failures = 0
+for trial in range(10000):
     v, c = normal_electorate(n_voters, n_cands, dims=1)
     utilities = normed_dist_utilities(v, c)
     rankings = honest_rankings(utilities)
@@ -57,10 +60,36 @@ for trial in range(1000):
     loser_indices = set(range(n_cands)) - set(winner_indices)
 
     # Find the best candidates
-    best_indices = closest_to_zero_indices(c, n)
+    best_indices = closest_to_origin_indices(c, n_cands - n)
 
-    if set(winner_indices) == set(best_indices):
-        print('found after', trial)
+    if set(loser_indices) == set(best_indices):
+        n_failures +=1;
+        # print('found after', trial)
+        # print(c, tallies, set(loser_indices), set(best_indices))
+        # break
+
+print(n_failures/n_elections*100, "%")
+# import numpy as np
+
+# def closest_to_origin_indices(arr, n):
+#     dist = np.linalg.norm(arr, axis=1)
+#     return dist.argsort()[:n]
+
+# coordinates = np.array([[-0.48410594, -1.32690993],
+#                         [ 0.05752119, -0.1791397 ],
+#                         [ 1.85980733, -0.78246966],
+#                         [ 1.24417245,  0.35441942],
+#                         [ 0.43939255,  0.96480142],
+#                         [-1.1830837 ,  1.26436022],
+#                         [-0.32579403, -0.9014799 ],
+#                         [-1.46592261,  0.66729373],
+#                         [-0.1399564 ,  0.92234018]])
+
+# n = 3  # or whatever number you prefer
+
+# indices = closest_to_origin_indices(coordinates, n)
+# print(indices)
+
 
 #     est_tally = max(tallies)
 #     winners = _all_indices(tallies, highest_tally)
