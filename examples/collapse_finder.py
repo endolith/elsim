@@ -36,10 +36,10 @@ def closest_to_origin_indices(arr, n):
     return dist.argsort()[:n]
 
 
-n_elections = 100_000
+n_elections = 10_000
 n_failures = 0
 for trial in range(n_elections):
-    v, c = normal_electorate(n_voters, n_cands, dims=1)
+    v, c = normal_electorate(n_voters, n_cands, dims=1, disp=1)
     utilities = normed_dist_utilities(v, c)
     rankings = honest_rankings(utilities)
 
@@ -63,7 +63,7 @@ for trial in range(n_elections):
     best_indices = closest_to_origin_indices(c, n_cands - n)
 
     if set(loser_indices) == set(best_indices):
-        n_failures +=1;
+        n_failures += 1
         # print('found after', trial)
         # print(c, tallies, set(loser_indices), set(best_indices))
         # break
