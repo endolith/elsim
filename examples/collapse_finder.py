@@ -62,11 +62,12 @@ for trial in range(n_elections):
     # Find the best candidates
     best_indices = closest_to_origin_indices(c, n_cands - n)
 
-    if set(loser_indices) == set(best_indices):
-        n_failures += 1
-        # print('found after', trial)
-        # print(c, tallies, set(loser_indices), set(best_indices))
-        # break
+    if set(loser_indices) != set(best_indices):
+        continue
+
+    print('found after', trial)
+    print(c, tallies, set(loser_indices), set(best_indices))
+    break
 
 print(n_failures/n_elections*100, "%")
 # import numpy as np
