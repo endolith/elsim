@@ -35,7 +35,7 @@ def print_candidates_and_tallies(c, tallies):
         ["Tallies:"] + list(tallies)
     ]
 
-    print(tabulate(table, tablefmt='pipe'))
+    print(tabulate(table, tablefmt='pipe', numalign="center"))
 
 
 # ChatGPT
