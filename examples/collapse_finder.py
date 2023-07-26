@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from joblib import Parallel, delayed
 from seaborn import histplot, kdeplot
+from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods import fptp, irv
@@ -23,6 +24,18 @@ def human_format(num):
         if abs(num) < 1000:
             return f"{num:.3g}{unit}"
         num /= 1000.0
+
+
+def print_candidates_and_tallies(c, tallies):
+    # If the two lists have different lengths, raise an error.
+    assert len(c) == len(tallies)
+
+    table = [
+        ["Cand pos:"] + [f"{i:.1f}" for i in c[:, 0]],
+        ["Tallies:"] + list(tallies)
+    ]
+
+    print(tabulate(table, tablefmt='pipe'))
 
 
 # ChatGPT
@@ -70,7 +83,12 @@ for trial in range(n_elections):
 
     print(f'{n_losers} best candidates eliminated in FPTP primary.')
     print(f'Found after {trial} trials')
-    print(c, tallies, set(loser_indices), set(best_indices))
+    print_candidates_and_tallies(c, tallies)
+    # print(f'Candidate positions: {[f"{i:.1f}" for i in c[:, 0]]}')
+    # print(f'Tallies: {tallies}')
+    print(f'Least tallied:     {set(loser_indices)}')
+    print(f'Closest to origin: {set(best_indices)}')
+
     break
 
 print(n_failures/n_elections*100, "%")
