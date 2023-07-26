@@ -1,20 +1,15 @@
 """
 Find worst-case scenarios with RCV.
 """
-import random
-from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import numpy as np
-from joblib import Parallel, delayed
-from seaborn import histplot, kdeplot
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.methods import fptp, irv
 from elsim.strategies import honest_rankings
 
-n_voters = 1_000 # 00
+n_voters = 1_000
 n_cands = 9
 cand_dist = 'normal'
 
@@ -58,6 +53,7 @@ n_failures = 0
 for trial in range(n_elections):
     v, c = normal_electorate(n_voters, n_cands, dims=1, disp=1)
     c = np.sort(c, axis=0)  # just for ease of viewing
+    original_c = c
 
     # First remove the least tallied candidates in FPTP primary
     utilities = normed_dist_utilities(v, c)
@@ -121,6 +117,9 @@ for trial in range(n_elections):
     print('Final four:')
     print_candidates_and_tallies(c, tallies)
 
+    # Find the 2 best candidates
+    best_indices = closest_to_origin_indices(c, 2)
+
     # Eliminate the lowest-voted again
     loser = np.argmin(tallies)
     print(f'{loser} eliminated')
@@ -138,6 +137,9 @@ for trial in range(n_elections):
     tallies = np.bincount(first_preferences)
     print('Final three:')
     print_candidates_and_tallies(c, tallies)
+
+    # Find the 1 best candidate
+    best_indices = closest_to_origin_indices(c, 1)
 
     # Eliminate the lowest-voted again
     loser = np.argmin(tallies)
@@ -158,79 +160,7 @@ for trial in range(n_elections):
     print_candidates_and_tallies(c, tallies)
 
     print(f'After {trial} trials')
+    print(original_c)
+    plt.plot(original_c[:, 0], [1]*n_cands, '|')
 
     break
-
-print(n_failures/n_elections*100, "%")
-# import numpy as np
-
-# def closest_to_origin_indices(arr, n):
-#     dist = np.linalg.norm(arr, axis=1)
-#     return dist.argsort()[:n]
-
-# coordinates = np.array([[-0.48410594, -1.32690993],
-#                         [ 0.05752119, -0.1791397 ],
-#                         [ 1.85980733, -0.78246966],
-#                         [ 1.24417245,  0.35441942],
-#                         [ 0.43939255,  0.96480142],
-#                         [-1.1830837 ,  1.26436022],
-#                         [-0.32579403, -0.9014799 ],
-#                         [-1.46592261,  0.66729373],
-#                         [-0.1399564 ,  0.92234018]])
-
-# n = 3  # or whatever number you prefer
-
-# indices = closest_to_origin_indices(coordinates, n)
-# print(indices)
-
-
-#     est_tally = max(tallies)
-#     winners = _all_indices(tallies, highest_tally)
-
-#     # Break any ties using specified method
-#     tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
-#     # return tiebreak(winners)[0]
-
-#     winner = fptp(rankings, tiebreaker='random')
-#     winner = irv(rankings, tiebreaker='random')
-
-# raise SystemExit
-# # print(f'{n_batches} tasks total:')
-
-# # Create a list of jobs
-# jobs = []
-
-# # Add jobs to the list
-# for _ in range(n_elections):
-#     jobs.append(delayed(simulate_batch)(n_voters, n_cands, batch_size))
-
-# # Execute the jobs in parallel
-# results = Parallel(n_jobs=-3, verbose=5)(jobs)
-
-# winners = {k: [v for d in results for v in d[k]] for k in results[0]}
-
-# title = f'{method}, {human_format(n_elections)} 1D elections, '
-# title += f'{human_format(n_voters)} voters, '
-# title += f'{human_format(n_cands)} '
-# title += cand_dist + 'ly-distributed candidates'
-
-# # For plotting only
-# v, c = normal_electorate(n_voters, 1000, dims=1)
-
-# fig, ax = plt.subplots(nrows=len(winners), num=title, sharex=True,
-#                        constrained_layout=True, figsize=(7.5, 9.5))
-# fig.suptitle(title)
-# for n, disp in enumerate(winners):
-#     histplot(winners[disp], ax=ax[n], label=f'{disp:.1f} dispersion',
-#              stat='density')
-#     ax[n].set_yticklabels([])  # Don't care about numbers
-#     ax[n].set_ylabel("")  # No "density"
-
-#     tmp = ax[n].twinx()
-#     kdeplot(v[:, 0], ax=tmp, ls=':', label='Voters')  # Label doesn't work
-#     ax[n].plot([], [], ls=':', label='Voters')  # Dummy label hack
-#     tmp.set_yticklabels([])  # Don't care about numbers
-#     tmp.set_ylabel("")  # No "density"
-
-#     ax[n].legend()
-# ax[0].set_xlim(-2.5, 2.5)
