@@ -66,7 +66,8 @@ for trial in range(n_elections):
     if set(loser_indices) != set(best_indices):
         continue
 
-    print('4 best candidates eliminated, found after', trial)
+    print(f'{n} best candidates eliminated in FPTP primary.')
+    print(f'Found after {trial} trials')
     print(c, tallies, set(loser_indices), set(best_indices))
     break
 
