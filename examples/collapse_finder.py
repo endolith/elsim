@@ -48,6 +48,19 @@ def closest_to_origin_indices(arr, n):
     return dist.argsort()[:n]
 
 
+def count_unique_rows(election):
+    # We need to ensure rows are viewed as single items
+    rows_as_tuples = map(tuple, election)
+
+    # Use np.unique to find unique rows and their counts
+    unique_rows, counts = np.unique(list(rows_as_tuples), return_counts=True, axis=0)
+
+    # Zip together the unique rows and their counts for easy viewing
+    result = list(zip(unique_rows, counts))
+
+    return result
+
+
 n_elections = 10_000
 n_failures = 0
 for trial in range(n_elections):
@@ -59,6 +72,7 @@ for trial in range(n_elections):
     utilities = normed_dist_utilities(v, c)
     rankings = honest_rankings(utilities)
     election = np.asarray(rankings)
+    original_election = election
 
     # Get first preferences from election array
     first_preferences = election[:, 0]
@@ -162,5 +176,11 @@ for trial in range(n_elections):
     print(f'After {trial} trials')
     print(original_c)
     plt.plot(original_c[:, 0], [1]*n_cands, '|')
+    plt.xlim(-max(abs(original_c))*1.1, max(abs(original_c))*1.1)
+
+    # Call the function with your 'election' array
+    result = count_unique_rows(original_election)
+    for row, count in result:
+        print(f"Row: {row}, Count: {count}")
 
     break
