@@ -9,7 +9,7 @@ from tabulate import tabulate
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings
 
-n_voters = 1_000
+n_voters = 100_000
 n_cands = 9
 cand_dist = 'normal'
 
@@ -53,7 +53,8 @@ def count_unique_rows(election):
     rows_as_tuples = map(tuple, election)
 
     # Use np.unique to find unique rows and their counts
-    unique_rows, counts = np.unique(list(rows_as_tuples), return_counts=True, axis=0)
+    unique_rows, counts = np.unique(list(rows_as_tuples), return_counts=True,
+                                    axis=0)
 
     # Zip together the unique rows and their counts for easy viewing
     result = list(zip(unique_rows, counts))
@@ -100,6 +101,7 @@ for trial in range(n_elections):
     print(f'Least tallied:     {set(loser_indices)}')
     print(f'Closest to origin: {set(best_indices)}')
 
+    break
     # Remaining candidates proceed to RCV general
     c = np.delete(c, loser_indices, axis=0)
     utilities = normed_dist_utilities(v, c)
@@ -203,8 +205,6 @@ def gaussian(x, mu, sigma):
 x = np.linspace(-x_max, x_max, 300)
 
 fig, ax = plt.subplots(figsize=(8, 4))
-# fig.canvas.toolbar_visible = False  # Mostly good except the save button was nice, no need for zoom etc though
-# fig.canvas.header_visible = False
 
 # ax.grid(True)
 # ax.set_ylim([-0.1, 1.1])
@@ -225,12 +225,14 @@ bnds = [0, *regions, len(x)-2]
 for n, color in enumerate(colors_sorted):
     i_lo = bnds[n]
     i_hi = bnds[n+1]+1
-    #print(i_lo, i_hi, x[i_lo], x[i_hi], end='|')
+    # print(i_lo, i_hi, x[i_lo], x[i_hi], end='|')
     xx = x[i_lo: i_hi]
-    #print(xx.min(), xx.max(), len(xx), np.sum(gaussian(xx, wmu.value, wsigma.value)))
-    ax.fill_between(xx, gaussian(xx, 0, 1), 0, color=color)
+    # print(xx.min(), xx.max(), len(xx), np.sum(gaussian(xx, wmu.value,
+    #                                                    wsigma.value)))
+    ax.fill_between(xx, gaussian(xx, 0, 1)*1/np.sqrt(2*np.pi), 0, color=color)
 
-plt.hist(v, density=True, bins=100)
+# To verify the colorful normal matches the actual voters
+# plt.hist(v, density=True, bins=300, alpha=0.5)
 
 plt.tight_layout()
 
