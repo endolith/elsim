@@ -102,7 +102,9 @@ for trial in range(n_elections):
     print(f'Closest to origin: {set(best_indices)}')
 
     original_loser_indices = loser_indices
-    # break
+    break
+
+
     # Remaining candidates proceed to RCV general
     c = np.delete(c, loser_indices, axis=0)
     utilities = normed_dist_utilities(v, c)
@@ -203,9 +205,22 @@ for row, count in result:
 x_max = +2.5
 pos = original_c[:, 0]
 
-# from palettable.tableau import Tableau_10 as colors
+# from palettable.tableau import Tableau_10 as cmap
+# from palettable.tableau import GreenOrange_12 as cmap
+# from palettable.tableau import TableauMedium_10 as cmap
+# from palettable.mycarta import Cube1_9 as cmap
+# from palettable.colorbrewer.qualitative import Set1_9 as cmap
+# from palettable.colorbrewer.qualitative import Set3_9 as cmap
+# from palettable.cartocolors.qualitative import Bold_9 as cmap
+# from palettable.cartocolors.qualitative import Vivid_9 as cmap
+# from palettable.cartocolors.qualitative import Antique_9 as cmap
+from palettable.cartocolors.qualitative import Prism_9 as cmap
+# from palettable.cartocolors.qualitative import Pastel_9 as cmap
 
-colors = plt.rcParams['axes.prop_cycle'].by_key()['color'][:n_cands]
+
+colors = cmap.mpl_colors
+
+# colors = plt.rcParams['axes.prop_cycle'].by_key()['color'][:n_cands]
 
 
 def gaussian(x, mu, sigma):
