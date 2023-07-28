@@ -9,7 +9,7 @@ from tabulate import tabulate
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings
 
-n_voters = 10_000
+n_voters = 1_000
 n_cands = 9
 cand_dist = 'normal'
 
@@ -176,16 +176,17 @@ for trial in range(n_elections):
     print_candidates_and_tallies(c, tallies)
 
     print(f'After {trial} trials')
-    print(original_c)
-    plt.plot(original_c[:, 0], [1]*n_cands, '|')
-    plt.xlim(-max(abs(original_c))*1.1, max(abs(original_c))*1.1)
-
-    # Call the function with your 'election' array
-    result = count_unique_rows(original_election)
-    for row, count in result:
-        print(f"Row: {row}, Count: {count}")
 
     break
+
+print(original_c)
+# plt.plot(original_c[:, 0], [1]*n_cands, '|')
+# plt.xlim(-max(abs(original_c))*1.1, max(abs(original_c))*1.1)
+
+# Call the function with your 'election' array
+result = count_unique_rows(original_election)
+for row, count in result:
+    print(f"Row: {row}, Count: {count}")
 
 
 x_max = +2.5
@@ -210,9 +211,10 @@ x = np.linspace(-x_max, x_max, 300)
 fig, ax = plt.subplots(figsize=(8, 4))
 
 # ax.grid(True)
-# ax.set_ylim([-0.1, 1.1])
+ax.set_ylim([-0.08, 0.45])
 ax.set_xlim([-x_max, x_max])
 
+# Each candidate has a position and a color
 # Each candidate has a position and a color
 for n in range(n_cands):
     if n in set(loser_indices):
@@ -220,6 +222,9 @@ for n in range(n_cands):
                 markeredgecolor=colors[n], markerfacecolor='none')
     else:
         ax.plot(pos[n], -0.02, '^', markersize=10, color=colors[n])
+    ax.text(pos[n], -0.04, chr(65 + n), color=colors[n],
+            ha='center', va='top')
+
 
 pos_sorted = np.sort(pos)
 colors_sorted = np.array(colors)[np.argsort(pos)]
