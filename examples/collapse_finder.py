@@ -101,7 +101,8 @@ for trial in range(n_elections):
     print(f'Least tallied:     {set(loser_indices)}')
     print(f'Closest to origin: {set(best_indices)}')
 
-    break
+    original_loser_indices = loser_indices
+    # break
     # Remaining candidates proceed to RCV general
     c = np.delete(c, loser_indices, axis=0)
     utilities = normed_dist_utilities(v, c)
@@ -227,7 +228,7 @@ ax.set_xlim([-x_max, x_max])
 # Each candidate has a position and a color
 # Each candidate has a position and a color
 for n in range(n_cands):
-    if n in set(loser_indices):
+    if n in set(original_loser_indices):
         ax.plot(pos[n], -0.02, '^', markersize=10,
                 markeredgecolor=colors[n], markerfacecolor='none')
     else:
