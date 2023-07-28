@@ -71,6 +71,8 @@ for trial in range(n_elections):
 
     # First remove the least tallied candidates in FPTP primary
     utilities = normed_dist_utilities(v, c)
+    original_utilities = utilities.sum(axis=0)
+    original_utilities /= original_utilities.max()
     rankings = honest_rankings(utilities)
     election = np.asarray(rankings)
     original_election = election
@@ -80,15 +82,17 @@ for trial in range(n_elections):
 
     # Tally all first preferences (with index of tally = candidate ID)
     tallies = np.bincount(first_preferences)
+    original_tallies = tallies
 
     # Find the set of 5 candidates who have the highest tally
     n_finalists = 5
     n_losers = n_cands - n_finalists
     loser_indices = bottom_n_indices(tallies, n_losers)
+    original_loser_indices = loser_indices
 
     # Find the best candidates
     best_indices = closest_to_origin_indices(c, n_losers)
-
+    # break
     if set(loser_indices) != set(best_indices):
         continue
 
@@ -101,8 +105,7 @@ for trial in range(n_elections):
     print(f'Least tallied:     {set(loser_indices)}')
     print(f'Closest to origin: {set(best_indices)}')
 
-    original_loser_indices = loser_indices
-    original_tallies = tallies
+
     break
 
 
