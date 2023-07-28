@@ -9,7 +9,7 @@ from tabulate import tabulate
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings
 
-n_voters = 100_000
+n_voters = 10_000
 n_cands = 9
 cand_dist = 'normal'
 
@@ -190,6 +190,9 @@ for trial in range(n_elections):
 
 x_max = +2.5
 pos = original_c[:, 0]
+
+# from palettable.tableau import Tableau_10 as colors
+
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color'][:n_cands]
 
 
@@ -212,7 +215,11 @@ ax.set_xlim([-x_max, x_max])
 
 # Each candidate has a position and a color
 for n in range(n_cands):
-    ax.plot(pos[n], -0.05, '^', markersize=10, color=colors[n])
+    if n in set(loser_indices):
+        ax.plot(pos[n], -0.02, '^', markersize=10,
+                markeredgecolor=colors[n], markerfacecolor='none')
+    else:
+        ax.plot(pos[n], -0.02, '^', markersize=10, color=colors[n])
 
 pos_sorted = np.sort(pos)
 colors_sorted = np.array(colors)[np.argsort(pos)]
