@@ -183,11 +183,21 @@ print(original_c)
 # plt.plot(original_c[:, 0], [1]*n_cands, '|')
 # plt.xlim(-max(abs(original_c))*1.1, max(abs(original_c))*1.1)
 
+# # Call the function with your 'election' array
+# result = count_unique_rows(original_election)
+# for row, count in result:
+#     print(f"Row: {row}, Count: {count}")
+
+
+# Define a function to convert indices to letters
+def indices_to_letters(indices):
+    return " > ".join(chr(65 + i) for i in indices)
+
+
 # Call the function with your 'election' array
 result = count_unique_rows(original_election)
 for row, count in result:
-    print(f"Row: {row}, Count: {count}")
-
+    print(f"{count}: {indices_to_letters(row)}")
 
 x_max = +2.5
 pos = original_c[:, 0]
