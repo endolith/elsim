@@ -238,7 +238,7 @@ def gaussian(x, mu, sigma):
 # Generate x values
 x = np.linspace(-x_max, x_max, 300)
 
-fig, (ax_hist, ax_bar) = plt.subplots(nrows=2, figsize=(8, 4))
+fig, (ax_hist, ax_fptp, ax_fav) = plt.subplots(nrows=3, figsize=(8, 4))
 
 # ax.grid(True)
 ax_hist.set_ylim([-0.08, 0.45])
@@ -279,11 +279,14 @@ for n, color in enumerate(colors_sorted):
 
 
 # Plurality results bar chart in percent
-ax_bar.bar(range(n_cands), original_tallies/n_voters*100,
+ax_fptp.bar(range(n_cands), original_tallies/n_voters*100,
            tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
-# ax_bar.set_ylim(0, 100)
-ax_bar.set_ylabel('Votes [%]')
+# ax_fptp.set_ylim(0, 100)
+ax_fptp.set_ylabel('Votes [%]')
 
+ax_fav.bar(range(n_cands), original_utilities*100,
+           tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
+ax_fav.set_ylabel('Favorability [%]')
 
 plt.tight_layout()
 
