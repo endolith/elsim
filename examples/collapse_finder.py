@@ -197,7 +197,7 @@ def indices_to_letters(indices):
 # Call the function with your 'election' array
 result = count_unique_rows(original_election)
 for row, count in result:
-    print(f"{count}: {indices_to_letters(row)}")
+    print(f"{count:4}: {indices_to_letters(row)}")
 
 x_max = +2.5
 pos = original_c[:, 0]
