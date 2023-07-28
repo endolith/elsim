@@ -102,6 +102,7 @@ for trial in range(n_elections):
     print(f'Closest to origin: {set(best_indices)}')
 
     original_loser_indices = loser_indices
+    original_tallies = tallies
     break
 
 
@@ -234,22 +235,22 @@ def gaussian(x, mu, sigma):
 # Generate x values
 x = np.linspace(-x_max, x_max, 300)
 
-fig, ax = plt.subplots(figsize=(8, 4))
+fig, (ax_hist, ax_bar) = plt.subplots(nrows=2, figsize=(8, 4))
 
 # ax.grid(True)
-ax.set_ylim([-0.08, 0.45])
-ax.set_xlim([-x_max, x_max])
+ax_hist.set_ylim([-0.08, 0.45])
+ax_hist.set_xlim([-x_max, x_max])
 
 # Each candidate has a position and a color
 # Each candidate has a position and a color
 for n in range(n_cands):
     if n in set(original_loser_indices):
-        ax.plot(pos[n], -0.02, '^', markersize=10,
-                markeredgecolor=colors[n], markerfacecolor='none')
+        ax_hist.plot(pos[n], -0.02, '^', markersize=10,
+                     markeredgecolor=colors[n], markerfacecolor='none')
     else:
-        ax.plot(pos[n], -0.02, '^', markersize=10, color=colors[n])
-    ax.text(pos[n], -0.04, chr(65 + n), color=colors[n],
-            ha='center', va='top')
+        ax_hist.plot(pos[n], -0.02, '^', markersize=10, color=colors[n])
+    ax_hist.text(pos[n], -0.04, chr(65 + n), color=colors[n],
+                 ha='center', va='top')
 
 
 pos_sorted = np.sort(pos)
@@ -267,10 +268,19 @@ for n, color in enumerate(colors_sorted):
     xx = x[i_lo: i_hi]
     # print(xx.min(), xx.max(), len(xx), np.sum(gaussian(xx, wmu.value,
     #                                                    wsigma.value)))
-    ax.fill_between(xx, gaussian(xx, 0, 1)*1/np.sqrt(2*np.pi), 0, color=color)
+    ax_hist.fill_between(xx, gaussian(xx, 0, 1)*1/np.sqrt(2*np.pi), 0,
+                         color=color)
 
 # To verify the colorful normal matches the actual voters
 # plt.hist(v, density=True, bins=300, alpha=0.5)
+
+
+# Plurality results bar chart in percent
+ax_bar.bar(range(n_cands), original_tallies/n_voters*100,
+           tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
+# ax_bar.set_ylim(0, 100)
+ax_bar.set_ylabel('Votes [%]')
+
 
 plt.tight_layout()
 
