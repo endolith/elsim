@@ -184,3 +184,54 @@ for trial in range(n_elections):
         print(f"Row: {row}, Count: {count}")
 
     break
+
+
+x_max = +2.5
+pos = original_c[:, 0]
+colors = plt.rcParams['axes.prop_cycle'].by_key()['color'][:n_cands]
+
+
+def gaussian(x, mu, sigma):
+    """
+    Return a normal distribution pdf with center `mu` and standard deviation
+    `sigma`
+    """
+    return np.exp(-(x-mu)**2/(2*sigma**2))
+
+
+# Generate x values
+x = np.linspace(-x_max, x_max, 300)
+
+fig, ax = plt.subplots(figsize=(8, 4))
+# fig.canvas.toolbar_visible = False  # Mostly good except the save button was nice, no need for zoom etc though
+# fig.canvas.header_visible = False
+
+# ax.grid(True)
+# ax.set_ylim([-0.1, 1.1])
+ax.set_xlim([-x_max, x_max])
+
+# Each candidate has a position and a color
+for n in range(n_cands):
+    ax.plot(pos[n], -0.05, '^', markersize=10, color=colors[n])
+
+pos_sorted = np.sort(pos)
+colors_sorted = np.array(colors)[np.argsort(pos)]
+
+midlines = (pos_sorted[1:] + pos_sorted[:-1])/2
+
+regions = np.searchsorted(x, midlines)
+
+bnds = [0, *regions, len(x)-2]
+for n, color in enumerate(colors_sorted):
+    i_lo = bnds[n]
+    i_hi = bnds[n+1]+1
+    #print(i_lo, i_hi, x[i_lo], x[i_hi], end='|')
+    xx = x[i_lo: i_hi]
+    #print(xx.min(), xx.max(), len(xx), np.sum(gaussian(xx, wmu.value, wsigma.value)))
+    ax.fill_between(xx, gaussian(xx, 0, 1), 0, color=color)
+
+plt.hist(v, density=True, bins=100)
+
+plt.tight_layout()
+
+plt.show()
