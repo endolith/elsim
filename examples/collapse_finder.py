@@ -242,7 +242,7 @@ def gaussian(x, mu, sigma):
 x = np.linspace(-x_max, x_max, 300)
 
 # Define the figure and the GridSpec
-fig = plt.figure(figsize=(12, 8))  # Adjust as necessary
+fig = plt.figure(figsize=(8, 4))  # Adjust as necessary
 gs = gridspec.GridSpec(1, 1)  # Only one plot
 
 # Now define the main axis
