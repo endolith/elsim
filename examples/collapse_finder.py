@@ -295,9 +295,9 @@ ax_fptp.bar(range(n_cands), original_tallies/n_voters*100,
 # ax_fptp.set_ylim(0, 100)
 ax_fptp.set_ylabel('Votes [%]')
 
-ax_fav.bar(range(n_cands), original_utilities*100,
-           tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
-ax_fav.set_ylabel('Favorability [%]')
+# ax_fav.bar(range(n_cands), original_utilities*100,
+#            tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
+# ax_fav.set_ylabel('Favorability [%]')
 
 
 # ChatGPT
