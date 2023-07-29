@@ -7,6 +7,7 @@ import numpy as np
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
+from elsim.methods import ranked_election_to_matrix
 from elsim.strategies import honest_rankings
 
 n_voters = 1_000
@@ -76,6 +77,7 @@ for trial in range(n_elections):
     rankings = honest_rankings(utilities)
     election = np.asarray(rankings)
     original_election = election
+    original_matrix = ranked_election_to_matrix(election)
 
     # Get first preferences from election array
     first_preferences = election[:, 0]
@@ -238,7 +240,8 @@ def gaussian(x, mu, sigma):
 # Generate x values
 x = np.linspace(-x_max, x_max, 300)
 
-fig, (ax_hist, ax_fptp, ax_fav) = plt.subplots(nrows=3, figsize=(8, 4))
+fig, (ax_hist, ax_fptp, ax_fav, ax_wins) = plt.subplots(nrows=4,
+                                                        figsize=(8, 4))
 
 # ax.grid(True)
 ax_hist.set_ylim([-0.08, 0.45])
@@ -280,13 +283,41 @@ for n, color in enumerate(colors_sorted):
 
 # Plurality results bar chart in percent
 ax_fptp.bar(range(n_cands), original_tallies/n_voters*100,
-           tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
+            tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
 # ax_fptp.set_ylim(0, 100)
 ax_fptp.set_ylabel('Votes [%]')
 
 ax_fav.bar(range(n_cands), original_utilities*100,
            tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
 ax_fav.set_ylabel('Favorability [%]')
+
+
+# ChatGPT
+def count_wins(matrix):
+    """
+    Count the number of candidates beaten by each candidate.
+
+    Parameters
+    ----------
+    matrix : ndarray
+        A pairwise comparison matrix of candidate vs candidate defeats.
+
+    Returns
+    -------
+    wins : list
+        A list of the number of candidates beaten by each candidate.
+    """
+    n_cands = matrix.shape[0]
+    wins = []
+    for i in range(n_cands):
+        wins.append(sum(matrix[i, j] > matrix[j, i] for j in range(n_cands)))
+    return wins
+
+
+ax_wins.bar(range(n_cands), count_wins(original_matrix),
+            tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
+ax_wins.set_ylabel('Favorability [%]')
+
 
 plt.tight_layout()
 
