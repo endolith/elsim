@@ -348,6 +348,7 @@ def plot_wins(wins, ax, colors='b', gap=0.1):
                    edgecolor='black', linewidth=1)
     ax.set_xticks(range(n_cands))
     ax.set_xticklabels([chr(65 + n) for n in range(n_cands)])
+    ax.set_xlim(-0.5, n_cands-0.5)  # Set fixed x-axis limits
     ax.set_ylabel('Head-to-head wins')
 
 
