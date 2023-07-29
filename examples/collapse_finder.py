@@ -293,15 +293,8 @@ for n, color in enumerate(colors_sorted):
 
 
 # Plurality results bar chart in percent
-colors_eliminated = ['red' if n in set(original_loser_indices) else c
-                     for n, c in enumerate(colors)]
-tick_labels_eliminated = [f"{chr(65 + n)}*"
-                          if n in set(original_loser_indices)
-                          else chr(65 + n) for n in range(n_cands)]
-
 ax_fptp.bar(range(n_cands), original_tallies/n_voters*100,
-            tick_label=tick_labels_eliminated, color=colors_eliminated)
-
+            tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
 # ax_fptp.set_ylim(0, 100)
 ax_fptp.set_ylabel('1st rankings [%]')
 
