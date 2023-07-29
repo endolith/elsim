@@ -319,6 +319,36 @@ ax_wins.bar(range(n_cands), count_wins(original_matrix),
 ax_wins.set_ylabel('Favorability [%]')
 
 
+def plot_wins(wins, ax, colors='b', gap=0.1):
+    """
+    Plot number of wins as discrete blocks stacked on top of each other.
+
+    Parameters
+    ----------
+    wins : list
+        A list of the number of wins for each candidate.
+    ax : matplotlib axis
+        The axis to plot on.
+    colors : str or list
+        The colors to use for the bars.
+    gap : float
+        The gap to leave between blocks. Default is 0.1.
+    """
+    n_cands = len(wins)
+    for n in range(n_cands):
+        for i in range(int(wins[n])):
+            ax.bar(n, 1 - gap, bottom=i + i * gap,
+                   color=colors if isinstance(colors, str) else colors[n],
+                   edgecolor='black', linewidth=1)
+    ax.set_xticks(range(n_cands))
+    ax.set_xticklabels([chr(65 + n) for n in range(n_cands)])
+    ax.set_ylabel('Favorability [%]')
+
+
+# Use the function
+wins = count_wins(original_matrix)
+plot_wins(wins, ax_wins, colors)
+
 plt.tight_layout()
 
 plt.show()
