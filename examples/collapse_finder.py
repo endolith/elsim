@@ -322,11 +322,6 @@ def count_wins(matrix):
     return wins
 
 
-ax_wins.bar(range(n_cands), count_wins(original_matrix),
-            tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
-ax_wins.set_ylabel('Favorability [%]')
-
-
 def plot_wins(wins, ax, colors='b', gap=0.1):
     """
     Plot number of wins as discrete blocks stacked on top of each other.
@@ -350,7 +345,7 @@ def plot_wins(wins, ax, colors='b', gap=0.1):
                    edgecolor='black', linewidth=1)
     ax.set_xticks(range(n_cands))
     ax.set_xticklabels([chr(65 + n) for n in range(n_cands)])
-    ax.set_ylabel('Favorability [%]')
+    ax.set_ylabel('Wins vs others [#]')
 
 
 # Use the function
