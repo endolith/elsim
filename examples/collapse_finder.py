@@ -64,7 +64,7 @@ def count_unique_rows(election):
     return result
 
 
-n_elections = 10_000
+n_elections = 50_000
 n_failures = 0
 for trial in range(n_elections):
     v, c = normal_electorate(n_voters, n_cands, dims=1, disp=1)
@@ -95,6 +95,7 @@ for trial in range(n_elections):
 
     # Find the best candidates
     best_indices = closest_to_origin_indices(c, n_losers)
+    # try basing it on condorcet tallies
     # break
     if set(loser_indices) != set(best_indices):
         continue
@@ -109,7 +110,7 @@ for trial in range(n_elections):
     print(f'Closest to origin: {set(best_indices)}')
 
 
-    break
+    # break
 
 
     # Remaining candidates proceed to RCV general
@@ -258,7 +259,6 @@ for ax in [ax_fptp, ax_wins]:
 ax_hist.set_ylim([-0.07, 0.5])
 ax_hist.set_xlim([-x_max, x_max])
 
-# Each candidate has a position and a color
 # Each candidate has a position and a color
 for n in range(n_cands):
     if n in set(original_loser_indices):
