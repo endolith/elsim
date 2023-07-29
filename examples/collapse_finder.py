@@ -243,13 +243,23 @@ x = np.linspace(-x_max, x_max, 300)
 
 # Define the figure and the GridSpec
 fig = plt.figure(figsize=(12, 8))  # Adjust as necessary
-gs = gridspec.GridSpec(4, 2, width_ratios=[3, 1], height_ratios=[1, 1, 1, 1])
+gs = gridspec.GridSpec(1, 1)  # Only one plot
 
-# Now define each axis, specifying its location in the GridSpec
-ax_hist = plt.subplot(gs[:, 0])  # Spanning all rows, first column
-ax_fptp = plt.subplot(gs[0, 1])  # First row, second column
-ax_fav = plt.subplot(gs[1, 1])  # Second row, second column
-ax_wins = plt.subplot(gs[2:, 1])  # Third and fourth row, second column
+# Now define the main axis
+ax_hist = plt.subplot(gs[0])
+
+# Now define the inset axes
+ax_fptp = ax_hist.inset_axes([0.05, 0.5, 0.3, 0.45])  # [x, y, width, height]
+ax_wins = ax_hist.inset_axes([0.65, 0.5, 0.3, 0.45])  # [x, y, width, height]
+
+# Adjust axis parameters for visibility
+for ax in [ax_fptp, ax_wins]:
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.xaxis.set_tick_params(width=0.5)
+    ax.yaxis.set_tick_params(width=0.5)
+
+# Your code follows here...
 
 # ax.grid(True)
 ax_hist.set_ylim([-0.08, 0.45])
