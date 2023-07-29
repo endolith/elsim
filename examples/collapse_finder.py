@@ -240,17 +240,12 @@ def gaussian(x, mu, sigma):
 
 # Generate x values
 x = np.linspace(-x_max, x_max, 300)
-
-# Define the figure and the GridSpec
-fig = plt.figure(figsize=(8, 4))  # Adjust as necessary
-gs = gridspec.GridSpec(1, 1)  # Only one plot
-
-# Now define the main axis
-ax_hist = plt.subplot(gs[0])
+# Define the figure
+fig, ax_hist = plt.subplots(figsize=(8, 4))  # Adjust as necessary
 
 # Now define the inset axes
-ax_fptp = ax_hist.inset_axes([0.05, 0.5, 0.3, 0.45])  # [x, y, width, height]
-ax_wins = ax_hist.inset_axes([0.65, 0.5, 0.3, 0.45])  # [x, y, width, height]
+ax_fptp = ax_hist.inset_axes([0.08, 0.65, 0.25, 0.3])  # [x, y, width, height]
+ax_wins = ax_hist.inset_axes([0.72, 0.53, 0.3, 0.45])  # [x, y, width, height]
 
 # Adjust axis parameters for visibility
 for ax in [ax_fptp, ax_wins]:
@@ -259,10 +254,8 @@ for ax in [ax_fptp, ax_wins]:
     ax.xaxis.set_tick_params(width=0.5)
     ax.yaxis.set_tick_params(width=0.5)
 
-# Your code follows here...
-
 # ax.grid(True)
-ax_hist.set_ylim([-0.08, 0.45])
+ax_hist.set_ylim([-0.07, 0.5])
 ax_hist.set_xlim([-x_max, x_max])
 
 # Each candidate has a position and a color
@@ -355,7 +348,7 @@ def plot_wins(wins, ax, colors='b', gap=0.1):
                    edgecolor='black', linewidth=1)
     ax.set_xticks(range(n_cands))
     ax.set_xticklabels([chr(65 + n) for n in range(n_cands)])
-    ax.set_ylabel('Wins vs others [#]')
+    ax.set_ylabel('Head-to-head wins')
 
 
 # Use the function
