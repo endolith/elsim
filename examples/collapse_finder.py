@@ -3,6 +3,7 @@ Find worst-case scenarios with RCV.
 """
 
 import matplotlib.pyplot as plt
+from matplotlib import gridspec
 import numpy as np
 from tabulate import tabulate
 
@@ -240,8 +241,15 @@ def gaussian(x, mu, sigma):
 # Generate x values
 x = np.linspace(-x_max, x_max, 300)
 
-fig, (ax_hist, ax_fptp, ax_fav, ax_wins) = plt.subplots(nrows=4,
-                                                        figsize=(8, 4))
+# Define the figure and the GridSpec
+fig = plt.figure(figsize=(12, 8))  # Adjust as necessary
+gs = gridspec.GridSpec(4, 2, width_ratios=[3, 1], height_ratios=[1, 1, 1, 1])
+
+# Now define each axis, specifying its location in the GridSpec
+ax_hist = plt.subplot(gs[:, 0])  # Spanning all rows, first column
+ax_fptp = plt.subplot(gs[0, 1])  # First row, second column
+ax_fav = plt.subplot(gs[1, 1])  # Second row, second column
+ax_wins = plt.subplot(gs[2:, 1])  # Third and fourth row, second column
 
 # ax.grid(True)
 ax_hist.set_ylim([-0.08, 0.45])
@@ -348,6 +356,13 @@ def plot_wins(wins, ax, colors='b', gap=0.1):
 # Use the function
 wins = count_wins(original_matrix)
 plot_wins(wins, ax_wins, colors)
+
+# This is required to make the blocks in ax_wins square
+ax_wins.set_aspect('equal')
+
+plt.tight_layout()
+plt.show()
+
 
 plt.tight_layout()
 
