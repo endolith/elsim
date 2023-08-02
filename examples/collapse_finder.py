@@ -3,7 +3,6 @@ Find worst-case scenarios with RCV.
 """
 
 import matplotlib.pyplot as plt
-from matplotlib import gridspec
 import numpy as np
 from tabulate import tabulate
 
@@ -64,6 +63,28 @@ def count_unique_rows(election):
     return result
 
 
+# ChatGPT
+def count_wins(matrix):
+    """
+    Count the number of candidates beaten by each candidate.
+
+    Parameters
+    ----------
+    matrix : ndarray
+        A pairwise comparison matrix of candidate vs candidate defeats.
+
+    Returns
+    -------
+    wins : list
+        A list of the number of candidates beaten by each candidate.
+    """
+    n_cands = matrix.shape[0]
+    wins = []
+    for i in range(n_cands):
+        wins.append(sum(matrix[i, j] > matrix[j, i] for j in range(n_cands)))
+    return wins
+
+
 n_elections = 50_000
 n_failures = 0
 for trial in range(n_elections):
@@ -94,8 +115,9 @@ for trial in range(n_elections):
     original_loser_indices = loser_indices
 
     # Find the best candidates
-    best_indices = closest_to_origin_indices(c, n_losers)
-    # try basing it on condorcet tallies
+    # best_indices = closest_to_origin_indices(c, n_losers)
+    wins = count_wins(original_matrix)
+    best_indices = top_n_indices(np.array(wins), 4)
     # break
     if set(loser_indices) != set(best_indices):
         continue
@@ -110,7 +132,7 @@ for trial in range(n_elections):
     print(f'Closest to origin: {set(best_indices)}')
 
 
-    # break
+    break
 
 
     # Remaining candidates proceed to RCV general
@@ -124,7 +146,9 @@ for trial in range(n_elections):
     print_candidates_and_tallies(c, tallies)
 
     # Find the 3 best candidates
-    best_indices = closest_to_origin_indices(c, 3)
+    # best_indices = closest_to_origin_indices(c, 3)
+    wins = count_wins(ranked_election_to_matrix(election))
+    best_indices = top_n_indices(np.array(wins), 3)
 
     # Eliminate the lowest-voted
     loser = np.argmin(tallies)
@@ -145,7 +169,9 @@ for trial in range(n_elections):
     print_candidates_and_tallies(c, tallies)
 
     # Find the 2 best candidates
-    best_indices = closest_to_origin_indices(c, 2)
+    # best_indices = closest_to_origin_indices(c, 2)
+    wins = count_wins(ranked_election_to_matrix(election))
+    best_indices = top_n_indices(np.array(wins), 2)
 
     # Eliminate the lowest-voted again
     loser = np.argmin(tallies)
@@ -166,7 +192,9 @@ for trial in range(n_elections):
     print_candidates_and_tallies(c, tallies)
 
     # Find the 1 best candidate
-    best_indices = closest_to_origin_indices(c, 1)
+    # best_indices = closest_to_origin_indices(c, 1)
+    wins = count_wins(ranked_election_to_matrix(election))
+    best_indices = top_n_indices(np.array(wins), 1)
 
     # Eliminate the lowest-voted again
     loser = np.argmin(tallies)
@@ -303,26 +331,7 @@ ax_fptp.set_ylabel('1st rankings [%]')
 # ax_fav.set_ylabel('Favorability [%]')
 
 
-# ChatGPT
-def count_wins(matrix):
-    """
-    Count the number of candidates beaten by each candidate.
 
-    Parameters
-    ----------
-    matrix : ndarray
-        A pairwise comparison matrix of candidate vs candidate defeats.
-
-    Returns
-    -------
-    wins : list
-        A list of the number of candidates beaten by each candidate.
-    """
-    n_cands = matrix.shape[0]
-    wins = []
-    for i in range(n_cands):
-        wins.append(sum(matrix[i, j] > matrix[j, i] for j in range(n_cands)))
-    return wins
 
 
 def plot_wins(wins, ax, colors='b', gap=0.1):
