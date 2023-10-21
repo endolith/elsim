@@ -88,7 +88,7 @@ merrill_table_1 = {
     'Borda':     {2: 100.0, 3: 94.8, 4: 94.1, 5: 94.4, 7: 95.4, 10: 95.9},
     'Coombs':    {2: 100.0, 3: 89.7, 4: 86.7, 5: 85.1, 7: 83.1, 10: 82.4},
     'Black':     {2: 100.0, 3: 93.1, 4: 91.9, 5: 92.0, 7: 93.1, 10: 94.3},
-    }
+}
 
 plt.figure(f'Figure 3. {n_voters} voters, {n_elections} elections')
 plt.title('Figure 3: Efficiencies for Social Utility for a Random Society')

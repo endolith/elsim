@@ -95,7 +95,7 @@ merrill_table_1 = {
     'Black':     {2: 100.0, 3: 100.0, 4: 100.0, 5: 100.0, 7: 100.0, 10: 100.0},
     'SU max':    {2: 100.0, 3:  84.4, 4:  80.2, 5:  77.9, 7:  77.2, 10:  77.8},
     'CW':        {2: 100.0, 3:  91.6, 4:  83.4, 5:  75.8, 7:  64.3, 10:  52.5},
-    }
+}
 
 plt.figure(f'Figure 1. {n_voters} voters, {n_elections} elections')
 plt.title('Figure 1: Condorcet Efficiencies for a Random Society')
