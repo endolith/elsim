@@ -65,7 +65,7 @@ n_batches = n_elections // batch_size
 assert n_batches * batch_size == n_elections
 
 
-def simulate_batch(n_cands):
+def simulate_batch(n_voters, n_cands):
     condorcet_paradox_count = Counter()
     # Reuse the same chunk of memory to save time
     election = np.empty((n_voters, n_cands), dtype=np.uint8)
@@ -79,7 +79,7 @@ def simulate_batch(n_cands):
 
 jobs = []
 for n_cands in n_cands_list:
-    jobs.extend([delayed(simulate_batch)(n_cands)] * n_batches)
+    jobs.extend([delayed(simulate_batch)(n_voters, n_cands)] * n_batches)
 
 print(f'{len(jobs)} tasks total:')
 results = Parallel(n_jobs=-3, verbose=5)(jobs)
