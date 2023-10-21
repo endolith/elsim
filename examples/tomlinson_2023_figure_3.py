@@ -80,10 +80,10 @@ fig, ax = plt.subplots(nrows=2, ncols=3, num=title,
 fig.suptitle(title)
 
 for n_cands in n_cands_list:
-    print(f'{n_batches} tasks total:')
+    jobs = [delayed(simulate_batch)(n_cands)] * n_batches
+    print(f'{len(jobs)} tasks total:')
+    results = Parallel(n_jobs=-3, verbose=5)(jobs)
 
-    results = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_batch)(n_cands)
-                                             for i in range(n_batches))
     winners = {k: [v for d in results for v in d[k]] for k in results[0]}
 
     for n, method in enumerate(winners.keys()):
