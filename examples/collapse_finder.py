@@ -228,9 +228,9 @@ ax_fptp.set_ylabel('1st rankings [%]')
 # ax_fav.set_ylabel('Favorability [%]')
 
 
-def plot_wins(wins, ax, colors='b', gap=0.2):
+def plot_wins(wins, ax, colors='b', gap=0.1):
     """
-    Plot number of wins as discrete blocks stacked on top of each other.
+    Plot number of wins as discrete blocks stacked on top of each other with symmetrical gaps.
 
     Parameters
     ----------
@@ -241,26 +241,28 @@ def plot_wins(wins, ax, colors='b', gap=0.2):
     colors : str or list
         The colors to use for the bars.
     gap : float
-        The gap to leave between blocks. Default is 0.1.
+        The gap to leave between blocks. Default is 0.2.
     """
     n_cands = len(wins)
+    block_height = 1 - gap  # The height of each block, accounting for the gap.
+    total_height = block_height + gap  # Total height including the gap below each block.
     for n in range(n_cands):
         for i in range(int(wins[n])):
-            ax.bar(n, 1 - gap, bottom=i + i * gap,
+            # The bottom parameter is adjusted to include the gap below each block.
+            ax.bar(n, block_height, bottom=i * total_height,
                    color=colors if isinstance(colors, str) else colors[n],
-                   edgecolor='black', linewidth=1)
+                   edgecolor='black', linewidth=1, width=1-gap)
     ax.set_xticks(range(n_cands))
     ax.set_xticklabels([letters[n] for n in range(n_cands)])
     ax.set_xlim(-0.5, n_cands-0.5)  # Set fixed x-axis limits
     ax.set_ylabel('Head-to-head wins')
 
-
 # Use the function
 wins = count_wins(original_matrix)
 plot_wins(wins, ax_wins, colors)
 
-# This is required to make the blocks in ax_wins square
-ax_wins.set_aspect('equal')
+# To ensure the aspect ratio is set such that blocks are always squares, regardless of the figure dimensions
+ax_wins.set_aspect('equal', adjustable='datalim')
 
 plt.tight_layout()
 plt.show()
