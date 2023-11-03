@@ -173,8 +173,9 @@ x = np.linspace(-x_max, x_max, 300)
 fig, ax_hist = plt.subplots(figsize=(8, 4))  # Adjust as necessary
 
 # Now define the inset axes
-ax_fptp = ax_hist.inset_axes([0.08, 0.65, 0.25, 0.3])  # [x, y, width, height]
-ax_wins = ax_hist.inset_axes([0.72, 0.53, 0.32, 0.45])  # [x, y, width, height]
+# [x, y, width, height]
+ax_fptp = ax_hist.inset_axes([0.08, 0.65, 0.25, 0.3])
+ax_wins = ax_hist.inset_axes([0.72, 0.6, 0.3, 0.35])
 
 # Adjust axis parameters for visibility
 for ax in [ax_fptp, ax_wins]:
@@ -227,7 +228,7 @@ ax_fptp.set_ylabel('1st rankings [%]')
 # ax_fav.set_ylabel('Favorability [%]')
 
 
-def plot_wins(wins, ax, colors='b', gap=0.1):
+def plot_wins(wins, ax, colors='b', gap=0.2):
     """
     Plot number of wins as discrete blocks stacked on top of each other.
 
