@@ -11,7 +11,7 @@ from elsim.methods import ranked_election_to_matrix
 from elsim.strategies import honest_rankings
 
 n_voters = 1_000
-n_cands = 9
+n_cands = 3
 cand_dist = 'normal'
 
 
@@ -92,102 +92,13 @@ for trial in range(n_elections):
     c = np.sort(c, axis=0)  # just for ease of viewing
     original_c = c
 
-    # First remove the least tallied candidates in FPTP primary
     utilities = normed_dist_utilities(v, c)
-    original_utilities = utilities.sum(axis=0)
-    original_utilities /= original_utilities.max()
     rankings = honest_rankings(utilities)
     election = np.asarray(rankings)
-    original_election = election
+    first_preferences = election[:, 0]
+    tallies = np.bincount(first_preferences)
     original_matrix = ranked_election_to_matrix(election)
-
-    # Get first preferences from election array
-    first_preferences = election[:, 0]
-
-    # Tally all first preferences (with index of tally = candidate ID)
-    tallies = np.bincount(first_preferences)
     original_tallies = tallies
-
-    # Find the set of 5 candidates who have the highest tally
-    n_finalists = 5
-    n_losers = n_cands - n_finalists
-    loser_indices = bottom_n_indices(tallies, n_losers)
-    original_loser_indices = loser_indices
-
-    # Find the best candidates
-    # best_indices = closest_to_origin_indices(c, n_losers)
-    wins = count_wins(original_matrix)
-    best_indices = top_n_indices(np.array(wins), 4)
-    # break
-    if set(loser_indices) != set(best_indices):
-        continue
-
-    print('\n===================')
-    print(f'{n_losers} best candidates eliminated in FPTP primary.')
-    print(f'Found after {trial} trials')
-    print_candidates_and_tallies(c, tallies)
-    # print(f'Candidate positions: {[f"{i:.1f}" for i in c[:, 0]]}')
-    # print(f'Tallies: {tallies}')
-    print(f'Least tallied:     {set(loser_indices)}')
-    print(f'Closest to origin: {set(best_indices)}')
-
-
-    # break
-
-
-    # Remaining candidates proceed to RCV general
-    c = np.delete(c, loser_indices, axis=0)
-    utilities = normed_dist_utilities(v, c)
-    rankings = honest_rankings(utilities)
-    election = np.asarray(rankings)
-    first_preferences = election[:, 0]
-    tallies = np.bincount(first_preferences)
-    print('Final five:')
-    print_candidates_and_tallies(c, tallies)
-
-    # Find the 3 best candidates
-    # best_indices = closest_to_origin_indices(c, 3)
-    wins = count_wins(ranked_election_to_matrix(election))
-    best_indices = top_n_indices(np.array(wins), 3)
-
-    # Eliminate the lowest-voted
-    loser = np.argmin(tallies)
-    print(f'{loser} eliminated')
-
-    # To find worst-case scenario, eliminated needs to be in best set
-    if loser not in set(best_indices):
-        continue
-
-    # Eliminate and do it again
-    c = np.delete(c, loser, axis=0)
-    utilities = normed_dist_utilities(v, c)
-    rankings = honest_rankings(utilities)
-    election = np.asarray(rankings)
-    first_preferences = election[:, 0]
-    tallies = np.bincount(first_preferences)
-    print('Final four:')
-    print_candidates_and_tallies(c, tallies)
-
-    # Find the 2 best candidates
-    # best_indices = closest_to_origin_indices(c, 2)
-    wins = count_wins(ranked_election_to_matrix(election))
-    best_indices = top_n_indices(np.array(wins), 2)
-
-    # Eliminate the lowest-voted again
-    loser = np.argmin(tallies)
-    print(f'{loser} eliminated')
-
-    # To find worst-case scenario, eliminated needs to be in best set
-    if loser not in set(best_indices):
-        continue
-
-    # Eliminate and do it a third time
-    c = np.delete(c, loser, axis=0)
-    utilities = normed_dist_utilities(v, c)
-    rankings = honest_rankings(utilities)
-    election = np.asarray(rankings)
-    first_preferences = election[:, 0]
-    tallies = np.bincount(first_preferences)
     print('Final three:')
     print_candidates_and_tallies(c, tallies)
 
@@ -234,9 +145,9 @@ def indices_to_letters(indices):
 
 
 # Call the function with your 'election' array
-result = count_unique_rows(original_election)
-for row, count in result:
-    print(f"{count:4}: {indices_to_letters(row)}")
+# result = count_unique_rows(original_election)
+# for row, count in result:
+#     print(f"{count:4}: {indices_to_letters(row)}")
 
 x_max = +2.5
 pos = original_c[:, 0]
@@ -289,11 +200,7 @@ ax_hist.set_xlim([-x_max, x_max])
 
 # Each candidate has a position and a color
 for n in range(n_cands):
-    if n in set(original_loser_indices):
-        ax_hist.plot(pos[n], -0.02, '^', markersize=10,
-                     markeredgecolor=colors[n], markerfacecolor='none')
-    else:
-        ax_hist.plot(pos[n], -0.02, '^', markersize=10, color=colors[n])
+    ax_hist.plot(pos[n], -0.02, '^', markersize=10, color=colors[n])
     ax_hist.text(pos[n], -0.04, chr(65 + n), color=colors[n],
                  ha='center', va='top')
 
