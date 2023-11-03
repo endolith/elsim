@@ -152,22 +152,8 @@ def indices_to_letters(indices):
 x_max = +2.5
 pos = original_c[:, 0]
 
-# from palettable.tableau import Tableau_10 as cmap
-# from palettable.tableau import GreenOrange_12 as cmap
-# from palettable.tableau import TableauMedium_10 as cmap
-# from palettable.mycarta import Cube1_9 as cmap
-# from palettable.colorbrewer.qualitative import Set1_9 as cmap
-# from palettable.colorbrewer.qualitative import Set3_9 as cmap
-# from palettable.cartocolors.qualitative import Bold_9 as cmap
-# from palettable.cartocolors.qualitative import Vivid_9 as cmap
-# from palettable.cartocolors.qualitative import Antique_9 as cmap
-from palettable.cartocolors.qualitative import Prism_9 as cmap
-# from palettable.cartocolors.qualitative import Pastel_9 as cmap
-
-
-colors = cmap.mpl_colors
-
-# colors = plt.rcParams['axes.prop_cycle'].by_key()['color'][:n_cands]
+colors = ['#3333FF', '#242851', '#E81B23']  # Wikipedia
+colors = ['#0044C9', '#182742', '#D71F27']  # Websites
 
 
 def gaussian(x, mu, sigma):
