@@ -132,7 +132,7 @@ for trial in range(n_elections):
     print(f'Closest to origin: {set(best_indices)}')
 
 
-    break
+    # break
 
 
     # Remaining candidates proceed to RCV general
