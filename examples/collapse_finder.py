@@ -139,9 +139,12 @@ print(original_c)
 #     print(f"Row: {row}, Count: {count}")
 
 
+letters = ['D', 'F', 'R']
+
+
 # Define a function to convert indices to letters
 def indices_to_letters(indices):
-    return " > ".join(chr(65 + i) for i in indices)
+    return " > ".join(letters[i] for i in indices)
 
 
 # Call the function with your 'election' array
@@ -187,7 +190,7 @@ ax_hist.set_xlim([-x_max, x_max])
 # Each candidate has a position and a color
 for n in range(n_cands):
     ax_hist.plot(pos[n], -0.02, '^', markersize=10, color=colors[n])
-    ax_hist.text(pos[n], -0.04, chr(65 + n), color=colors[n],
+    ax_hist.text(pos[n], -0.04, letters[n], color=colors[n],
                  ha='center', va='top')
 
 
@@ -215,12 +218,12 @@ for n, color in enumerate(colors_sorted):
 
 # Plurality results bar chart in percent
 ax_fptp.bar(range(n_cands), original_tallies/n_voters*100,
-            tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
+            tick_label=[letters[n] for n in range(n_cands)], color=colors)
 # ax_fptp.set_ylim(0, 100)
 ax_fptp.set_ylabel('1st rankings [%]')
 
 # ax_fav.bar(range(n_cands), original_utilities*100,
-#            tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
+#            tick_label=[letters[n] for n in range(n_cands)], color=colors)
 # ax_fav.set_ylabel('Favorability [%]')
 
 
@@ -249,7 +252,7 @@ def plot_wins(wins, ax, colors='b', gap=0.1):
                    color=colors if isinstance(colors, str) else colors[n],
                    edgecolor='black', linewidth=1)
     ax.set_xticks(range(n_cands))
-    ax.set_xticklabels([chr(65 + n) for n in range(n_cands)])
+    ax.set_xticklabels([letters[n] for n in range(n_cands)])
     ax.set_xlim(-0.5, n_cands-0.5)  # Set fixed x-axis limits
     ax.set_ylabel('Head-to-head wins')
 
