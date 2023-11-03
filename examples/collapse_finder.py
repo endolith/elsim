@@ -263,8 +263,3 @@ ax_wins.set_aspect('equal')
 
 plt.tight_layout()
 plt.show()
-
-
-plt.tight_layout()
-
-plt.show()
