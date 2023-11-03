@@ -175,7 +175,7 @@ fig, ax_hist = plt.subplots(figsize=(8, 4))  # Adjust as necessary
 # Now define the inset axes
 # [x, y, width, height]
 ax_fptp = ax_hist.inset_axes([0.08, 0.65, 0.25, 0.3])
-ax_wins = ax_hist.inset_axes([0.72, 0.6, 0.3, 0.35])
+ax_wins = ax_hist.inset_axes([0.74, 0.65, 0.25, 0.3])
 
 # Adjust axis parameters for visibility
 for ax in [ax_fptp, ax_wins]:
