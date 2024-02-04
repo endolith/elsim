@@ -51,4 +51,5 @@ try:
     test_condorcet_compliance()
 except AssertionError:
     # Just print the Falsifying example, don't raise anything.
+    # TODO This doesn't print anything??
     pass
