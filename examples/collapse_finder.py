@@ -177,10 +177,10 @@ fig, ax_hist = plt.subplots(figsize=(8, 4))  # Adjust as necessary
 # Now define the inset axes
 # [x, y, width, height]
 ax_fptp = ax_hist.inset_axes([0.08, 0.65, 0.25, 0.3])
-ax_wins = ax_hist.inset_axes([0.74, 0.65, 0.25, 0.3])
+# ax_wins = ax_hist.inset_axes([0.74, 0.65, 0.25, 0.3])
 
 # Adjust axis parameters for visibility
-for ax in [ax_fptp, ax_wins]:
+for ax in [ax_fptp, ]:
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.xaxis.set_tick_params(width=0.5)
@@ -230,41 +230,41 @@ ax_fptp.set_ylabel('1st rankings [%]')
 # ax_fav.set_ylabel('Favorability [%]')
 
 
-def plot_wins(wins, ax, colors='b', gap=0.1):
-    """
-    Plot number of wins as discrete blocks stacked on top of each other with symmetrical gaps.
+# def plot_wins(wins, ax, colors='b', gap=0.1):
+#     """
+#     Plot number of wins as discrete blocks stacked on top of each other with symmetrical gaps.
 
-    Parameters
-    ----------
-    wins : list
-        A list of the number of wins for each candidate.
-    ax : matplotlib axis
-        The axis to plot on.
-    colors : str or list
-        The colors to use for the bars.
-    gap : float
-        The gap to leave between blocks. Default is 0.2.
-    """
-    n_cands = len(wins)
-    block_height = 1 - gap  # The height of each block, accounting for the gap.
-    total_height = block_height + gap  # Total height including the gap below each block.
-    for n in range(n_cands):
-        for i in range(int(wins[n])):
-            # The bottom parameter is adjusted to include the gap below each block.
-            ax.bar(n, block_height, bottom=i * total_height,
-                   color=colors if isinstance(colors, str) else colors[n],
-                   edgecolor='black', linewidth=1, width=1-gap)
-    ax.set_xticks(range(n_cands))
-    ax.set_xticklabels([letters[n] for n in range(n_cands)])
-    ax.set_xlim(-0.5, n_cands-0.5)  # Set fixed x-axis limits
-    ax.set_ylabel('Head-to-head wins')
+#     Parameters
+#     ----------
+#     wins : list
+#         A list of the number of wins for each candidate.
+#     ax : matplotlib axis
+#         The axis to plot on.
+#     colors : str or list
+#         The colors to use for the bars.
+#     gap : float
+#         The gap to leave between blocks. Default is 0.2.
+#     """
+#     n_cands = len(wins)
+#     block_height = 1 - gap  # The height of each block, accounting for the gap.
+#     total_height = block_height + gap  # Total height including the gap below each block.
+#     for n in range(n_cands):
+#         for i in range(int(wins[n])):
+#             # The bottom parameter is adjusted to include the gap below each block.
+#             ax.bar(n, block_height, bottom=i * total_height,
+#                    color=colors if isinstance(colors, str) else colors[n],
+#                    edgecolor='black', linewidth=1, width=1-gap)
+#     ax.set_xticks(range(n_cands))
+#     ax.set_xticklabels([letters[n] for n in range(n_cands)])
+#     ax.set_xlim(-0.5, n_cands-0.5)  # Set fixed x-axis limits
+#     ax.set_ylabel('Head-to-head wins')
 
-# Use the function
-wins = count_wins(original_matrix)
-plot_wins(wins, ax_wins, colors)
+# # Use the function
+# wins = count_wins(original_matrix)
+# plot_wins(wins, ax_wins, colors)
 
-# To ensure the aspect ratio is set such that blocks are always squares, regardless of the figure dimensions
-ax_wins.set_aspect('equal', adjustable='datalim')
+# # To ensure the aspect ratio is set such that blocks are always squares, regardless of the figure dimensions
+# ax_wins.set_aspect('equal', adjustable='datalim')
 
 plt.tight_layout()
 plt.show()
