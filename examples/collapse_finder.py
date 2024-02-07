@@ -89,7 +89,7 @@ n_elections = 50_000
 n_failures = 0
 for trial in range(n_elections):
     v, c = normal_electorate(n_voters, n_cands, dims=1, disp=1)
-    c = np.array([[0, +0.7]]).T
+    c = np.array([[-0.7, 0, ]]).T
     c = np.sort(c, axis=0)  # just for ease of viewing
     original_c = c
 
@@ -140,7 +140,7 @@ print(original_c)
 #     print(f"Row: {row}, Count: {count}")
 
 
-letters = [ 'F', 'R']
+letters = ['D', 'F',]
 
 
 # Define a function to convert indices to letters
@@ -158,7 +158,7 @@ pos = original_c[:, 0]
 
 colors = ['#3333FF', '#242851', '#E81B23']  # Wikipedia
 colors = ['#0044C9', '#182742', '#D71F27']  # Websites
-colors = [ 'tab:gray', 'tab:red']  # Previous suck
+colors = ['tab:blue', 'tab:gray', ]  # Previous suck
 
 
 def gaussian(x, mu, sigma):
