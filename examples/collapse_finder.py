@@ -88,7 +88,7 @@ def count_wins(matrix):
 n_elections = 50_000
 n_failures = 0
 for trial in range(n_elections):
-    v, c = normal_electorate(n_voters, n_cands, dims=1, disp=1)
+    v, c = normal_electorate(n_voters, n_cands, dims=1, disp=1, random_state=1)
     c = np.array([[-0.7, 0, ]]).T
     c = np.sort(c, axis=0)  # just for ease of viewing
     original_c = c
