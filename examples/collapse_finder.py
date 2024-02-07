@@ -158,6 +158,7 @@ pos = original_c[:, 0]
 
 colors = ['#3333FF', '#242851', '#E81B23']  # Wikipedia
 colors = ['#0044C9', '#182742', '#D71F27']  # Websites
+colors = ['tab:blue', 'tab:gray', 'tab:red']  # Previous suck
 
 
 def gaussian(x, mu, sigma):
