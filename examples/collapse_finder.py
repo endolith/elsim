@@ -11,7 +11,7 @@ from elsim.methods import ranked_election_to_matrix
 from elsim.strategies import honest_rankings
 
 n_voters = 1_000
-n_cands = 2
+n_cands = 3
 cand_dist = 'normal'
 
 
@@ -89,7 +89,7 @@ n_elections = 50_000
 n_failures = 0
 for trial in range(n_elections):
     v, c = normal_electorate(n_voters, n_cands, dims=1, disp=1, random_state=1)
-    c = np.array([[0, +0.7]]).T
+    c = np.array([[-0.7, 0, +0.7]]).T
     c = np.sort(c, axis=0)  # just for ease of viewing
     original_c = c
 
@@ -112,21 +112,21 @@ for trial in range(n_elections):
     loser = np.argmin(tallies)
     print(f'{loser} eliminated')
 
-    # # To find worst-case scenario, eliminated needs to be in best set
-    # if loser not in set(best_indices):
-    #     continue
+    # To find worst-case scenario, eliminated needs to be in best set
+    if loser not in set(best_indices):
+        continue
 
-    # # Eliminate and do it a fourth time
-    # c = np.delete(c, loser, axis=0)
-    # utilities = normed_dist_utilities(v, c)
-    # rankings = honest_rankings(utilities)
-    # election = np.asarray(rankings)
-    # first_preferences = election[:, 0]
-    # tallies = np.bincount(first_preferences)
-    # print('Final two:')
-    # print_candidates_and_tallies(c, tallies)
+    # Eliminate and do it a fourth time
+    c = np.delete(c, loser, axis=0)
+    utilities = normed_dist_utilities(v, c)
+    rankings = honest_rankings(utilities)
+    election = np.asarray(rankings)
+    first_preferences = election[:, 0]
+    tallies = np.bincount(first_preferences)
+    print('Final two:')
+    print_candidates_and_tallies(c, tallies)
 
-    # print(f'After {trial} trials')
+    print(f'After {trial} trials')
 
     break
 
@@ -140,7 +140,7 @@ print(original_c)
 #     print(f"Row: {row}, Count: {count}")
 
 
-letters = [ 'F', 'R']
+letters = ['D', 'F', 'R']
 
 
 # Define a function to convert indices to letters
@@ -158,7 +158,7 @@ pos = original_c[:, 0]
 
 colors = ['#3333FF', '#242851', '#E81B23']  # Wikipedia
 colors = ['#0044C9', '#182742', '#D71F27']  # Websites
-colors = [ 'tab:gray', 'tab:red']  # Previous suck
+colors = ['tab:blue', 'tab:gray', 'tab:red']  # Previous suck
 
 
 def gaussian(x, mu, sigma):
