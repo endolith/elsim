@@ -1,9 +1,11 @@
 import random
+
 import numpy as np
 import pytest
 from hypothesis import given
-from hypothesis.strategies import integers, tuples
 from hypothesis.extra.numpy import arrays
+from hypothesis.strategies import integers, tuples
+
 from elsim.methods import approval, combined_approval
 
 
@@ -182,7 +184,7 @@ def test_invalid(method):
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime
-    from subprocess import Popen, PIPE
+    from subprocess import PIPE, Popen
     with Popen(['pytest',
                 '--tb=short',  # shorter traceback format
                 '--hypothesis-show-statistics',

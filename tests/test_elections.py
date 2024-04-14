@@ -1,9 +1,10 @@
 import numpy as np
-from numpy.testing import (assert_array_equal, assert_array_less,
-                           assert_allclose)
 import pytest
-from elsim.elections import (random_utilities, impartial_culture,
-                             normal_electorate, normed_dist_utilities)
+from numpy.testing import (assert_allclose, assert_array_equal,
+                           assert_array_less)
+
+from elsim.elections import (impartial_culture, normal_electorate,
+                             normed_dist_utilities, random_utilities)
 
 
 def test_random_utilities():
@@ -134,7 +135,7 @@ def test_invalid_random_state(func):
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime
-    from subprocess import Popen, PIPE
+    from subprocess import PIPE, Popen
     with Popen(['pytest',
                 '--tb=short',  # shorter traceback format
                 '--hypothesis-show-statistics',

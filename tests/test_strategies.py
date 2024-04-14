@@ -1,11 +1,11 @@
 import numpy as np
-from numpy.testing import assert_array_equal
 import pytest
 from hypothesis import given
-from hypothesis.strategies import integers, tuples, floats
 from hypothesis.extra.numpy import arrays
-from elsim.strategies import (approval_optimal, vote_for_k,
-                              honest_normed_scores)
+from hypothesis.strategies import floats, integers, tuples
+from numpy.testing import assert_array_equal
+
+from elsim.strategies import approval_optimal, honest_normed_scores, vote_for_k
 
 
 def test_approval_optimal():
@@ -114,7 +114,7 @@ def test_honest_normed_scores_properties(utilities, max_score):
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime
-    from subprocess import Popen, PIPE
+    from subprocess import PIPE, Popen
     with Popen(['pytest',
                 '--tb=short',  # shorter traceback format
                 '--hypothesis-show-statistics',

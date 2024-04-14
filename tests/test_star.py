@@ -1,10 +1,13 @@
 import random
+
 import numpy as np
-from numpy.testing import assert_array_equal
 import pytest
-from hypothesis import given
-from elsim.methods import star, matrix_from_scores
 import test_score
+from hypothesis import given
+from numpy.testing import assert_array_equal
+
+from elsim.methods import matrix_from_scores, star
+
 score_ballots = test_score.score_ballots
 
 
@@ -630,7 +633,7 @@ def test_matrix_from_scores_properties(election, method):
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime
-    from subprocess import Popen, PIPE
+    from subprocess import PIPE, Popen
     with Popen(['pytest',
                 '--tb=short',  # shorter traceback format
                 '--hypothesis-show-statistics',

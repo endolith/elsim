@@ -1,8 +1,9 @@
 import numpy as np
-from numpy.testing import assert_array_equal
 import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
+from numpy.testing import assert_array_equal
+
 from elsim.methods import (condorcet, condorcet_from_matrix,
                            ranked_election_to_matrix)
 
@@ -304,7 +305,7 @@ def test_ranked_election_to_matrix(election):
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime
-    from subprocess import Popen, PIPE
+    from subprocess import PIPE, Popen
     with Popen(['pytest',
                 '--tb=short',  # shorter traceback format
                 '--hypothesis-show-statistics',

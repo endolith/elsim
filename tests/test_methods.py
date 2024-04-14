@@ -1,6 +1,7 @@
 import pytest
-from elsim.methods import (black, borda, fptp, runoff, irv, coombs, approval,
-                           combined_approval, utility_winner, score)
+
+from elsim.methods import (approval, black, borda, combined_approval, coombs,
+                           fptp, irv, runoff, score, utility_winner)
 
 
 @pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs,
@@ -37,7 +38,7 @@ def test_ranked_method_unanimity(method):
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime
-    from subprocess import Popen, PIPE
+    from subprocess import PIPE, Popen
     with Popen(['pytest',
                 '--tb=short',  # shorter traceback format
                 '--hypothesis-show-statistics',
