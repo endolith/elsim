@@ -40,7 +40,7 @@ WP_table = {3:   5.556,
             601: 8.760}
 
 # It needs many simulations to get similar accuracy as the analytical results
-n_elections = 300_000  # Roughly 30 seconds
+n_elections = 300_000  # Roughly 30 seconds on a 2019 6-core i7-9750H
 n_cands = 3
 
 # Simulate more than just one election per worker to improve efficiency

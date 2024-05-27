@@ -55,7 +55,7 @@ niemi_table = [.0000, .0000, .0877, .1755, .2513, .3152, .3692, .4151, .4545,
 niemi_table = dict(enumerate(niemi_table[1:], start=2))
 
 # It needs many simulations to get similar accuracy as the analytical results
-n_elections = 2_000  # Roughly 30 seconds
+n_elections = 2_000  # Roughly 30 seconds on a 2019 6-core i7-9750H
 n_voters = 100_000  # m = infinity
 n_cands_list = (2, 3, 4, 5, 6, 7)  # 49 takes many minutes
 

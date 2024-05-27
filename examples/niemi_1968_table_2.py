@@ -31,7 +31,7 @@ from elsim.elections import impartial_culture
 from elsim.methods import condorcet
 
 # It needs many simulations to get similar accuracy as the analytical results
-n_elections = 100_000  # Roughly 30 seconds
+n_elections = 100_000  # Roughly 30 seconds on a 2019 6-core i7-9750H
 n_voters_list = (3, 5, 7, 9, 11, 13, 15, 17)  # , 19, 21, 23, 25, 27, 29, 59)
 n_cands_list = (3, 4, 5, 6)
 

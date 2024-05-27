@@ -22,7 +22,7 @@ from elsim.elections import normed_dist_utilities
 from elsim.methods import fptp, irv
 from elsim.strategies import honest_rankings
 
-n_elections = 1_000_000  # Roughly 6 minutes on a 2019 6-core i7-9750H
+n_elections = 200_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
 n_voters = 1_000
 n_cands_list = (3, 4, 5)
 disp = 1

@@ -58,7 +58,7 @@ from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
 from elsim.strategies import (approval_optimal, honest_normed_scores,
                               honest_rankings)
 
-n_elections = 5_000  # Roughly 30 seconds each
+n_elections = 5_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
 n_voters = 201
 n_cands_list = (2, 3, 4, 5, 6, 7)
 corr = 0.5

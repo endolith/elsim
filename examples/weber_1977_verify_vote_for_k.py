@@ -53,7 +53,7 @@ from elsim.strategies import honest_rankings, vote_for_k
 from weber_1977_expressions import (eff_standard, eff_vote_for_half,
                                     eff_vote_for_k)
 
-n_elections = 10_000  # Roughly 60 seconds
+n_elections = 10_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 1_000
 n_cands_list = np.arange(2, 11)
 

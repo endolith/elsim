@@ -14,7 +14,7 @@ from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods import black, fptp, irv, star, utility_winner
 from elsim.strategies import honest_normed_scores, honest_rankings
 
-n_elections = 1_000_000  # Roughly 20 minutes on a 2019 6-core i7-9750H
+n_elections = 50_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 1_000
 n_cands = 7
 cand_dist = 'normal'

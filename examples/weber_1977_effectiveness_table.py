@@ -33,7 +33,7 @@ from elsim.methods import approval, borda, fptp, utility_winner
 from elsim.strategies import honest_rankings, vote_for_k
 from weber_1977_expressions import eff_borda, eff_standard, eff_vote_for_half
 
-n_elections = 2_000  # Roughly 60 seconds
+n_elections = 2_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 1_000
 n_cands_list = (2, 3, 4, 5, 6, 10, 255)
 

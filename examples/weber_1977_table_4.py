@@ -35,7 +35,7 @@ from elsim.elections import random_utilities
 from elsim.methods import approval, borda, fptp
 from elsim.strategies import approval_optimal, honest_rankings
 
-n_elections = 30_000  # Roughly 30 seconds
+n_elections = 30_000  # Roughly 30 seconds on a 2019 6-core i7-9750H
 n_voters_list = (2, 3, 4, 5, 10, 15, 20, 25, 30)
 n_cands = 3
 
