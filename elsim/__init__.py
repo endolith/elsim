@@ -15,4 +15,4 @@ elections by combining their functions in the following order:
    Functions that implement voting methods, which calculate a winner from a
    collection of ballots.
 """
-from . import elections, strategies, methods
+from . import elections, methods, strategies
