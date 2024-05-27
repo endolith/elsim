@@ -52,7 +52,7 @@ def human_format(num):
         num /= 1000.0
 
 
-def simulate_batch():
+def simulate_batch(n_cands):
     winners = defaultdict(list)
     for iteration in range(batch_size):
         # v, c = normal_electorate(n_voters, n_cands, dims=1, disp=disp)
