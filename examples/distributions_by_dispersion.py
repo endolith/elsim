@@ -1,5 +1,5 @@
 """
-Show how the winner distribution and bias of a voting method change with
+Show how the winner distribution and bias of a voting method changes with
 varying dispersion of candidates.
 """
 import random
