@@ -77,28 +77,25 @@ def simulate_batch(n_cands):
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
         winner = fptp(rankings, tiebreaker='random')
-        winners['First Past The Post / Plurality'].append(c[winner])
+        winners['First Past The Post'].append(c[winner])
 
         # Top-two runoff
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
         winner = runoff(rankings, tiebreaker='random')
-        winners['Top-Two Runoff/Primary / Two-Round System / '
-                'Contingent Vote'].append(c[winner])
+        winners['Top-Two Runoff/Primary'].append(c[winner])
 
         # Instant-runoff
         winner = irv(rankings, tiebreaker='random')
-        winners['Ranked-Choice Voting (Hare) / '
-                'Alternative Vote / Instant-Runoff'].append(c[winner])
+        winners['Ranked-Choice Voting (Hare)'].append(c[winner])
 
         # Approval voting
         winner = approval(approval_optimal(utilities), tiebreaker='random')
-        winners['Approval Voting ("optimal" strategy)'].append(c[winner])
+        winners['Approval Voting ("optimal")'].append(c[winner])
 
         # Approval voting
         winner = approval(vote_for_k(utilities, vote_for), tiebreaker='random')
-        winners[f'Approval Voting "(Vote-for-{vote_for}"'
-                ' strategy)'].append(c[winner])
+        winners[f'Approval Voting "(Vote-for-{vote_for}")'].append(c[winner])
 
         # STAR voting
         ballots = honest_normed_scores(utilities)
@@ -115,12 +112,12 @@ def simulate_batch(n_cands):
 
         # Condorcet RCV
         winner = black(rankings, tiebreaker='random')
-        winners['Condorcet Ranked-Choice Voting (Black)'].append(c[winner])
+        winners['Condorcet RCV (Black)'].append(c[winner])
 
         # Ideal winner method.  Votes don't matter at all; pick the center.
         # winner = np.argmin(abs(c))  # 1D
         winner = np.argmin(np.sum(c**2, axis=1))  # 2D
-        winners['Best possible winner (nearest center)'].append(c[winner])
+        winners['Best possible winner'].append(c[winner])
 
         # This could just accumulate winner numbers and then get the coordinates later
         # no because c only exists here
