@@ -21,6 +21,7 @@ from
     https://arxiv.org/abs/1901.09217
 
 """
+import os
 import pickle
 from collections import defaultdict
 
@@ -132,11 +133,30 @@ def simulate_batch(n_cands):
     return winners
 
 
-jobs = [delayed(simulate_batch)(n_cands)] * n_batches
-print(f'{len(jobs)} tasks total:')
-results = Parallel(n_jobs=-3, verbose=5)(jobs)
-# winners = {k: [v for d in results for v in d[k]] for k in results[0]}
-winners = {k: np.array([v for d in results for v in d[k]]) for k in results[0]}
+title = f'{human_format(n_elections)} 2D elections, '
+title += f'{human_format(n_voters)} voters, '
+title += f'{human_format(n_cands)} candidates'
+title += f', both {cand_dist}'
+title += f', {disp} disp'
+
+# Load from .pkl file if it exists
+pkl_filename = title + '.pkl'
+if os.path.exists(pkl_filename):
+    print('Loading pickled simulation results')
+    with open(pkl_filename, "rb") as file:
+        winners = pickle.load(file)
+else:
+    print('Running simulations')
+    jobs = [delayed(simulate_batch)(n_cands)] * n_batches
+    print(f'{len(jobs)} tasks total:')
+    results = Parallel(n_jobs=-3, verbose=5)(jobs)
+
+    winners = {k: np.array([v for d in results for v in d[k]])
+               for k in results[0]}
+
+    # Save the generated data to .pkl file
+    with open(pkl_filename, "wb") as file:
+        pickle.dump(winners, file)
 
 # %% Measure distributions
 
@@ -180,12 +200,6 @@ def plot_distribution(ax, data, title, max_lim):
         spine.set_visible(True)
 
 
-title = f'{human_format(n_elections)} 2D elections, '
-title += f'{human_format(n_voters)} voters, '
-title += f'{human_format(n_cands)} candidates'
-title += f', both {cand_dist}'
-title += f', {disp} disp'
-
 fig, ax = plt.subplots(nrows=ceildiv(len(winners), 4), ncols=4, num=title,
                        sharex=True, constrained_layout=True,
                        figsize=(11, 9.5))
@@ -212,6 +226,3 @@ plt.show()
 # %% Save the figure
 
 plt.savefig(title + '.png')
-
-with open(title + '.pkl', "wb") as file:
-    pickle.dump(winners, file)
