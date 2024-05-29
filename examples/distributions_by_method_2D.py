@@ -132,6 +132,18 @@ results = Parallel(n_jobs=-3, verbose=5)(jobs)
 # winners = {k: [v for d in results for v in d[k]] for k in results[0]}
 winners = {k: np.array([v for d in results for v in d[k]]) for k in results[0]}
 
+# %% Measure distributions
+
+winners_stats = {method: (np.mean(winners[method], axis=0),
+                          np.std(winners[method], axis=0)
+                          ) for method in winners.keys()}
+
+for method, (mean, std) in winners_stats.items():
+    print(f"{method}:")
+    print(f"{len(winners[method])} samples")
+    print(f"Winner distribution mean: {mean[0]:.3f}, {mean[1]:.3f}")
+    print(f"                     std: {std[0]:.3f}, {std[1]:.3f}")
+    print()
 
 # %% Plotting
 
@@ -176,6 +188,12 @@ for n, method in enumerate(winners.keys()):
     # Add borders to the plots
     for spine in ax[n].spines.values():
         spine.set_visible(True)
+
+    # Add standard deviation text in the lower right corner
+    std = winners_stats[method][1]
+    ax[n].text(0.98, 0.02, f'std: ({std[0]:.2f}, {std[1]:.2f})',
+               verticalalignment='bottom', horizontalalignment='right',
+               transform=ax[n].transAxes, color='black', fontsize=8)
 
 # Hide the last axes if they are not used
 for i in range(len(winners), len(ax)):
