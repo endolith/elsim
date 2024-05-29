@@ -73,6 +73,17 @@ def simulate_batch(n_cands):
             c = np.atleast_2d(c).T
             raise SystemExit
 
+        # Voter distribution
+        winners['Voters'].append(v)
+
+        # Candidate distribution
+        winners['Candidates'].append(c)
+
+        # Ideal winner method.  Votes don't matter at all; pick the center.
+        # winner = np.argmin(abs(c))  # 1D
+        winner = np.argmin(np.sum(c**2, axis=1))  # 2D
+        winners['Best possible winner'].append(c[winner])
+
         # FPTP voting method
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
@@ -114,11 +125,6 @@ def simulate_batch(n_cands):
         winner = black(rankings, tiebreaker='random')
         winners['Condorcet RCV (Black)'].append(c[winner])
 
-        # Ideal winner method.  Votes don't matter at all; pick the center.
-        # winner = np.argmin(abs(c))  # 1D
-        winner = np.argmin(np.sum(c**2, axis=1))  # 2D
-        winners['Best possible winner'].append(c[winner])
-
         # This could just accumulate winner numbers and then get the coordinates later
         # no because c only exists here
         # Or it could just accumulate directly to the histogram heatmap in the job
@@ -134,9 +140,15 @@ winners = {k: np.array([v for d in results for v in d[k]]) for k in results[0]}
 
 # %% Measure distributions
 
+winners['Voters'] = winners['Voters'].reshape(-1, winners['Voters'].shape[-1])
+winners['Candidates'] = winners['Candidates'].reshape(
+    -1, winners['Candidates'].shape[-1])
+
 winners_stats = {method: (np.mean(winners[method], axis=0),
                           np.std(winners[method], axis=0)
                           ) for method in winners.keys()}
+
+assert np.allclose(winners_stats['Voters'][1], [1, 1], rtol=1e-2)
 
 for method, (mean, std) in winners_stats.items():
     print(f"{method}:")
