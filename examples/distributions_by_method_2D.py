@@ -66,6 +66,9 @@ def simulate_batch(n_cands):
     for iteration in range(batch_size):
         v, c = normal_electorate(n_voters, n_cands, dims=dims, disp=disp)
 
+        # Contrived candidate at exact center
+        # c[0] = 0, 0
+
         if cand_dist == 'uniform':
             # Replace with uniform distribution of candidates of same shape
             v = np.random.uniform(-u_width/2, +u_width/2, n_voters)
