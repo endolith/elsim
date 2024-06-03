@@ -159,9 +159,11 @@ else:
     jobs = [delayed(simulate_batch)(n_cands)] * n_batches
     print(f'{len(jobs)} tasks total:')
     results = Parallel(n_jobs=-3, verbose=5)(jobs)
+    del jobs
 
     winners = {k: np.array([v for d in results for v in d[k]])
                for k in results[0]}
+    del results
 
     # Save the generated data to .pkl file
     with open(pkl_filename, "wb") as file:
