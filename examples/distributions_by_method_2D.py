@@ -27,6 +27,7 @@ from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import numpy as np
+# from colorcet import fire
 from joblib import Parallel, delayed
 
 from elsim.elections import normal_electorate, normed_dist_utilities
@@ -34,6 +35,11 @@ from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
                            star)
 from elsim.strategies import (approval_optimal, honest_normed_scores,
                               honest_rankings, vote_for_k)
+
+try:
+    import ehtplot.color  # Creates afmhot_u colormap
+except ValueError:  # "colormap … is already registered."
+    pass
 
 n_elections = 1_000_000
 n_voters = 1_000
@@ -188,7 +194,7 @@ def plot_distribution(ax, data, title, max_lim):
                                              range=[[-max_lim, max_lim],
                                                     [-max_lim, max_lim]])
     extent = [-max_lim, max_lim, -max_lim, max_lim]
-    ax.imshow(heatmap.T, cmap="Blues", origin='lower',
+    ax.imshow(heatmap.T, cmap='afmhot_u', origin='lower',
               aspect='auto', extent=extent)
     ax.set_xlim([-max_lim, max_lim])
     ax.set_ylim([-max_lim, max_lim])
@@ -218,7 +224,7 @@ for n, method in enumerate(winners.keys()):
     std = winners_stats[method][1]
     ax[n].text(0.98, 0.02, f'std: ({std[0]:.2f}, {std[1]:.2f})',
                verticalalignment='bottom', horizontalalignment='right',
-               transform=ax[n].transAxes, color='black', fontsize=8)
+               transform=ax[n].transAxes, color='white', fontsize=8)
 
 # Hide the last axes if they are not used
 for i in range(len(winners), len(ax)):
