@@ -146,7 +146,7 @@ title = f'{human_format(n_elections)} 2D elections, '
 title += f'{human_format(n_voters)} voters, '
 title += f'{human_format(n_cands)} candidates'
 title += f', both {cand_dist}'
-title += f', {disp} disp'
+title += f', {disp:.1f} disp'
 
 # Load from .pkl file if it exists
 pkl_filename = title + '.pkl'
