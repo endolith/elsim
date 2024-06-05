@@ -55,6 +55,9 @@ batch_size = 100
 n_batches = n_elections // batch_size
 assert n_batches * batch_size == n_elections
 
+bins = 50
+range_lim = [-1.5, 1.5]
+
 
 def ceildiv(a, b):
     return -(a // -b)
@@ -135,11 +138,15 @@ def simulate_batch(n_cands):
         winner = black(rankings, tiebreaker='random')
         winners['Condorcet RCV (Black)'].append(c[winner])
 
-        # This could just accumulate winner numbers and then get the coordinates later
-        # no because c only exists here
-        # Or it could just accumulate directly to the histogram heatmap in the job
+    histograms = {}
 
-    return winners
+    for method, points in winners.items():
+        points = np.vstack(points)  # Concatenate all points
+        histograms[method] = np.histogram2d(points[:, 0], points[:, 1],
+                                            bins=bins,
+                                            range=[range_lim, range_lim])[0]
+
+    return histograms
 
 
 title = f'{human_format(n_elections)} 2D elections, '
@@ -153,7 +160,7 @@ pkl_filename = title + '.pkl'
 if os.path.exists(pkl_filename):
     print('Loading pickled simulation results')
     with open(pkl_filename, "rb") as file:
-        winners = pickle.load(file)
+        aggregated_histograms = pickle.load(file)
 else:
     print('Running simulations')
     jobs = [delayed(simulate_batch)(n_cands)] * n_batches
@@ -161,42 +168,46 @@ else:
     results = Parallel(n_jobs=-3, verbose=5)(jobs)
     del jobs
 
-    winners = {k: np.array([v for d in results for v in d[k]])
-               for k in results[0]}
-    del results
+    aggregated_histograms = defaultdict(lambda: np.zeros((bins, bins)))
+    for result in results:
+        for key in result:
+            # Technically requires Bessel's correction since we are sampling
+            # an infinite number of elections(?), but negligible for large N.
+            aggregated_histograms[key] += result[key]
+    del results  # n_batches * bins**2 * n methods = GBs of RAM
+
+    # Convert defaultdict to a regular dictionary before pickling
+    aggregated_histograms = dict(aggregated_histograms)
 
     # Save the generated data to .pkl file
     with open(pkl_filename, "wb") as file:
-        pickle.dump(winners, file)
+        pickle.dump(aggregated_histograms, file)
+
 
 # %% Measure distributions
 
-winners['Voters'] = winners['Voters'].reshape(-1, winners['Voters'].shape[-1])
-winners['Candidates'] = winners['Candidates'].reshape(
-    -1, winners['Candidates'].shape[-1])
+# winners['Voters'] = winners['Voters'].reshape(-1, winners['Voters'].shape[-1])
+# winners['Candidates'] = winners['Candidates'].reshape(
+#     -1, winners['Candidates'].shape[-1])
 
-winners_stats = {method: (np.mean(winners[method], axis=0),
-                          np.std(winners[method], axis=0)
-                          ) for method in winners.keys()}
+# winners_stats = {method: (np.mean(winners[method], axis=0),
+#                           np.std(winners[method], axis=0)
+#                           ) for method in winners.keys()}
 
-assert np.allclose(winners_stats['Voters'][1], [1, 1], rtol=1e-2)
+# assert np.allclose(winners_stats['Voters'][1], [1, 1], rtol=1e-2)
 
-for method, (mean, std) in winners_stats.items():
-    print(f"{method}:")
-    print(f"{len(winners[method])} samples")
-    print(f"Winner distribution mean: {mean[0]:.3f}, {mean[1]:.3f}")
-    print(f"                     std: {std[0]:.3f}, {std[1]:.3f}")
-    print()
+# for method, (mean, std) in winners_stats.items():
+#     print(f"{method}:")
+#     print(f"{len(winners[method])} samples")
+#     print(f"Winner distribution mean: {mean[0]:.3f}, {mean[1]:.3f}")
+#     print(f"                     std: {std[0]:.3f}, {std[1]:.3f}")
+#     print()
 
 # %% Plotting
 
-
-def plot_distribution(ax, data, title, max_lim):
-    heatmap, xedges, yedges = np.histogram2d(data[:, 0], data[:, 1], bins=50,
-                                             range=[[-max_lim, max_lim],
-                                                    [-max_lim, max_lim]])
+def plot_distribution(ax, histogram, title, max_lim):
     extent = [-max_lim, max_lim, -max_lim, max_lim]
-    ax.imshow(heatmap.T, cmap='afmhot_u', origin='lower',
+    ax.imshow(histogram.T, cmap='afmhot_u', origin='lower',
               aspect='auto', extent=extent)
     ax.set_xlim([-max_lim, max_lim])
     ax.set_ylim([-max_lim, max_lim])
@@ -211,25 +222,25 @@ def plot_distribution(ax, data, title, max_lim):
         spine.set_visible(True)
 
 
-fig, ax = plt.subplots(nrows=ceildiv(len(winners), 4), ncols=4, num=title,
-                       sharex=True, constrained_layout=True,
+fig, ax = plt.subplots(nrows=ceildiv(len(aggregated_histograms), 4), ncols=4,
+                       num=title, sharex=True, constrained_layout=True,
                        figsize=(11, 9.5))
 fig.suptitle(title)
 
 ax = ax.T.flatten()  # Flatten the ax array for easier indexing
 max_lim = 1.5
 
-for n, method in enumerate(winners.keys()):
-    plot_distribution(ax[n], winners[method], method, max_lim)
+for n, method in enumerate(aggregated_histograms.keys()):
+    plot_distribution(ax[n], aggregated_histograms[method], method, max_lim)
 
     # Add standard deviation text in the lower right corner
-    std = winners_stats[method][1]
-    ax[n].text(0.98, 0.02, f'std: ({std[0]:.2f}, {std[1]:.2f})',
-               verticalalignment='bottom', horizontalalignment='right',
-               transform=ax[n].transAxes, color='white', fontsize=8)
+    # std = winners_stats[method][1]
+    # ax[n].text(0.98, 0.02, f'std: ({std[0]:.2f}, {std[1]:.2f})',
+    #            verticalalignment='bottom', horizontalalignment='right',
+    #            transform=ax[n].transAxes, color='white', fontsize=8)
 
 # Hide the last axes if they are not used
-for i in range(len(winners), len(ax)):
+for i in range(len(aggregated_histograms), len(ax)):
     fig.delaxes(ax[i])
 
 plt.show()
