@@ -1,7 +1,7 @@
 # Election Simulator 3000
 
 [![CircleCI](https://circleci.com/gh/endolith/elsim.svg?style=shield)](https://circleci.com/gh/endolith/elsim)
-[![Actions Status](https://github.com/endolith/elsim/workflows/Python%20package/badge.svg)](https://github.com/endolith/elsim/actions)
+[![Actions Status](https://github.com/endolith/elsim/actions/workflows/python-package.yml/badge.svg)](https://github.com/endolith/elsim/actions)
 [![codecov](https://codecov.io/gh/endolith/elsim/branch/master/graph/badge.svg?token=BZuePTP2dw)](https://codecov.io/gh/endolith/elsim)
 
 This is a library of functions for simulating thousands of elections held using different [voting methods](https://en.wikipedia.org/wiki/Electoral_system) ([Borda count](https://en.wikipedia.org/wiki/Borda_count), [Approval voting](https://en.wikipedia.org/wiki/Approval_voting), etc.) under different voter models ([impartial culture](https://en.wikipedia.org/wiki/Impartial_culture), [spatial model](https://en.wikipedia.org/wiki/Spatial_model_of_voting), etc.) and estimating various metrics from them ([Social Utility Efficiency](https://en.wikipedia.org/wiki/Social_utility_efficiency) = Voter Satisfaction Efficiency = VSE, [Condorcet Efficiency](https://en.wikipedia.org/wiki/Condorcet_efficiency), [likelihood of Condorcet cycles](https://en.wikipedia.org/wiki/Condorcet_paradox#Likelihood_of_the_paradox), etc.)
