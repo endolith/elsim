@@ -116,11 +116,13 @@ def honest_normed_scores(utilities, max_score=5):
         # Normalize every voter's maximum utility to 1
         normed /= np.amax(normed, axis=1)[:, np.newaxis]
 
-    # Normalize every voter's maximum score to max_score
-    normed *= max_score
+        # Normalize every voter's maximum score to max_score
+        normed *= max_score
+
+        scores = np.around(normed).astype(np.uint8)
 
     # Quantize to discrete scale
-    return np.around(normed).astype(np.uint8)
+    return scores
 
 
 def approval_optimal(utilities):
