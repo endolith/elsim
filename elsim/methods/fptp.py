@@ -201,4 +201,4 @@ def sntv(election, n=1, tiebreaker=None):
         return set(untied_winners) | set(tie_winners)
     else:
         # TODO: Maybe should use arrays for deterministic randomness?
-        return set(top_candidates)
+        return set(int(candidate) for candidate in top_candidates)
