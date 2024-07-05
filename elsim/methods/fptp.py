@@ -198,7 +198,10 @@ def sntv(election, n=1, tiebreaker=None):
         tie_winners = tiebreak(list(tied_candidates), n_needed)
         if tie_winners == [None]:
             return None
-        return set(untied_winners) | set(tie_winners)
+        winners = set(untied_winners) | set(tie_winners)
     else:
-        # TODO: Maybe should use arrays for deterministic randomness?
-        return set(int(candidate) for candidate in top_candidates)
+        winners = set(top_candidates)
+
+    # Convert to set of Python ints
+    # TODO: Maybe should use arrays for deterministic randomness?
+    return set(int(winner) for winner in winners)
