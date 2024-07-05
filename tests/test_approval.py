@@ -177,8 +177,8 @@ def test_cav_legit_winner_none(election):
 @pytest.mark.parametrize("method", [approval, combined_approval])
 def test_invalid(method):
     with pytest.raises(ValueError):
-        method([[-2, -2, -2],
-                [0, +1, -1]])
+        method([[0, 4, 0],
+                [0, 1, 1]])
 
 
 if __name__ == "__main__":
