@@ -41,8 +41,8 @@ try:
 except ValueError:  # "colormap … is already registered."
     pass
 
-n_elections = 1_000_000
-n_voters = 1_000
+n_elections = 1_000_000  # Roughly 13 minutes on a 2019 6-core i7-9750H
+n_voters = 1_000  # 10k looks the same but takes 2 hours. Lower diffuses rings.
 n_cands = 9
 cand_dist = 'normal'
 u_width = 5
