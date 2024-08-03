@@ -139,14 +139,16 @@ def simulate_batch(n_cands):
         winners['Condorcet RCV (Black)'].append(c[winner])
 
     histograms = {}
+    variances = {}
 
     for method, points in winners.items():
         points = np.vstack(points)  # Concatenate all points
         histograms[method] = np.histogram2d(points[:, 0], points[:, 1],
                                             bins=bins,
                                             range=[range_lim, range_lim])[0]
+        variances[method] = np.var(points, axis=0)  # x, y
 
-    return histograms
+    return histograms, variances
 
 
 title = f'{human_format(n_elections)} 2D elections, '
@@ -160,7 +162,7 @@ pkl_filename = title + '.pkl'
 if os.path.exists(pkl_filename):
     print('Loading pickled simulation results')
     with open(pkl_filename, "rb") as file:
-        aggregated_histograms = pickle.load(file)
+        aggregated_histograms, aggregated_variances = pickle.load(file)
 else:
     print('Running simulations')
     jobs = [delayed(simulate_batch)(n_cands)] * n_batches
@@ -169,41 +171,46 @@ else:
     del jobs
 
     aggregated_histograms = defaultdict(lambda: np.zeros((bins, bins)))
+    aggregated_variances = defaultdict(lambda: np.zeros(2))
+
     for result in results:
-        for key in result:
+        histograms, variances = result
+        for key in histograms:
             # Technically requires Bessel's correction since we are sampling
             # an infinite number of elections(?), but negligible for large N.
-            aggregated_histograms[key] += result[key]
+            aggregated_histograms[key] += histograms[key]
+            # Sum all variances for calculating mean
+            aggregated_variances[key] += variances[key]
     del results  # n_batches * bins**2 * n methods = GBs of RAM
 
-    # Convert defaultdict to a regular dictionary before pickling
+    # Average the variances
+    for key in aggregated_variances:
+        # Technically the overall variance of a union of chunks has an
+        # inter-chunk variance term as well, but since ours are all zero-mean,
+        # I don't think it matters.
+        aggregated_variances[key] /= n_batches
+
+    # Convert defaultdicts to regular dictionaries before pickling
     aggregated_histograms = dict(aggregated_histograms)
+    aggregated_variances = dict(aggregated_variances)
 
     # Save the generated data to .pkl file
     with open(pkl_filename, "wb") as file:
-        pickle.dump(aggregated_histograms, file)
+        pickle.dump((aggregated_histograms, aggregated_variances), file)
 
 
 # %% Measure distributions
 
-# winners['Voters'] = winners['Voters'].reshape(-1, winners['Voters'].shape[-1])
-# winners['Candidates'] = winners['Candidates'].reshape(
-#     -1, winners['Candidates'].shape[-1])
+winners_stats = {method: (np.sqrt(aggregated_variances[method])
+                          ) for method in aggregated_histograms.keys()}
 
-# winners_stats = {method: (np.mean(winners[method], axis=0),
-#                           np.std(winners[method], axis=0)
-#                           ) for method in winners.keys()}
-
-# assert np.allclose(winners_stats['Voters'][1], [1, 1], rtol=1e-2)
-
-# for method, (mean, std) in winners_stats.items():
-#     print(f"{method}:")
-#     print(f"{len(winners[method])} samples")
-#     print(f"Winner distribution mean: {mean[0]:.3f}, {mean[1]:.3f}")
-#     print(f"                     std: {std[0]:.3f}, {std[1]:.3f}")
-#     print()
+for method, std in winners_stats.items():
+    print(f"{method}:")
+    print(f"Winner distribution std: {std[0]:.3f}")
+    print()
 
 # %% Plotting
+
 
 def plot_distribution(ax, histogram, title, max_lim):
     extent = [-max_lim, max_lim, -max_lim, max_lim]
@@ -234,10 +241,10 @@ for n, method in enumerate(aggregated_histograms.keys()):
     plot_distribution(ax[n], aggregated_histograms[method], method, max_lim)
 
     # Add standard deviation text in the lower right corner
-    # std = winners_stats[method][1]
-    # ax[n].text(0.98, 0.02, f'std: ({std[0]:.2f}, {std[1]:.2f})',
-    #            verticalalignment='bottom', horizontalalignment='right',
-    #            transform=ax[n].transAxes, color='white', fontsize=8)
+    std = winners_stats[method][1]
+    ax[n].text(0.98, 0.02, f'std: {std:.3f}',
+               verticalalignment='bottom', horizontalalignment='right',
+               transform=ax[n].transAxes, color='white', fontsize=9)
 
 # Hide the last axes if they are not used
 for i in range(len(aggregated_histograms), len(ax)):
