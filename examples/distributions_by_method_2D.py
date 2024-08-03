@@ -215,7 +215,7 @@ for method, std in winners_stats.items():
 def plot_distribution(ax, histogram, title, max_lim):
     extent = [-max_lim, max_lim, -max_lim, max_lim]
     ax.imshow(histogram.T, cmap='afmhot_u', origin='lower',
-              aspect='auto', extent=extent)
+              aspect='auto', extent=extent, interpolation='none')
     ax.set_xlim([-max_lim, max_lim])
     ax.set_ylim([-max_lim, max_lim])
     ax.set_aspect('equal')  # Set the aspect ratio to be equal (square)
