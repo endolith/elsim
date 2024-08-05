@@ -170,8 +170,10 @@ else:
     results = Parallel(n_jobs=-3, verbose=5)(jobs)
     del jobs
 
-    aggregated_histograms = defaultdict(lambda: np.zeros((bins, bins)))
-    aggregated_variances = defaultdict(lambda: np.zeros(2))
+    # Get keys from the histograms of the first result
+    keys = results[0][0].keys()
+    aggregated_histograms = {key: np.zeros((bins, bins)) for key in keys}
+    aggregated_variances = {key: np.zeros(2) for key in keys}
 
     for result in results:
         histograms, variances = result
@@ -189,10 +191,6 @@ else:
         # inter-chunk variance term as well, but since ours are all zero-mean,
         # I don't think it matters.
         aggregated_variances[key] /= n_batches
-
-    # Convert defaultdicts to regular dictionaries before pickling
-    aggregated_histograms = dict(aggregated_histograms)
-    aggregated_variances = dict(aggregated_variances)
 
     # Save the generated data to .pkl file
     with open(pkl_filename, "wb") as file:
