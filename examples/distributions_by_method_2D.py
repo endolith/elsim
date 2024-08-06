@@ -119,7 +119,7 @@ def simulate_batch(n_cands):
 
         # Approval voting
         winner = approval(vote_for_k(utilities, vote_for), tiebreaker='random')
-        winners[f'Approval Voting "(Vote-for-{vote_for}")'].append(c[winner])
+        winners[f'Approval Voting ("Vote-for-{vote_for}")'].append(c[winner])
 
         # STAR voting
         ballots = honest_normed_scores(utilities)
