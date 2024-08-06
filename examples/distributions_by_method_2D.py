@@ -162,7 +162,7 @@ pkl_filename = title + '.pkl'
 if os.path.exists(pkl_filename):
     print('Loading pickled simulation results')
     with open(pkl_filename, "rb") as file:
-        aggregated_histograms, aggregated_variances = pickle.load(file)
+        aggregated_histograms, standard_deviations = pickle.load(file)
 else:
     print('Running simulations')
     jobs = [delayed(simulate_batch)(n_cands)] * n_batches
@@ -185,24 +185,23 @@ else:
             aggregated_variances[key] += variances[key]
     del results  # n_batches * bins**2 * n methods = GBs of RAM
 
-    # Average the variances
+    # Average the variances and get standard deviations
+    standard_deviations = {key: np.zeros(2) for key in keys}
     for key in aggregated_variances:
         # Technically the overall variance of a union of chunks has an
         # inter-chunk variance term as well, but since ours are all zero-mean,
         # I don't think it matters.
-        aggregated_variances[key] /= n_batches
+        std = np.sqrt(aggregated_variances[key] / n_batches)
+        standard_deviations[key] = std
 
     # Save the generated data to .pkl file
     with open(pkl_filename, "wb") as file:
-        pickle.dump((aggregated_histograms, aggregated_variances), file)
+        pickle.dump((aggregated_histograms, standard_deviations), file)
 
 
 # %% Measure distributions
 
-winners_stats = {method: (np.sqrt(aggregated_variances[method])
-                          ) for method in aggregated_histograms.keys()}
-
-for method, std in winners_stats.items():
+for method, std in standard_deviations.items():
     print(f"{method}:")
     print(f"Winner distribution std: {std[0]:.3f}")
     print()
@@ -239,7 +238,7 @@ for n, method in enumerate(aggregated_histograms.keys()):
     plot_distribution(ax[n], aggregated_histograms[method], method, max_lim)
 
     # Add standard deviation text in the lower right corner
-    std = winners_stats[method][1]
+    std = standard_deviations[method][1]
     ax[n].text(0.98, 0.02, f'std: {std:.3f}',
                verticalalignment='bottom', horizontalalignment='right',
                transform=ax[n].transAxes, color='white', fontsize=9)
