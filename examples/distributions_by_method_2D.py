@@ -38,7 +38,7 @@ from elsim.strategies import (approval_optimal, honest_normed_scores,
 
 try:
     import ehtplot.color  # Creates afmhot_u colormap
-except ValueError:  # "colormap … is already registered."
+except ValueError:  # https://github.com/liamedeiros/ehtplot/pull/6
     pass
 
 n_elections = 1_000_000  # Roughly 13 minutes on a 2019 6-core i7-9750H
@@ -211,7 +211,7 @@ for method, std in standard_deviations.items():
 
 def plot_distribution(ax, histogram, title, max_lim):
     extent = [-max_lim, max_lim, -max_lim, max_lim]
-    ax.imshow(histogram.T, cmap='afmhot_u', origin='lower',
+    ax.imshow(histogram.T, cmap='afmhot_10us', origin='lower',
               aspect='auto', extent=extent, interpolation='none')
     ax.set_xlim([-max_lim, max_lim])
     ax.set_ylim([-max_lim, max_lim])
