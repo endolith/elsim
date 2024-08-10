@@ -154,8 +154,9 @@ def simulate_batch(n_cands):
 title = f'{human_format(n_elections)} 2D elections, '
 title += f'{human_format(n_voters)} voters, '
 title += f'{human_format(n_cands)} candidates'
-title += f', both {cand_dist}'
-title += f', {disp:.1f} disp'
+if cand_dist == 'normal':
+    title += f', both Gaussian'
+title += f', {disp:.1f} relative dispersion'
 
 # Load from .pkl file if it exists
 pkl_filename = title + '.pkl'

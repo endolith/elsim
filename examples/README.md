@@ -300,6 +300,12 @@ Source: [distributions_by_n_cands.py](distributions_by_n_cands.py)
 
 Source: [distributions_by_dispersion.py](distributions_by_dispersion.py)
 
+### By method, in two-dimensional space
+
+![](./results/1M_2D_elections,_1k_voters,_9_candidates,_both_Gaussian,_0.5_relative_dispersion.png)
+
+Source: [distributions_by_method_2D.py](distributions_by_method_2D.py)
+
 ## Tomlinson 2023
 
 Kiran Tomlinson, Johan Ugander, Jon Kleinberg (2023) [Moderation in instant runoff voting](https://arxiv.org/abs/2303.09734)
