@@ -35,7 +35,8 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.viewcode',
     'sphinxcontrib.mermaid',
-    'myst_parser'
+    'myst_parser',
+    'sphinx.ext.extlinks'
 ]
 
 extlinks = {
@@ -91,6 +92,22 @@ def setup(app):
 
 # Add this to enable regular markdown mermaid syntax
 myst_fence_as_directive = ["mermaid"]
+
+# MyST configuration
+myst_enable_extensions = [
+    "colon_fence",    # For ::: fences
+    "dollarmath",     # For $$
+    "linkify",        # Auto-convert bare URLs to links
+    "substitution",   # For {{ var }}
+    "tasklist",       # For [ ] task lists
+]
+
+# Enable MyST to parse reST directives in markdown
+myst_all_links_external = True
+myst_heading_anchors = 3
+myst_footnote_transition = True
+myst_dmath_double_inline = True
+myst_enable_checkboxes = True
 
 # Add README.md as the index page
 root_doc = 'index'  # or 'contents' in older versions
