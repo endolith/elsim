@@ -1,9 +1,6 @@
-sphinx<7.0
-docutils==0.16
-mistune==0.8.4
-m2r2
+myst-parser
+sphinxcontrib.mermaid
 -e .
 numpydoc
-sphinxcontrib.mermaid
 sphinx_rtd_theme
 sphinxcontrib-apidoc

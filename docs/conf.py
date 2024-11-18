@@ -32,11 +32,11 @@ release = '0.1'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.extlinks',
-    'numpydoc',
-    'm2r2',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.viewcode',
     'sphinxcontrib.mermaid',
-    ]
+    'myst_parser'
+]
 
 extlinks = {
     'doi': ('https://dx.doi.org/%s', 'doi:%s'),
@@ -88,3 +88,9 @@ def copy_examples(app, docname):
 
 def setup(app):
     app.connect('build-finished', copy_examples)
+
+# Add this to enable regular markdown mermaid syntax
+myst_fence_as_directive = ["mermaid"]
+
+# Add README.md as the index page
+root_doc = 'index'  # or 'contents' in older versions
