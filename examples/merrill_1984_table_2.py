@@ -1,23 +1,35 @@
 """
 Reproduce Table 2
 
-Condorcet Efficiency under Impartial Culture Assumptions
-
-Results with 1_000_000 elections:
-
-| Candidates |   Plurality |   Runoff |   Hare |   Approval |   Borda |   Coombs |   Black |
-|-----------:|------------:|---------:|-------:|-----------:|--------:|---------:|--------:|
-|          3 |        91.2 |     93.8 |   95.9 |       85.2 |    98.9 |     94.3 |   100.0 |
-|          4 |        79.0 |     79.5 |   82.2 |       73.1 |    97.2 |     84.6 |   100.0 |
-|          5 |        68.6 |     67.4 |   69.7 |       62.8 |    95.0 |     74.5 |   100.0 |
-|          6 |        59.7 |     56.8 |   58.7 |       54.1 |    92.4 |     65.3 |   100.0 |
-|          7 |        52.2 |     47.9 |   49.4 |       46.5 |    89.4 |     57.1 |   100.0 |
+Condorcet Efficiencies under […] Spatial Model Assumptions
+(201 voters, 5 candidates)
 
 from
 
 S. Merrill III, "A Comparison of Efficiency of Multicandidate
 Electoral Systems", American Journal of Political Science, vol. 28,
 no. 1, pp. 23-48, 1984.  :doi:`10.2307/2110786`
+
+(Not including random society column)
+
+Typical result:
+
+| Disp      |   1.0 |   1.0 |   1.0 |   1.0 |   0.5 |   0.5 |   0.5 |   0.5 |
+| Corr      |   0.5 |   0.5 |   0.0 |   0.0 |   0.5 |   0.5 |   0.0 |   0.0 |
+| Dims      |     2 |     4 |     2 |     4 |     2 |     4 |     2 |     4 |
+|:----------|------:|------:|------:|------:|------:|------:|------:|------:|
+| Plurality |  57.5 |  65.8 |  62.2 |  78.4 |  21.7 |  24.4 |  27.2 |  41.3 |
+| Runoff    |  80.1 |  87.3 |  81.6 |  93.6 |  35.4 |  42.2 |  41.5 |  61.5 |
+| Hare      |  79.2 |  86.7 |  84.0 |  95.4 |  35.9 |  46.8 |  41.0 |  69.9 |
+| Approval  |  73.8 |  77.8 |  76.9 |  85.4 |  71.5 |  76.4 |  73.8 |  82.7 |
+| Borda     |  87.1 |  89.3 |  88.2 |  92.3 |  83.7 |  86.3 |  85.2 |  89.4 |
+| Coombs    |  97.8 |  97.3 |  97.9 |  98.2 |  93.5 |  92.3 |  93.8 |  94.5 |
+| Black     | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 | 100.0 |
+| SU max    |  82.9 |  85.8 |  85.3 |  90.8 |  78.1 |  81.5 |  80.8 |  87.1 |
+| CW        |  99.7 |  99.7 |  99.7 |  99.6 |  98.9 |  98.6 |  98.7 |  98.5 |
+
+Many of these values match the paper closely, but some are consistently off by
+up to 4%.
 """
 import time
 from collections import Counter
@@ -27,14 +39,14 @@ import numpy as np
 from joblib import Parallel, delayed
 from tabulate import tabulate
 
-from elsim.elections import random_utilities
-from elsim.methods import (approval, black, borda, condorcet, coombs, fptp, irv,
-                           runoff, utility_winner)
+from elsim.elections import normal_electorate, normed_dist_utilities
+from elsim.methods import (approval, black, borda, condorcet, coombs, fptp,
+                           irv, runoff, utility_winner)
 from elsim.strategies import approval_optimal, honest_rankings
 
-n_elections = 50_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
+n_elections = 10_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 201
-n_cands_list = (3, 4, 5, 6, 7)
+n_cands = 5
 
 # Simulate more than just one election per worker to improve efficiency
 batch_size = 100
