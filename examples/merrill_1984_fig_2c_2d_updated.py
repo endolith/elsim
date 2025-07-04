@@ -50,6 +50,7 @@ from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
@@ -64,6 +65,11 @@ n_cands_list = (2, 3, 4, 5, 6, 7)
 corr = 0.5
 D = 2
 
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 100
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
+
 ranked_methods = {'Plurality': fptp, 'Top-2 Runoff': runoff, 'Hare RCV': irv,
                   'Borda': borda, 'Coombs': coombs, 'Condorcet RCV': black}
 
@@ -76,14 +82,33 @@ rated_methods = {'SU max': utility_winner,
                      star(honest_normed_scores(utilities, 5), tiebreaker),
                  }
 
-for fig, disp, ymin in (('2.c', 1.0, 50),
-                        ('2.d', 0.5, 0)):
+# Plot Merrill's results as dotted lines for comparison (traced from plots)
+merrill_fig_2c = {
+    'Condorcet RCV': {2: 100.0, 3: 100.0, 4: 100.0, 5: 100.0, 7: 100.0},
+    'Coombs': {2: 100.0, 3: 99.1,  4: 98.1,  5: 97.1,  7: 93.1},
+    'Borda': {2: 100.0, 3: 91.0,  4: 87.1,  5: 86.0,  7: 84.0},
+    'Approval (opt.)': {2: 100.0, 3: 86.0,  4: 77.1,  5: 74.0,  7: 66.0},
+    'Hare RCV': {2: 100.0, 3: 94.1,  4: 88.1,  5: 78.0,  7: 66.0},
+    'Top-2 Runoff': {2: 100.0, 3: 94.1,  4: 88.1,  5: 80.1,  7: 64.0},
+    'Plurality': {2: 100.0, 3: 79.1,  4: 68.9,  5: 57.0,  7: 50.0},
+}
 
+merrill_fig_2d = {
+    'Condorcet RCV': {2: 100.0, 3: 100.0, 4: 100.0, 5: 100.0, 7: 100.0},
+    'Coombs': {2: 100.0, 3: 97.2,  4: 93.2,  5: 90.0,  7: 81.2},
+    'Borda': {2: 100.0, 3: 88.3,  4: 88.0,  5: 84.0,  7: 76.0},
+    'Approval (opt.)': {2: 100.0, 3: 84.2,  4: 81.3,  5: 73.0,  7: 62.0},
+    'Hare RCV': {2: 100.0, 3: 69.4,  4: 52.1,  5: 34.0,  7: 21.0},
+    'Top-2 Runoff': {2: 100.0, 3: 69.4,  4: 53.3,  5: 31.0,  7: 16.9},
+    'Plurality': {2: 100.0, 3: 51.3,  4: 36.2,  5: 21.0,  7: 7.8},
+}
+
+
+def simulate_batch(disp):
     condorcet_winner_count = {key: Counter() for key in (
         ranked_methods.keys() | rated_methods.keys() | {'CW'})}
-    start_time = time.monotonic()
-
-    for iteration in range(n_elections):
+    
+    for iteration in range(batch_size):
         for n_cands in n_cands_list:
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp)
@@ -103,15 +128,45 @@ for fig, disp, ymin in (('2.c', 1.0, 50),
                 for name, method in rated_methods.items():
                     if method(utilities, tiebreaker='random') == CW:
                         condorcet_winner_count[name][n_cands] += 1
+    
+    return condorcet_winner_count
+
+
+for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
+                              ('2.d', 0.5, 0, merrill_fig_2d)):
+
+    start_time = time.monotonic()
+
+    jobs = [delayed(simulate_batch)(disp)] * n_batches
+    print(f'{len(jobs)} tasks total:')
+    results = Parallel(n_jobs=-3, verbose=5)(jobs)
+    
+    # Merge results from all batches
+    condorcet_winner_count = {key: Counter() for key in (
+        ranked_methods.keys() | rated_methods.keys() | {'CW'})}
+    for result in results:
+        for method in condorcet_winner_count:
+            for n_cands in n_cands_list:
+                condorcet_winner_count[method][n_cands] += result[method][n_cands]
 
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
           '\n')
 
-    plt.figure(f'Figure {fig}. {n_voters} voters, {n_elections} elections',
-               figsize=(8, 6.5))
+    plt.figure(f'Figure {fig}. {n_voters} voters, {n_elections} elections')
     plt.title(f'Figure {fig}: Condorcet Efficiency under Spatial-Model '
-              f'Assumptions [Disp: {disp}]')
+              'Assumptions')
+
+    # Restart color cycle, so result colors match
+    plt.gca().set_prop_cycle(None)
+
+    for method in ('Condorcet RCV', 'Coombs', 'STAR', 'Borda', 'Score',
+                   'Approval (opt.)', 'Hare RCV', 'Top-2 Runoff', 'Plurality'):
+        x, y = zip(*sorted(orig[method].items()))
+        plt.plot(x, y, ':', lw=0.8)
+
+    # Restart color cycle, so result colors match
+    plt.gca().set_prop_cycle(None)
 
     table = []
 
@@ -127,6 +182,7 @@ for fig, disp, ymin in (('2.c', 1.0, 50),
     print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
     print()
 
+    plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
     plt.legend()
     plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
     plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')

@@ -51,6 +51,7 @@ from random import randint
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
+from joblib import Parallel, delayed
 
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
@@ -78,14 +79,32 @@ rated_methods = {'SU max': utility_winner,
                           tiebreaker),
                  }
 
-for fig, disp, ymin in (('4.a', 1.0, 55),
-                        ('4.b', 0.5, 0)):
+# Plot Merrill's results as dotted lines for comparison (traced from plots)
+merrill_fig_4a = {
+    'Black':     {1: 98.1, 2: 97.8, 3: 97.2, 4: 96.8},
+    'Coombs':    {1: 98.1, 2: 97.8, 3: 97.2, 4: 96.8},
+    'Borda':     {1: 91.4, 2: 91.1, 3: 90.4, 4: 89.8},
+    'Approval':  {1: 90.4, 2: 90.1, 3: 89.4, 4: 88.8},
+    'Hare':      {1: 85.1, 2: 84.0, 3: 81.6, 4: 79.6},
+    'Runoff':    {1: 85.8, 2: 84.9, 3: 82.7, 4: 80.9},
+    'Plurality': {1: 85.6, 2: 84.7, 3: 82.6, 4: 80.8},
+}
 
+merrill_fig_4b = {
+    'Black':     {1: 96.0, 2: 95.6, 3: 95.0, 4: 94.5},
+    'Coombs':    {1: 96.0, 2: 95.6, 3: 95.0, 4: 94.5},
+    'Borda':     {1: 83.9, 2: 83.7, 3: 83.0, 4: 82.5},
+    'Approval':  {1: 83.5, 2: 83.3, 3: 82.6, 4: 82.1},
+    'Hare':      {1: 71.3, 2: 70.8, 3: 68.3, 4: 66.4},
+    'Runoff':    {1: 73.8, 2: 73.1, 3: 70.6, 4: 68.7},
+    'Plurality': {1: 73.6, 2: 72.9, 3: 70.4, 4: 68.5},
+}
+
+def simulate_batch(disp):
     utility_sums = {key: Counter() for key in (ranked_methods.keys() |
                                                rated_methods.keys() |
                                                {'SU max', 'RW'})}
-    start_time = time.monotonic()
-
+    
     for iteration in range(n_elections):
         for n_cands in n_cands_list:
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
@@ -104,6 +123,25 @@ for fig, disp, ymin in (('4.a', 1.0, 55),
             for name, method in ranked_methods.items():
                 winner = method(rankings, tiebreaker='random')
                 utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+    
+    return utility_sums
+
+for fig, disp, orig in (('4.a', 0.5, merrill_fig_4a),
+                        ('4.b', 1.0, merrill_fig_4b)):
+
+    start_time = time.monotonic()
+
+    jobs = [delayed(simulate_batch)(disp)] * n_elections
+    print(f'{len(jobs)} tasks total:')
+    results = Parallel(n_jobs=-3, verbose=5)(jobs)
+    
+    # Merge results from all batches
+    utility_sums = {key: Counter() for key in (ranked_methods.keys() |
+                                               rated_methods.keys())}
+    for result in results:
+        for method in utility_sums:
+            for n_cands in n_cands_list:
+                utility_sums[method][n_cands] += result[method][n_cands]
 
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
@@ -113,6 +151,17 @@ for fig, disp, ymin in (('4.a', 1.0, 55),
                figsize=(8, 6.5))
     plt.title(f'Figure {fig}: Social Utility Efficiency under Spatial-Model '
               f'Assumptions [Disp: {disp}]')
+
+    # Restart color cycle, so result colors match
+    plt.gca().set_prop_cycle(None)
+
+    for method in ('Black', 'Coombs', 'Borda', 'Approval', 'Hare', 'Runoff',
+                   'Plurality'):
+        x, y = zip(*sorted(orig[method].items()))
+        plt.plot(x, y, ':', lw=0.8)
+
+    # Restart color cycle, so result colors match
+    plt.gca().set_prop_cycle(None)
 
     table = []
 

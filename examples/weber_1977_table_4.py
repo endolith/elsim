@@ -29,37 +29,60 @@ import time
 from collections import Counter
 
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import random_utilities
 from elsim.methods import approval, borda, fptp
 from elsim.strategies import approval_optimal, honest_rankings
 
-n_elections = 30_000  # Roughly 30 seconds on a 2019 6-core i7-9750H
+n_elections = 100_000  # Roughly 30 seconds on a 2019 6-core i7-9750H
 n_voters_list = (2, 3, 4, 5, 10, 15, 20, 25, 30)
 n_cands = 3
+
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 100
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
 
 ranked_methods = {'Standard': fptp, 'Borda': borda}
 rated_methods = {'Approval': lambda utilities, tiebreaker:
                  approval(approval_optimal(utilities), tiebreaker)}
 
-utility_sums = {key: Counter() for key in (ranked_methods.keys() |
-                                           rated_methods.keys())}
+
+def simulate_batch():
+    utility_sums = {key: Counter() for key in (ranked_methods.keys() |
+                                               rated_methods.keys())}
+    
+    for iteration in range(batch_size):
+        for n_voters in n_voters_list:
+            utilities = random_utilities(n_voters, n_cands)
+
+            for name, method in rated_methods.items():
+                winner = method(utilities, tiebreaker='random')
+                utility_sums[name][n_voters] += utilities.sum(axis=0)[winner]
+
+            rankings = honest_rankings(utilities)
+            for name, method in ranked_methods.items():
+                winner = method(rankings, tiebreaker='random')
+                utility_sums[name][n_voters] += utilities.sum(axis=0)[winner]
+    
+    return utility_sums
+
 
 start_time = time.monotonic()
 
-for iteration in range(n_elections):
-    for n_voters in n_voters_list:
-        utilities = random_utilities(n_voters, n_cands)
+jobs = [delayed(simulate_batch)()] * n_batches
+print(f'{len(jobs)} tasks total:')
+results = Parallel(n_jobs=-3, verbose=5)(jobs)
 
-        for name, method in rated_methods.items():
-            winner = method(utilities, tiebreaker='random')
-            utility_sums[name][n_voters] += utilities.sum(axis=0)[winner]
-
-        rankings = honest_rankings(utilities)
-        for name, method in ranked_methods.items():
-            winner = method(rankings, tiebreaker='random')
-            utility_sums[name][n_voters] += utilities.sum(axis=0)[winner]
+# Merge results from all batches
+utility_sums = {key: Counter() for key in (ranked_methods.keys() |
+                                           rated_methods.keys())}
+for result in results:
+    for method in utility_sums:
+        for n_voters in n_voters_list:
+            utility_sums[method][n_voters] += result[method][n_voters]
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')

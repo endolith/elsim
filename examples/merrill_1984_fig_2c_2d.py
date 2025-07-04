@@ -46,6 +46,7 @@ from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
@@ -53,11 +54,16 @@ from elsim.methods import (approval, black, borda, condorcet, coombs, fptp,
                            irv, runoff, utility_winner)
 from elsim.strategies import approval_optimal, honest_rankings
 
-n_elections = 10_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
+n_elections = 100_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
 n_voters = 201
 n_cands_list = (2, 3, 4, 5, 6, 7)
 corr = 0.5
 D = 2
+
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 100
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
 
 ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
                   'Borda': borda, 'Coombs': coombs, 'Black': black}
@@ -87,14 +93,12 @@ merrill_fig_2d = {
     'Plurality': {2: 100.0, 3: 51.3,  4: 36.2,  5: 21.0,  7: 7.8},
 }
 
-for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
-                              ('2.d', 0.5, 0, merrill_fig_2d)):
 
+def simulate_batch(disp):
     condorcet_winner_count = {key: Counter() for key in (
         ranked_methods.keys() | rated_methods.keys() | {'CW'})}
-    start_time = time.monotonic()
-
-    for iteration in range(n_elections):
+    
+    for iteration in range(batch_size):
         for n_cands in n_cands_list:
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp)
@@ -114,6 +118,26 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
                 for name, method in rated_methods.items():
                     if method(utilities, tiebreaker='random') == CW:
                         condorcet_winner_count[name][n_cands] += 1
+    
+    return condorcet_winner_count
+
+
+for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
+                              ('2.d', 0.5, 0, merrill_fig_2d)):
+
+    start_time = time.monotonic()
+
+    jobs = [delayed(simulate_batch)(disp)] * n_batches
+    print(f'{len(jobs)} tasks total:')
+    results = Parallel(n_jobs=-3, verbose=5)(jobs)
+    
+    # Merge results from all batches
+    condorcet_winner_count = {key: Counter() for key in (
+        ranked_methods.keys() | rated_methods.keys() | {'CW'})}
+    for result in results:
+        for method in condorcet_winner_count:
+            for n_cands in n_cands_list:
+                condorcet_winner_count[method][n_cands] += result[method][n_cands]
 
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),

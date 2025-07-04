@@ -2,7 +2,7 @@
 Reproduce Figures 4.a and 4.b
 
 Social Utility Efficiency under Spatial-Model Assumptions
-(201 voters, two dimensions, correlation = .5, relative dispersion = .5 or 1.0)
+(201 voters, 5 candidates, correlation = .5, relative dispersion = .5 or 1.0)
 
 from
 
@@ -14,38 +14,32 @@ Results with 500_000 elections:
 
 4.a
 
-| Method    |     2 |    3 |    4 |    5 |    6 |    7 |
-|:----------|------:|-----:|-----:|-----:|-----:|-----:|
-| Black     | 100.0 | 97.2 | 97.1 | 97.3 | 97.6 | 97.8 |
-| Coombs    | 100.0 | 97.1 | 96.8 | 97.0 | 97.2 | 97.4 |
-| Borda     | 100.0 | 98.7 | 98.2 | 97.9 | 97.7 | 97.6 |
-| Approval  | 100.0 | 98.7 | 97.3 | 96.2 | 95.6 | 95.2 |
-| Hare      | 100.0 | 94.2 | 92.6 | 91.7 | 91.0 | 90.3 |
-| Runoff    | 100.0 | 94.2 | 92.0 | 90.4 | 88.9 | 87.4 |
-| Plurality | 100.0 | 84.7 | 77.1 | 72.1 | 68.1 | 64.8 |
+| Dims |   Plurality |   Runoff |   Hare |   Approval |   Borda |   Coombs |   Black |
+|-----:|------------:|---------:|-------:|-----------:|--------:|---------:|--------:|
+|    1 |        85.6 |     85.8 |   85.1 |       90.4 |    91.4 |     97.8 |    97.8 |
+|    2 |        84.7 |     84.9 |   84.0 |       90.1 |    91.1 |     97.8 |    97.8 |
+|    3 |        82.6 |     82.7 |   81.6 |       89.4 |    90.4 |     97.6 |    97.6 |
+|    4 |        80.8 |     80.9 |   79.6 |       88.8 |    89.8 |     97.4 |    97.4 |
 
 4.b
 
-| Method    |     2 |    3 |    4 |    5 |     6 |     7 |
-|:----------|------:|-----:|-----:|-----:|------:|------:|
-| Black     | 100.0 | 95.5 | 95.2 | 95.5 |  95.8 |  96.2 |
-| Coombs    | 100.0 | 94.9 | 94.1 | 94.0 |  94.0 |  94.1 |
-| Borda     | 100.0 | 97.9 | 97.1 | 96.6 |  96.4 |  96.3 |
-| Approval  | 100.0 | 98.6 | 96.7 | 95.6 |  94.9 |  94.5 |
-| Hare      | 100.0 | 70.2 | 55.9 | 46.7 |  39.7 |  34.6 |
-| Runoff    | 100.0 | 70.2 | 51.7 | 36.9 |  24.3 |  13.5 |
-| Plurality | 100.0 | 50.1 | 23.7 |  4.3 | -11.8 | -25.1 |
+| Dims |   Plurality |   Runoff |   Hare |   Approval |   Borda |   Coombs |   Black |
+|-----:|------------:|---------:|-------:|-----------:|--------:|---------:|--------:|
+|    1 |        73.6 |     73.8 |   71.3 |       83.5 |    83.9 |     95.7 |    95.7 |
+|    2 |        72.9 |     73.1 |   70.8 |       83.3 |    83.7 |     95.6 |    95.6 |
+|    3 |        70.4 |     70.6 |   68.3 |       82.6 |    83.0 |     95.2 |    95.2 |
+|    4 |        68.5 |     68.7 |   66.4 |       82.1 |    82.5 |     94.9 |    94.9 |
 
-The general trend is similar to Merrill's, but there are significant
-discrepancies.  It is smoother, so maybe the original just had lower number of
-simulations.
+These look generally like Merrill's, but are smoother, and there are some
+discrepancies, as great as 3%. This may just be random variation from not
+running as many simulations.
 """
 import time
 from collections import Counter
-from random import randint
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
@@ -53,11 +47,16 @@ from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
                            utility_winner)
 from elsim.strategies import approval_optimal, honest_rankings
 
-n_elections = 10_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
+n_elections = 50_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
 n_voters = 201
-n_cands_list = (2, 3, 4, 5, 6, 7)
+n_cands = 5
 corr = 0.5
-D = 2
+dims_list = (1, 2, 3, 4)
+
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 100
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
 
 ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
                   'Borda': borda, 'Coombs': coombs, 'Black': black}
@@ -68,51 +67,69 @@ rated_methods = {'SU max': utility_winner,
 
 # Plot Merrill's results as dotted lines for comparison (traced from plots)
 merrill_fig_4a = {
-    'Borda':     {2: 100.0, 3: 98.0, 4: 97.1, 5: 98.0, 7: 97.9},
-    'Black':     {2: 100.0, 3: 96.0, 4: 96.1, 5: 97.1, 7: 98.0},
-    'Approval':  {2: 100.0, 3: 98.0, 4: 96.0, 5: 96.0, 7: 96.0},
-    'Coombs':    {2: 100.0, 3: 95.0, 4: 96.0, 5: 96.0, 7: 96.0},
-    'Hare':      {2: 100.0, 3: 90.0, 4: 89.9, 5: 88.1, 7: 88.9},
-    'Runoff':    {2: 100.0, 3: 90.0, 4: 89.9, 5: 86.0, 7: 84.9},
-    'Plurality': {2: 100.0, 3: 76.0, 4: 74.1, 5: 64.0, 7: 57.9},
+    'Black':     {1: 98.1, 2: 97.8, 3: 97.2, 4: 96.8},
+    'Coombs':    {1: 98.1, 2: 97.8, 3: 97.2, 4: 96.8},
+    'Borda':     {1: 91.4, 2: 91.1, 3: 90.4, 4: 89.8},
+    'Approval':  {1: 90.4, 2: 90.1, 3: 89.4, 4: 88.8},
+    'Hare':      {1: 85.1, 2: 84.0, 3: 81.6, 4: 79.6},
+    'Runoff':    {1: 85.8, 2: 84.9, 3: 82.7, 4: 80.9},
+    'Plurality': {1: 85.6, 2: 84.7, 3: 82.6, 4: 80.8},
 }
 
 merrill_fig_4b = {
-    'Borda':     {2: 100.0, 3: 97.2, 4: 97.2, 5: 97.0, 7: 96.2},
-    'Black':     {2: 100.0, 3: 98.1, 4: 96.1, 5: 96.0, 7: 96.2},
-    'Approval':  {2: 100.0, 3: 94.0, 4: 96.0, 5: 96.0, 7: 95.1},
-    'Coombs':    {2: 100.0, 3: 92.1, 4: 93.1, 5: 92.0, 7: 91.2},
-    'Hare':      {2: 100.0, 3: 65.1, 4: 55.0, 5: 40.0, 7: 35.2},
-    'Runoff':    {2: 100.0, 3: 65.1, 4: 53.0, 5: 28.0, 7: 13.9},
-    'Plurality': {2: 100.0, 3: 41.1, 4: 27.0, 5: -1.0, 7: -9},
+    'Black':     {1: 96.0, 2: 95.6, 3: 95.0, 4: 94.5},
+    'Coombs':    {1: 96.0, 2: 95.6, 3: 95.0, 4: 94.5},
+    'Borda':     {1: 83.9, 2: 83.7, 3: 83.0, 4: 82.5},
+    'Approval':  {1: 83.5, 2: 83.3, 3: 82.6, 4: 82.1},
+    'Hare':      {1: 71.3, 2: 70.8, 3: 68.3, 4: 66.4},
+    'Runoff':    {1: 73.8, 2: 73.1, 3: 70.6, 4: 68.7},
+    'Plurality': {1: 73.6, 2: 72.9, 3: 70.4, 4: 68.5},
 }
 
-for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
-                              ('4.b', 0.5, 0, merrill_fig_4b)):
 
+def simulate_batch(disp):
     utility_sums = {key: Counter() for key in (ranked_methods.keys() |
-                                               rated_methods.keys() |
-                                               {'SU max', 'RW'})}
-    start_time = time.monotonic()
-
-    for iteration in range(n_elections):
-        for n_cands in n_cands_list:
-            v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
+                                               rated_methods.keys())}
+    
+    for iteration in range(batch_size):
+        for dims in dims_list:
+            v, c = normal_electorate(n_voters, n_cands, dims=dims, corr=corr,
                                      disp=disp)
             utilities = normed_dist_utilities(v, c)
-            rankings = honest_rankings(utilities)
 
-            # Pick a random winner and accumulate utilities
-            RW = randint(0, n_cands - 1)
-            utility_sums['RW'][n_cands] += utilities.sum(axis=0)[RW]
+            # Find the social utility winner and accumulate utilities
+            UW = utility_winner(utilities)
+            utility_sums['SU max'][dims] += utilities.sum(axis=0)[UW]
 
             for name, method in rated_methods.items():
-                winner = method(utilities, tiebreaker='random')
-                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+                if name != 'SU max':  # Already handled above
+                    winner = method(utilities, tiebreaker='random')
+                    utility_sums[name][dims] += utilities.sum(axis=0)[winner]
 
+            rankings = honest_rankings(utilities)
             for name, method in ranked_methods.items():
                 winner = method(rankings, tiebreaker='random')
-                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+                utility_sums[name][dims] += utilities.sum(axis=0)[winner]
+    
+    return utility_sums
+
+
+for fig, disp, orig in (('4.a', 0.5, merrill_fig_4a),
+                        ('4.b', 1.0, merrill_fig_4b)):
+
+    start_time = time.monotonic()
+
+    jobs = [delayed(simulate_batch)(disp)] * n_batches
+    print(f'{len(jobs)} tasks total:')
+    results = Parallel(n_jobs=-3, verbose=5)(jobs)
+    
+    # Merge results from all batches
+    utility_sums = {key: Counter() for key in (ranked_methods.keys() |
+                                               rated_methods.keys())}
+    for result in results:
+        for method in utility_sums:
+            for dims in dims_list:
+                utility_sums[method][dims] += result[method][dims]
 
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
@@ -137,21 +154,23 @@ for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
 
     # Calculate Social Utility Efficiency from summed utilities
     x_uw, y_uw = zip(*sorted(utility_sums['SU max'].items()))
-    x_rw, y_rw = zip(*sorted(utility_sums['RW'].items()))
-    for method in ('Black', 'Coombs', 'Borda', 'Approval', 'Hare', 'Runoff',
-                   'Plurality'):
+    random_utility = n_voters / 2  # Expected utility for random choice
+    for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
+                   'Black'):
         x, y = zip(*sorted(utility_sums[method].items()))
-        SUE = (np.array(y) - y_rw) / (np.array(y_uw) - y_rw)
+        utilities_per_election = np.array(y) / n_elections
+        max_utilities_per_election = np.array(y_uw) / n_elections
+        SUE = (utilities_per_election - random_utility) / (max_utilities_per_election - random_utility)
         plt.plot(x, SUE*100, '-', label=method)
         table.append([method, *SUE*100])
 
-    print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
+    print(tabulate(table, ["Dims", *x], tablefmt="pipe", floatfmt='.1f'))
     print()
 
     plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
     plt.legend()
     plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
     plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
-    plt.ylim(ymin, 102)
-    plt.xlim(1.8, 7.2)
+    plt.ylim(60, 102)
+    plt.xlim(0.8, 4.2)
     plt.show()
