@@ -34,7 +34,6 @@ up to 4%.
 import time
 from collections import Counter
 
-import matplotlib.pyplot as plt
 import numpy as np
 from joblib import Parallel, delayed
 from tabulate import tabulate
@@ -60,68 +59,90 @@ rated_methods = {'SU max': utility_winner,
                  'Approval': lambda utilities, tiebreaker:
                      approval(approval_optimal(utilities), tiebreaker)}
 
+#             disp, corr, D
+conditions = ((1.0, 0.5, 2),
+              (1.0, 0.5, 4),
+              (1.0, 0.0, 2),
+              (1.0, 0.0, 4),
+              (0.5, 0.5, 2),
+              (0.5, 0.5, 4),
+              (0.5, 0.0, 2),
+              (0.5, 0.0, 4),
+              )
+
 
 def simulate_batch():
-    condorcet_winner_count = {key: Counter() for key in (
-        ranked_methods.keys() | rated_methods.keys() | {'CW'})}
-    
-    for iteration in range(batch_size):
-        for n_cands in n_cands_list:
-            utilities = random_utilities(n_voters, n_cands)
+    results = []
+
+    for disp, corr, D in conditions:
+        condorcet_winner_count = Counter()
+
+        for iteration in range(batch_size):
+            v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
+                                     disp=disp)
+
+            """
+            "Simulated utilities were normalized by range, that is, each voter's
+            set of utilities were linearly expanded so that the highest and lowest
+            utilities for each voter were 1 and 0, respectively."
+
+            TODO: standard scores vs normalized don't matter for the ranked systems
+            and don't affect approval much
+
+            but This is necessary for the SU Maximizer results to match Merrill's.
+            """
+            utilities = normed_dist_utilities(v, c)
             rankings = honest_rankings(utilities)
 
-            # If there is a Condorcet winner, analyze election, otherwise skip
-            # it
+            # If there is a Condorcet winner, analyze election, otherwise skip it
             CW = condorcet(rankings)
             if CW is not None:
-                condorcet_winner_count['CW'][n_cands] += 1
+                condorcet_winner_count['CW'] += 1
 
                 for name, method in ranked_methods.items():
                     if method(rankings, tiebreaker='random') == CW:
-                        condorcet_winner_count[name][n_cands] += 1
+                        condorcet_winner_count[name] += 1
 
                 for name, method in rated_methods.items():
                     if method(utilities, tiebreaker='random') == CW:
-                        condorcet_winner_count[name][n_cands] += 1
+                        condorcet_winner_count[name] += 1
+
+        results.append(condorcet_winner_count)
     
-    return condorcet_winner_count
+    return results
 
 
 start_time = time.monotonic()
 
 jobs = [delayed(simulate_batch)()] * n_batches
 print(f'{len(jobs)} tasks total:')
-results = Parallel(n_jobs=-3, verbose=5)(jobs)
+batch_results = Parallel(n_jobs=-3, verbose=5)(jobs)
 
 # Merge results from all batches
-condorcet_winner_count = {key: Counter() for key in (
-    ranked_methods.keys() | rated_methods.keys() | {'CW'})}
-for result in results:
-    for method in condorcet_winner_count:
-        for n_cands in n_cands_list:
-            condorcet_winner_count[method][n_cands] += result[method][n_cands]
+results = []
+for condition_idx in range(len(conditions)):
+    merged_counter = Counter()
+    for batch_result in batch_results:
+        for key, value in batch_result[condition_idx].items():
+            merged_counter[key] += value
+    results.append(merged_counter)
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
-plt.figure(f'Condorcet efficiency, {n_voters} voters, {n_elections} elections')
-plt.title('Condorcet Efficiency under Impartial Culture Assumptions')
-
-table = []
+# Neither Tabulate nor Markdown support column span or multiple headers, but
+# at least this prints to plain text in a readable way.
+header = ['Disp\nCorr\nDims'] + [f'{x}\n{y}\n{z}' for x, y, z in conditions]
 
 # Of those elections with CW, likelihood that method chooses CW
-x_cw, y_cw = zip(*sorted(condorcet_winner_count['CW'].items()))
+table = []
+y_cw = np.array([c['CW'] for c in results])
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
-               'Black'):
-    x, y = zip(*sorted(condorcet_winner_count[method].items()))
-    CE = np.array(y)/y_cw
-    plt.plot(x, CE*100, '-', label=method)
-    table.append([method, *CE*100])
+               'Black', 'SU max'):
+    y = np.array([c[method] for c in results])
+    table.append([method, *(y/y_cw*100)])
 
-print(tabulate(table, ["Candidates", *x], tablefmt="pipe", floatfmt='.1f'))
+# Likelihood of Condorcet Winner (normalized by n elections)
+table.append(['CW', *(y_cw / n_elections * 100)])
 
-plt.legend()
-plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
-plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
-plt.xlim(2.8, 7.2)
-plt.show()
+print(tabulate(table, header, tablefmt="pipe", floatfmt='.1f'))
