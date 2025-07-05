@@ -35,6 +35,7 @@ import time
 from collections import Counter
 
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
@@ -46,14 +47,17 @@ n_elections = 10_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 201
 n_cands = 5
 
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 100
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
+
 ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
                   'Borda': borda, 'Coombs': coombs, 'Black': black}
 
 rated_methods = {'SU max': utility_winner,
                  'Approval': lambda utilities, tiebreaker:
                      approval(approval_optimal(utilities), tiebreaker)}
-
-start_time = time.monotonic()
 
 #             disp, corr, D
 conditions = ((1.0, 0.5, 2),
@@ -66,14 +70,11 @@ conditions = ((1.0, 0.5, 2),
               (0.5, 0.0, 4),
               )
 
-results = []
 
-for disp, corr, D in conditions:
-    print(disp, corr, D)
-
+def simulate_batch(disp, corr, D):
     condorcet_winner_count = Counter()
-
-    for iteration in range(n_elections):
+    
+    for iteration in range(batch_size):
         v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                  disp=disp)
 
@@ -103,6 +104,25 @@ for disp, corr, D in conditions:
                 if method(utilities, tiebreaker='random') == CW:
                     condorcet_winner_count[name] += 1
 
+    return condorcet_winner_count
+
+
+start_time = time.monotonic()
+
+results = []
+
+for disp, corr, D in conditions:
+    print(disp, corr, D)
+    
+    jobs = [delayed(simulate_batch)(disp, corr, D)] * n_batches
+    print(f'{len(jobs)} tasks total:')
+    batch_results = Parallel(n_jobs=-3, verbose=5)(jobs)
+    
+    # Aggregate results for this condition
+    condorcet_winner_count = Counter()
+    for result in batch_results:
+        condorcet_winner_count.update(result)
+    
     results.append(condorcet_winner_count)
 
 elapsed_time = time.monotonic() - start_time

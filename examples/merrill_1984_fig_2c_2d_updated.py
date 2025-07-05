@@ -50,6 +50,7 @@ from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
@@ -64,6 +65,11 @@ n_cands_list = (2, 3, 4, 5, 6, 7)
 corr = 0.5
 D = 2
 
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 100
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
+
 ranked_methods = {'Plurality': fptp, 'Top-2 Runoff': runoff, 'Hare RCV': irv,
                   'Borda': borda, 'Coombs': coombs, 'Condorcet RCV': black}
 
@@ -76,14 +82,12 @@ rated_methods = {'SU max': utility_winner,
                      star(honest_normed_scores(utilities, 5), tiebreaker),
                  }
 
-for fig, disp, ymin in (('2.c', 1.0, 50),
-                        ('2.d', 0.5, 0)):
 
+def simulate_batch(disp):
     condorcet_winner_count = {key: Counter() for key in (
         ranked_methods.keys() | rated_methods.keys() | {'CW'})}
-    start_time = time.monotonic()
-
-    for iteration in range(n_elections):
+    
+    for iteration in range(batch_size):
         for n_cands in n_cands_list:
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp)
@@ -103,6 +107,25 @@ for fig, disp, ymin in (('2.c', 1.0, 50),
                 for name, method in rated_methods.items():
                     if method(utilities, tiebreaker='random') == CW:
                         condorcet_winner_count[name][n_cands] += 1
+
+    return condorcet_winner_count
+
+
+for fig, disp, ymin in (('2.c', 1.0, 50),
+                        ('2.d', 0.5, 0)):
+
+    start_time = time.monotonic()
+
+    jobs = [delayed(simulate_batch)(disp)] * n_batches
+    print(f'{len(jobs)} tasks total:')
+    results = Parallel(n_jobs=-3, verbose=5)(jobs)
+
+    # Aggregate results
+    condorcet_winner_count = {key: Counter() for key in (
+        ranked_methods.keys() | rated_methods.keys() | {'CW'})}
+    for result in results:
+        for method, counter in result.items():
+            condorcet_winner_count[method].update(counter)
 
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),

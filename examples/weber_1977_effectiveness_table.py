@@ -26,6 +26,7 @@ from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import random_utilities
@@ -37,32 +38,53 @@ n_elections = 2_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 1_000
 n_cands_list = (2, 3, 4, 5, 6, 10, 255)
 
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 100
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
+
 ranked_methods = {'Standard': fptp, 'Borda': borda}
 
 rated_methods = {'Vote-for-half': lambda utilities, tiebreaker:
                  approval(vote_for_k(utilities, 'half'), tiebreaker)}
 
-utility_sums = {key: Counter() for key in (ranked_methods.keys() |
-                                           rated_methods.keys() | {'UW'})}
+
+def simulate_batch():
+    utility_sums = {key: Counter() for key in (ranked_methods.keys() |
+                                               rated_methods.keys() | {'UW'})}
+    
+    for iteration in range(batch_size):
+        for n_cands in n_cands_list:
+            utilities = random_utilities(n_voters, n_cands)
+
+            # Find the social utility winner and accumulate utilities
+            UW = utility_winner(utilities)
+            utility_sums['UW'][n_cands] += utilities.sum(axis=0)[UW]
+
+            for name, method in rated_methods.items():
+                winner = method(utilities, tiebreaker='random')
+                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+
+            rankings = honest_rankings(utilities)
+            for name, method in ranked_methods.items():
+                winner = method(rankings, tiebreaker='random')
+                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+
+    return utility_sums
+
 
 start_time = time.monotonic()
 
-for iteration in range(n_elections):
-    for n_cands in n_cands_list:
-        utilities = random_utilities(n_voters, n_cands)
+jobs = [delayed(simulate_batch)()] * n_batches
+print(f'{len(jobs)} tasks total:')
+results = Parallel(n_jobs=-3, verbose=5)(jobs)
 
-        # Find the social utility winner and accumulate utilities
-        UW = utility_winner(utilities)
-        utility_sums['UW'][n_cands] += utilities.sum(axis=0)[UW]
-
-        for name, method in rated_methods.items():
-            winner = method(utilities, tiebreaker='random')
-            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
-
-        rankings = honest_rankings(utilities)
-        for name, method in ranked_methods.items():
-            winner = method(rankings, tiebreaker='random')
-            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+# Aggregate results
+utility_sums = {key: Counter() for key in (ranked_methods.keys() |
+                                           rated_methods.keys() | {'UW'})}
+for result in results:
+    for method, counter in result.items():
+        utility_sums[method].update(counter)
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
