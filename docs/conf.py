@@ -72,19 +72,22 @@ source_suffix = {
 }
 
 
-# Copy ./examples/results images into documentation so they show up when
-# markdown files with relative paths are transcluded (suggested by ChatGPT-4)
+# Copy ./examples/results images into documentation. Two path conventions:
+# - index.rst includes ../README.md which uses ./examples/results/... so we need
+#   outdir/examples/results/ for index.html.
+# - examples.rst includes ../examples/README.md which uses ./results/... so we
+#   need outdir/results/ for examples.html.
 import os
 import shutil
 
 
 def copy_examples(app, docname):
     if app.builder.name == 'html':
-        output_dir = os.path.join(app.outdir, 'examples', 'results')
         source_dir = os.path.join(app.srcdir, '..', 'examples', 'results')
-        if not os.path.exists(output_dir):
-            os.makedirs(os.path.join(app.outdir, 'examples'))
-            shutil.copytree(source_dir, output_dir)
+        for subdir in ('results', os.path.join('examples', 'results')):
+            output_dir = os.path.join(app.outdir, subdir)
+            if not os.path.exists(output_dir):
+                shutil.copytree(source_dir, output_dir)
 
 
 def setup(app):
