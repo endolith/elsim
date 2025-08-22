@@ -183,9 +183,6 @@ plot_fptp_results(ax_fptp, original_tallies, n_voters, colors,
 # ax_fav.set_ylabel('Favorability [%]')
 
 
-
-
-
 def plot_wins(wins, ax, colors='b', gap=0.1):
     """
     Plot number of wins as discrete blocks stacked on top of each other.
