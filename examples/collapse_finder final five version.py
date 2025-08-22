@@ -9,7 +9,6 @@ from collapse_utils import (bottom_n_indices, calculate_election_data,
                             indices_to_letters, plot_candidate_positions,
                             plot_fptp_results, plot_voter_distribution,
                             print_candidates_and_tallies, setup_plot_axes)
-from palettable.cartocolors.qualitative import Prism_9 as cmap
 
 from elsim.elections import normal_electorate
 
