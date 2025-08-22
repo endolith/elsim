@@ -1,5 +1,25 @@
 """
-Shared utilities for collapse finder examples.
+Shared utilities for RCV collapse analysis examples.
+
+This module provides common functions used across different RCV collapse scenarios:
+
+Core Utilities:
+- Election data calculation and analysis (utilities, rankings, tallies)
+- Candidate evaluation methods (head-to-head wins, geometric positioning)
+- Data processing helpers (array indexing, unique pattern counting)
+
+Visualization:
+- Voter distribution plotting with candidate-colored regions
+- Election result charts (FPTP tallies, candidate positions)
+- Consistent plot styling and axis setup
+
+Helper Functions:
+- Data formatting and display (tables, number formatting)
+- Index-to-label conversion for candidate identification
+
+Used by:
+- collapse_finder.py: Simple 3-candidate RCV elimination
+- collapse_finder final five version.py: Two-stage FPTP+RCV hybrid system
 """
 
 import matplotlib.pyplot as plt
