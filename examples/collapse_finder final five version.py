@@ -137,86 +137,42 @@ for trial in range(n_elections):
 
     # Remaining candidates proceed to RCV general
     c = np.delete(c, loser_indices, axis=0)
-    utilities = normed_dist_utilities(v, c)
-    rankings = honest_rankings(utilities)
-    election = np.asarray(rankings)
-    first_preferences = election[:, 0]
-    tallies = np.bincount(first_preferences)
-    print('Final five:')
-    print_candidates_and_tallies(c, tallies)
 
-    # Find the 3 best candidates
-    # best_indices = closest_to_origin_indices(c, 3)
-    wins = count_wins(ranked_election_to_matrix(election))
-    best_indices = top_n_indices(np.array(wins), 3)
+    # RCV elimination rounds - start with 5 candidates, eliminate down to 2
+    n_remaining = 5
+    for round_num in range(3):  # 3 rounds: 5->4, 4->3, 3->2
+        utilities = normed_dist_utilities(v, c)
+        rankings = honest_rankings(utilities)
+        election = np.asarray(rankings)
+        first_preferences = election[:, 0]
+        tallies = np.bincount(first_preferences)
 
-    # Eliminate the lowest-voted
-    loser = np.argmin(tallies)
-    print(f'{loser} eliminated')
+        print(f'Final {n_remaining}:')
+        print_candidates_and_tallies(c, tallies)
 
-    # To find worst-case scenario, eliminated needs to be in best set
-    if loser not in set(best_indices):
-        continue
+        # Find the best candidates (n_remaining - 1 best)
+        wins = count_wins(ranked_election_to_matrix(election))
+        best_indices = top_n_indices(np.array(wins), n_remaining - 1)
 
-    # Eliminate and do it again
-    c = np.delete(c, loser, axis=0)
-    utilities = normed_dist_utilities(v, c)
-    rankings = honest_rankings(utilities)
-    election = np.asarray(rankings)
-    first_preferences = election[:, 0]
-    tallies = np.bincount(first_preferences)
-    print('Final four:')
-    print_candidates_and_tallies(c, tallies)
+        # Eliminate the lowest-voted
+        loser = np.argmin(tallies)
+        print(f'{loser} eliminated')
 
-    # Find the 2 best candidates
-    # best_indices = closest_to_origin_indices(c, 2)
-    wins = count_wins(ranked_election_to_matrix(election))
-    best_indices = top_n_indices(np.array(wins), 2)
+        # To find worst-case scenario, eliminated needs to be in best set
+        if loser not in set(best_indices):
+            break
 
-    # Eliminate the lowest-voted again
-    loser = np.argmin(tallies)
-    print(f'{loser} eliminated')
+        # Remove the eliminated candidate
+        c = np.delete(c, loser, axis=0)
+        n_remaining -= 1
 
-    # To find worst-case scenario, eliminated needs to be in best set
-    if loser not in set(best_indices):
-        continue
+        # If we've reached 2 candidates, we found a worst-case scenario
+        if n_remaining == 2:
+            print('Final two:')
+            print_candidates_and_tallies(c, tallies)
+            print(f'After {trial} trials')
+            break
 
-    # Eliminate and do it a third time
-    c = np.delete(c, loser, axis=0)
-    utilities = normed_dist_utilities(v, c)
-    rankings = honest_rankings(utilities)
-    election = np.asarray(rankings)
-    first_preferences = election[:, 0]
-    tallies = np.bincount(first_preferences)
-    print('Final three:')
-    print_candidates_and_tallies(c, tallies)
-
-    # Find the 1 best candidate
-    # best_indices = closest_to_origin_indices(c, 1)
-    wins = count_wins(ranked_election_to_matrix(election))
-    best_indices = top_n_indices(np.array(wins), 1)
-
-    # Eliminate the lowest-voted again
-    loser = np.argmin(tallies)
-    print(f'{loser} eliminated')
-
-    # To find worst-case scenario, eliminated needs to be in best set
-    if loser not in set(best_indices):
-        continue
-
-    # Eliminate and do it a fourth time
-    c = np.delete(c, loser, axis=0)
-    utilities = normed_dist_utilities(v, c)
-    rankings = honest_rankings(utilities)
-    election = np.asarray(rankings)
-    first_preferences = election[:, 0]
-    tallies = np.bincount(first_preferences)
-    print('Final two:')
-    print_candidates_and_tallies(c, tallies)
-
-    print(f'After {trial} trials')
-
-    break
 
 print(original_c)
 # plt.plot(original_c[:, 0], [1]*n_cands, '|')
