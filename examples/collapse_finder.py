@@ -4,85 +4,19 @@ Find worst-case scenarios with RCV.
 
 import matplotlib.pyplot as plt
 import numpy as np
-from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods import ranked_election_to_matrix
 from elsim.strategies import honest_rankings
+from collapse_utils import (
+    print_candidates_and_tallies, top_n_indices, closest_to_origin_indices,
+    count_unique_rows, count_wins, gaussian, setup_plot_axes,
+    plot_candidate_positions, plot_voter_distribution, plot_fptp_results
+)
 
 n_voters = 1_000
 n_cands = 3
 cand_dist = 'normal'
-
-
-def human_format(num):
-    for unit in ['', 'k', 'M', 'B', 'T']:
-        if abs(num) < 1000:
-            return f"{num:.3g}{unit}"
-        num /= 1000.0
-
-
-def print_candidates_and_tallies(c, tallies):
-    # If the two lists have different lengths, raise an error.
-    assert len(c) == len(tallies)
-
-    table = [
-        ["Cand pos:"] + [f"{i:.3f}" for i in c[:, 0]],
-        ["Tallies:"] + list(tallies)
-    ]
-
-    print(tabulate(table, tablefmt='pipe', numalign="center"))
-
-
-# ChatGPT
-def top_n_indices(arr, n):
-    return arr.argsort()[-n:][::-1]
-
-
-def bottom_n_indices(arr, n):
-    return arr.argsort()[:n]
-
-
-# ChatGPT
-def closest_to_origin_indices(arr, n):
-    dist = np.linalg.norm(arr, axis=1)
-    return dist.argsort()[:n]
-
-
-def count_unique_rows(election):
-    # We need to ensure rows are viewed as single items
-    rows_as_tuples = map(tuple, election)
-
-    # Use np.unique to find unique rows and their counts
-    unique_rows, counts = np.unique(list(rows_as_tuples), return_counts=True,
-                                    axis=0)
-
-    # Zip together the unique rows and their counts for easy viewing
-    result = list(zip(unique_rows, counts))
-
-    return result
-
-
-# ChatGPT
-def count_wins(matrix):
-    """
-    Count the number of candidates beaten by each candidate.
-
-    Parameters
-    ----------
-    matrix : ndarray
-        A pairwise comparison matrix of candidate vs candidate defeats.
-
-    Returns
-    -------
-    wins : list
-        A list of the number of candidates beaten by each candidate.
-    """
-    n_cands = matrix.shape[0]
-    wins = []
-    for i in range(n_cands):
-        wins.append(sum(matrix[i, j] > matrix[j, i] for j in range(n_cands)))
-    return wins
 
 
 n_elections = 50_000
@@ -105,7 +39,7 @@ for trial in range(n_elections):
 
     # Find the 1 best candidate
     # best_indices = closest_to_origin_indices(c, 1)
-    wins = count_wins(ranked_election_to_matrix(election))
+    wins = count_wins(original_matrix)
     best_indices = top_n_indices(np.array(wins), 1)
 
     # Eliminate the lowest-voted again
@@ -159,14 +93,6 @@ pos = original_c[:, 0]
 colors = ['#3333FF', '#242851', '#E81B23']  # Wikipedia
 colors = ['#0044C9', '#182742', '#D71F27']  # Websites
 colors = ['tab:blue', 'tab:gray', 'tab:red']  # Previous suck
-
-
-def gaussian(x, mu, sigma):
-    """
-    Return a normal distribution pdf with center `mu` and standard deviation
-    `sigma`
-    """
-    return np.exp(-(x-mu)**2/(2*sigma**2))
 
 
 # Generate x values
