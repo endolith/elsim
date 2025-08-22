@@ -5,11 +5,10 @@ Find worst-case scenarios with RCV.
 import matplotlib.pyplot as plt
 import numpy as np
 from collapse_utils import (bottom_n_indices, calculate_election_data,
-                            count_unique_rows, find_best_candidates, gaussian,
+                            count_unique_rows, find_best_candidates,
                             indices_to_letters, plot_candidate_positions,
                             plot_fptp_results, plot_voter_distribution,
-                            print_candidates_and_tallies, setup_plot_axes,
-                            top_n_indices)
+                            print_candidates_and_tallies, setup_plot_axes)
 from palettable.cartocolors.qualitative import Prism_9 as cmap
 
 from elsim.elections import normal_electorate
