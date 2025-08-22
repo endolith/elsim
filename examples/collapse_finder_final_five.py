@@ -1,18 +1,16 @@
 """
-Find an example Final Five's worst-case scenario.
+Find an example of Final Five's worst-case scenario.
 
 This example demonstrates a Final Five system:
 - 9 candidates compete in a FPTP primary
 - 5 candidates advance to a RCV general election
 
-The simulation searches for scenarios where the "best" candidates (by head-to-head wins)
-are eliminated in the FPTP primary, and then continues to eliminate the best remaining
-candidates in each RCV round, creating a worst-case outcome where the final winner
-is not a good representative of the electorate.
-
-This illustrates potential failures of the Final Five system where:
-- FPTP primary eliminates representative candidates due to vote-splitting
-- RCV general continues to eliminate representative candidates due to vote-splitting
+The simulation searches for scenarios where the 4 best candidates (by
+head-to-head wins) are eliminated through vote-splitting in the FPTP primary,
+leaving the 5 worst candidates to compete in the RCV general election. The best
+remaining candidates are then eliminated in turn, through vote-splitting, in
+each RCV round, creating a worst-case outcome where the final winner is the
+second-worst representative of the electorate.
 """
 
 import matplotlib.pyplot as plt
