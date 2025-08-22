@@ -168,6 +168,13 @@ for trial in range(n_elections):
 
         # If we've reached 2 candidates, we found a worst-case scenario
         if n_remaining == 2:
+            # Recalculate utilities and tallies for the final 2 candidates
+            utilities = normed_dist_utilities(v, c)
+            rankings = honest_rankings(utilities)
+            election = np.asarray(rankings)
+            first_preferences = election[:, 0]
+            tallies = np.bincount(first_preferences)
+
             print('Final two:')
             print_candidates_and_tallies(c, tallies)
             print(f'After {trial} trials')
