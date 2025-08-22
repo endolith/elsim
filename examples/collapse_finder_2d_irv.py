@@ -1,16 +1,14 @@
 """
-Find an example of Final Five's worst-case scenario.
+Find an example of IRV election with 5 candidates.
 
-This example demonstrates a Final Five system:
-- 9 candidates compete in a FPTP primary
-- 5 candidates advance to a IRV general election
+This example demonstrates a simple IRV system:
+- 5 candidates compete in a single IRV general election
+- No primary election
 
-The simulation searches for scenarios where the 4 best candidates (by
-head-to-head wins) are eliminated through vote-splitting in the FPTP primary,
-leaving the 5 worst candidates to compete in the IRV general election. The best
-remaining candidates are then eliminated in turn, through vote-splitting, in
-each IRV round, creating a worst-case outcome where the final winner is the
-second-worst representative of the electorate.
+The simulation searches for scenarios where the best candidates (by
+head-to-head wins) are eliminated through vote-splitting in each IRV round,
+creating a worst-case outcome where the final winner is not the best
+representative of the electorate.
 """
 
 import matplotlib.pyplot as plt
@@ -27,9 +25,8 @@ from elsim.elections import normal_electorate
 from elsim.methods import ranked_election_to_matrix
 
 n_voters = 1_000
-n_cands = 9
+n_cands = 5
 cand_dist = 'normal'
-
 
 n_elections = 50_000
 n_failures = 0
@@ -38,7 +35,7 @@ for trial in range(n_elections):
     c = np.sort(c, axis=0)  # just for ease of viewing
     original_c = c
 
-    # First remove the least tallied candidates in FPTP primary
+    # Calculate initial election data
     utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c)
     original_utilities = utilities.sum(axis=0)
     original_utilities /= original_utilities.max()
@@ -52,44 +49,30 @@ for trial in range(n_elections):
     tallies = np.bincount(first_preferences)
     original_tallies = tallies
 
-    # Find the set of 5 candidates who have the highest tally
-    n_finalists = 5
-    n_losers = n_cands - n_finalists
-    loser_indices = bottom_n_indices(tallies, n_losers)
-    original_loser_indices = loser_indices
+    # Find the set of 4 best candidates (by head-to-head wins)
     best_indices = find_best_candidates(original_election, 4)
 
-    if set(loser_indices) != set(best_indices):
-        continue
-
-    print('\n===================')
-    print(f'{n_losers} best candidates eliminated in FPTP primary.')
-    print(f'Found after {trial} trials')
+    print(f'\nTrial {trial}:')
     print_candidates_and_tallies(c, tallies)
-    # print(f'Candidate positions: {[f"{i:.1f}" for i in c[:, 0]]}')
-    # print(f'Tallies: {tallies}')
-    print(f'Least tallied:     {set(loser_indices)}')
-    print(f'Closest to origin: {set(best_indices)}')
+    print(f'Best candidates: {set(best_indices)}')
 
-    # Remaining candidates proceed to RCV general
-    c = np.delete(c, loser_indices, axis=0)
-
-    # RCV elimination rounds - start with 5 candidates, eliminate down to 2
+    # IRV elimination rounds - start with 5 candidates, eliminate down to 2
+    c_current = c.copy()
     n_remaining = 5
     found_worst_case = False
 
     for round_num in range(3):  # 3 rounds: 5->4, 4->3, 3->2
-        utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c)
+        utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c_current)
 
-        print(f'Final {n_remaining}:')
-        print_candidates_and_tallies(c, tallies)
+        print(f'Round {round_num + 1} - {n_remaining} candidates:')
+        print_candidates_and_tallies(c_current, tallies)
 
         # Find the best candidates (n_remaining - 1 best)
         best_indices = find_best_candidates(election, n_remaining - 1)
 
         # Eliminate the lowest-voted
         loser = np.argmin(tallies)
-        print(f'{loser} eliminated')
+        print(f'Candidate {chr(65 + loser)} eliminated')
 
         # To find worst-case scenario, eliminated needs to be in best set
         if loser not in set(best_indices):
@@ -98,17 +81,17 @@ for trial in range(n_elections):
             break
 
         # Remove the eliminated candidate
-        c = np.delete(c, loser, axis=0)
+        c_current = np.delete(c_current, loser, axis=0)
         n_remaining -= 1
 
         # If we've reached 2 candidates, we found a worst-case scenario
         if n_remaining == 2:
             # Recalculate utilities and tallies for the final 2 candidates
-            utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c)
+            utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c_current)
 
             print('Final two:')
-            print_candidates_and_tallies(c, tallies)
-            print(f'After {trial} trials')
+            print_candidates_and_tallies(c_current, tallies)
+            print(f'Worst-case scenario found after {trial} trials')
             found_worst_case = True
             break
 
@@ -116,21 +99,8 @@ for trial in range(n_elections):
     if found_worst_case:
         break
 
-
+print(f'\nOriginal candidate positions:')
 print(original_c)
-# plt.plot(original_c[:, 0], [1]*n_cands, '|')
-# plt.xlim(-max(abs(original_c))*1.1, max(abs(original_c))*1.1)
-
-# # Call the function with your 'election' array
-# result = count_unique_rows(original_election)
-# for row, count in result:
-#     print(f"Row: {row}, Count: {count}")
-
-
-# Define a function to convert indices to letters
-def indices_to_letters(indices):
-    return " > ".join(chr(65 + i) for i in indices)
-
 
 # Call the function with your 'election' array
 result = count_unique_rows(original_election)
@@ -140,8 +110,7 @@ for row, count in result:
 x_max = +2.5
 pos = original_c[:, 0]
 
-colors = cmap.mpl_colors
-
+colors = cmap.mpl_colors[:n_cands]  # Only use first 5 colors for 5 candidates
 
 def gaussian(x, mu, sigma):
     """
@@ -149,7 +118,6 @@ def gaussian(x, mu, sigma):
     `sigma`
     """
     return np.exp(-(x-mu)**2/(2*sigma**2))
-
 
 # Generate x values
 x = np.linspace(-x_max, x_max, 300)
@@ -175,11 +143,6 @@ plot_voter_distribution(ax_hist, pos, colors, x_max)
 # Plurality results bar chart in percent using shared utility
 plot_fptp_results(ax_fptp, original_tallies, n_voters, colors,
                   [chr(65 + n) for n in range(n_cands)])
-
-# ax_fav.bar(range(n_cands), original_utilities*100,
-#            tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
-# ax_fav.set_ylabel('Favorability [%]')
-
 
 def plot_wins(wins, ax, colors='b', gap=0.1):
     """
@@ -207,7 +170,6 @@ def plot_wins(wins, ax, colors='b', gap=0.1):
     ax.set_xlim(-0.5, n_cands-0.5)  # Set fixed x-axis limits
     ax.set_ylabel('Head-to-head wins')
 
-
 # Use the function
 wins = count_wins(original_matrix)
 plot_wins(wins, ax_wins, colors)
@@ -216,9 +178,4 @@ plot_wins(wins, ax_wins, colors)
 ax_wins.set_aspect('equal')
 
 plt.tight_layout()
-plt.show()
-
-
-plt.tight_layout()
-
 plt.show()
