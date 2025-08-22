@@ -1,12 +1,12 @@
 """
-Demonstrate a center-squeeze failure in RCV with three candidates.
+Demonstrate a center-squeeze failure in IRV with three candidates.
 
-This example shows a classic RCV failure mode with 3 candidates at fixed positions:
+This example shows a classic IRV failure mode with 3 candidates at fixed positions:
 - Voters rank candidates honestly based on spatial preferences
 - The candidate with the fewest first-preference votes is eliminated
 - The middle candidate (Condorcet winner) gets eliminated first
 
-This demonstrates a fundamental failure of RCV where the Condorcet winner
+This demonstrates a fundamental failure of IRV where the Condorcet winner
 (candidate who beats all others head-to-head) gets eliminated due to
 having the fewest first-preference votes, leading to a suboptimal final result.
 
