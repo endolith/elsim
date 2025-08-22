@@ -23,6 +23,7 @@ from collapse_utils import (bottom_n_indices, calculate_election_data,
 from palettable.cartocolors.qualitative import Prism_9 as cmap
 
 from elsim.elections import normal_electorate
+from elsim.methods import ranked_election_to_matrix
 
 n_voters = 1_000
 n_cands = 9
