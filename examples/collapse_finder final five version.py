@@ -127,11 +127,8 @@ for trial in range(n_elections):
     n_losers = n_cands - n_finalists
     loser_indices = bottom_n_indices(tallies, n_losers)
     original_loser_indices = loser_indices
-
-    # Find the best candidates
-    # best_indices = closest_to_origin_indices(c, n_losers)
     best_indices = find_best_candidates(original_election, 4)
-    # break
+
     if set(loser_indices) != set(best_indices):
         continue
 
@@ -143,10 +140,6 @@ for trial in range(n_elections):
     # print(f'Tallies: {tallies}')
     print(f'Least tallied:     {set(loser_indices)}')
     print(f'Closest to origin: {set(best_indices)}')
-
-
-    # break
-
 
     # Remaining candidates proceed to RCV general
     c = np.delete(c, loser_indices, axis=0)
