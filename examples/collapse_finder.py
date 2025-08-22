@@ -1,5 +1,17 @@
 """
-Find worst-case scenarios with RCV.
+Find a center-squeeze scenario with three candidates in RCV.
+
+This example demonstrates a basic ranked-choice voting system with 3 candidates:
+- Voters rank candidates honestly based on spatial preferences
+- The candidate with the fewest first-preference votes is eliminated
+
+The simulation searches for scenarios where the "best" candidate
+(by head-to-head wins) is eliminated first.
+
+This illustrates a fundamental failure mode of RCV where the Condorcet winner
+(candidate who beats all others head-to-head) gets eliminated.
+
+The example uses fixed candidate positions to make the failure pattern clear.
 """
 
 import matplotlib.pyplot as plt
