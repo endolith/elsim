@@ -16,9 +16,10 @@ second-worst representative of the electorate.
 import matplotlib.pyplot as plt
 import numpy as np
 from collapse_utils import (bottom_n_indices, calculate_election_data,
-                            count_unique_rows, find_best_candidates,
-                            indices_to_letters, plot_candidate_positions,
-                            plot_fptp_results, plot_voter_distribution,
+                            count_unique_rows, count_wins,
+                            find_best_candidates, indices_to_letters,
+                            plot_candidate_positions, plot_fptp_results,
+                            plot_voter_distribution,
                             print_candidates_and_tallies, setup_plot_axes)
 from palettable.cartocolors.qualitative import Prism_9 as cmap
 
