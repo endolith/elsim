@@ -140,6 +140,8 @@ for trial in range(n_elections):
 
     # RCV elimination rounds - start with 5 candidates, eliminate down to 2
     n_remaining = 5
+    found_worst_case = False
+
     for round_num in range(3):  # 3 rounds: 5->4, 4->3, 3->2
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
@@ -160,6 +162,8 @@ for trial in range(n_elections):
 
         # To find worst-case scenario, eliminated needs to be in best set
         if loser not in set(best_indices):
+            # This trial didn't produce a worst-case scenario, try next trial
+            found_worst_case = False
             break
 
         # Remove the eliminated candidate
@@ -178,7 +182,12 @@ for trial in range(n_elections):
             print('Final two:')
             print_candidates_and_tallies(c, tallies)
             print(f'After {trial} trials')
+            found_worst_case = True
             break
+
+    # If we found a worst-case scenario, exit the trial loop
+    if found_worst_case:
+        break
 
 
 print(original_c)
