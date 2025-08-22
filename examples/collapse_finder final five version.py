@@ -85,6 +85,22 @@ def count_wins(matrix):
     return wins
 
 
+def calculate_election_data(v, c):
+    """Calculate utilities, rankings, election matrix, and first preference tallies."""
+    utilities = normed_dist_utilities(v, c)
+    rankings = honest_rankings(utilities)
+    election = np.asarray(rankings)
+    first_preferences = election[:, 0]
+    tallies = np.bincount(first_preferences)
+    return utilities, rankings, election, first_preferences, tallies
+
+
+def find_best_candidates(election, n_best):
+    """Find the n_best candidates based on head-to-head wins."""
+    wins = count_wins(ranked_election_to_matrix(election))
+    return top_n_indices(np.array(wins), n_best)
+
+
 n_elections = 50_000
 n_failures = 0
 for trial in range(n_elections):
@@ -93,11 +109,9 @@ for trial in range(n_elections):
     original_c = c
 
     # First remove the least tallied candidates in FPTP primary
-    utilities = normed_dist_utilities(v, c)
+    utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c)
     original_utilities = utilities.sum(axis=0)
     original_utilities /= original_utilities.max()
-    rankings = honest_rankings(utilities)
-    election = np.asarray(rankings)
     original_election = election
     original_matrix = ranked_election_to_matrix(election)
 
@@ -116,8 +130,7 @@ for trial in range(n_elections):
 
     # Find the best candidates
     # best_indices = closest_to_origin_indices(c, n_losers)
-    wins = count_wins(original_matrix)
-    best_indices = top_n_indices(np.array(wins), 4)
+    best_indices = find_best_candidates(original_election, 4)
     # break
     if set(loser_indices) != set(best_indices):
         continue
@@ -143,18 +156,13 @@ for trial in range(n_elections):
     found_worst_case = False
 
     for round_num in range(3):  # 3 rounds: 5->4, 4->3, 3->2
-        utilities = normed_dist_utilities(v, c)
-        rankings = honest_rankings(utilities)
-        election = np.asarray(rankings)
-        first_preferences = election[:, 0]
-        tallies = np.bincount(first_preferences)
+        utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c)
 
         print(f'Final {n_remaining}:')
         print_candidates_and_tallies(c, tallies)
 
         # Find the best candidates (n_remaining - 1 best)
-        wins = count_wins(ranked_election_to_matrix(election))
-        best_indices = top_n_indices(np.array(wins), n_remaining - 1)
+        best_indices = find_best_candidates(election, n_remaining - 1)
 
         # Eliminate the lowest-voted
         loser = np.argmin(tallies)
@@ -173,11 +181,7 @@ for trial in range(n_elections):
         # If we've reached 2 candidates, we found a worst-case scenario
         if n_remaining == 2:
             # Recalculate utilities and tallies for the final 2 candidates
-            utilities = normed_dist_utilities(v, c)
-            rankings = honest_rankings(utilities)
-            election = np.asarray(rankings)
-            first_preferences = election[:, 0]
-            tallies = np.bincount(first_preferences)
+            utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c)
 
             print('Final two:')
             print_candidates_and_tallies(c, tallies)
