@@ -18,8 +18,8 @@ Helper Functions:
 - Index-to-label conversion for candidate identification
 
 Used by:
-- collapse_finder.py: Simple 3-candidate RCV elimination
-- collapse_finder final five version.py: Two-stage FPTP+RCV hybrid system
+- collapse_finder.py: Demonstration of center-squeeze failure in 3-candidate RCV
+- collapse_finder final five version.py: Search for worst-case scenarios in two-stage FPTP+RCV system
 """
 
 import matplotlib.pyplot as plt
