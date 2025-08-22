@@ -25,7 +25,7 @@ from elsim.elections import normal_electorate
 from elsim.methods import ranked_election_to_matrix
 
 n_voters = 1_000
-n_cands = 5
+n_cands = 9
 cand_dist = 'normal'
 
 n_elections = 50_000
