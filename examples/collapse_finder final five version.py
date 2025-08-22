@@ -9,6 +9,7 @@ from collapse_utils import (bottom_n_indices, calculate_election_data,
                             indices_to_letters, plot_candidate_positions,
                             plot_fptp_results, plot_voter_distribution,
                             print_candidates_and_tallies, setup_plot_axes)
+from palettable.cartocolors.qualitative import Prism_9 as cmap
 
 from elsim.elections import normal_electorate
 
@@ -126,22 +127,7 @@ for row, count in result:
 x_max = +2.5
 pos = original_c[:, 0]
 
-# from palettable.tableau import Tableau_10 as cmap
-# from palettable.tableau import GreenOrange_12 as cmap
-# from palettable.tableau import TableauMedium_10 as cmap
-# from palettable.mycarta import Cube1_9 as cmap
-# from palettable.colorbrewer.qualitative import Set1_9 as cmap
-# from palettable.colorbrewer.qualitative import Set3_9 as cmap
-# from palettable.cartocolors.qualitative import Bold_9 as cmap
-# from palettable.cartocolors.qualitative import Vivid_9 as cmap
-# from palettable.cartocolors.qualitative import Antique_9 as cmap
-from palettable.cartocolors.qualitative import Prism_9 as cmap
-# from palettable.cartocolors.qualitative import Pastel_9 as cmap
-
-
 colors = cmap.mpl_colors
-
-# colors = plt.rcParams['axes.prop_cycle'].by_key()['color'][:n_cands]
 
 
 def gaussian(x, mu, sigma):
