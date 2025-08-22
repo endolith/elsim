@@ -4,15 +4,15 @@ Find worst-case scenarios with RCV.
 
 import matplotlib.pyplot as plt
 import numpy as np
+from collapse_utils import (closest_to_origin_indices, count_unique_rows,
+                            count_wins, gaussian, plot_candidate_positions,
+                            plot_fptp_results, plot_voter_distribution,
+                            print_candidates_and_tallies, setup_plot_axes,
+                            top_n_indices)
 
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods import ranked_election_to_matrix
 from elsim.strategies import honest_rankings
-from collapse_utils import (
-    print_candidates_and_tallies, top_n_indices, closest_to_origin_indices,
-    count_unique_rows, count_wins, gaussian, setup_plot_axes,
-    plot_candidate_positions, plot_voter_distribution, plot_fptp_results
-)
 
 n_voters = 1_000
 n_cands = 3
