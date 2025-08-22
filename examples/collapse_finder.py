@@ -1,17 +1,16 @@
 """
-Find a center-squeeze scenario with three candidates in RCV.
+Demonstrate a center-squeeze failure in RCV with three candidates.
 
-This example demonstrates a basic ranked-choice voting system with 3 candidates:
+This example shows a classic RCV failure mode with 3 candidates at fixed positions:
 - Voters rank candidates honestly based on spatial preferences
 - The candidate with the fewest first-preference votes is eliminated
+- The middle candidate (Condorcet winner) gets eliminated first
 
-The simulation searches for scenarios where the "best" candidate
-(by head-to-head wins) is eliminated first.
+This demonstrates a fundamental failure of RCV where the Condorcet winner
+(candidate who beats all others head-to-head) gets eliminated due to
+having the fewest first-preference votes, leading to a suboptimal final result.
 
-This illustrates a fundamental failure mode of RCV where the Condorcet winner
-(candidate who beats all others head-to-head) gets eliminated.
-
-The example uses fixed candidate positions to make the failure pattern clear.
+The example uses fixed candidate positions to clearly illustrate the failure pattern.
 """
 
 import matplotlib.pyplot as plt
@@ -27,60 +26,48 @@ n_voters = 1_000
 n_cands = 3
 cand_dist = 'normal'
 
+# Single demonstration - no trials needed
+v, c = normal_electorate(n_voters, n_cands, dims=1, disp=1, random_state=1)
+c = np.array([[-0.7, 0, +0.7]]).T
+c = np.sort(c, axis=0)  # just for ease of viewing
+original_c = c
 
-n_elections = 50_000
-n_failures = 0
-for trial in range(n_elections):
-    v, c = normal_electorate(n_voters, n_cands, dims=1, disp=1, random_state=1)
-    c = np.array([[-0.7, 0, +0.7]]).T
-    c = np.sort(c, axis=0)  # just for ease of viewing
-    original_c = c
+utilities = normed_dist_utilities(v, c)
+rankings = honest_rankings(utilities)
+election = np.asarray(rankings)
+first_preferences = election[:, 0]
+tallies = np.bincount(first_preferences)
+original_matrix = ranked_election_to_matrix(election)
+original_tallies = tallies
+print('Final three:')
+print_candidates_and_tallies(c, tallies)
 
-    utilities = normed_dist_utilities(v, c)
-    rankings = honest_rankings(utilities)
-    election = np.asarray(rankings)
-    first_preferences = election[:, 0]
-    tallies = np.bincount(first_preferences)
-    original_matrix = ranked_election_to_matrix(election)
-    original_tallies = tallies
-    print('Final three:')
-    print_candidates_and_tallies(c, tallies)
+# Find the 1 best candidate
+# best_indices = closest_to_origin_indices(c, 1)
+wins = count_wins(original_matrix)
+best_indices = top_n_indices(np.array(wins), 1)
 
-    # Find the 1 best candidate
-    # best_indices = closest_to_origin_indices(c, 1)
-    wins = count_wins(original_matrix)
-    best_indices = top_n_indices(np.array(wins), 1)
+# Eliminate the lowest-voted
+loser = np.argmin(tallies)
+print(f'{loser} eliminated')
 
-    # Eliminate the lowest-voted again
-    loser = np.argmin(tallies)
-    print(f'{loser} eliminated')
+# To find worst-case scenario, eliminated needs to be in best set
+if loser not in set(best_indices):
+    print("Unexpected: best candidate was not eliminated")
+else:
+    print("Center-squeeze failure confirmed: Condorcet winner eliminated")
 
-    # To find worst-case scenario, eliminated needs to be in best set
-    if loser not in set(best_indices):
-        continue
+# Eliminate and show final two
+c = np.delete(c, loser, axis=0)
+utilities = normed_dist_utilities(v, c)
+rankings = honest_rankings(utilities)
+election = np.asarray(rankings)
+first_preferences = election[:, 0]
+tallies = np.bincount(first_preferences)
+print('Final two:')
+print_candidates_and_tallies(c, tallies)
 
-    # Eliminate and do it a fourth time
-    c = np.delete(c, loser, axis=0)
-    utilities = normed_dist_utilities(v, c)
-    rankings = honest_rankings(utilities)
-    election = np.asarray(rankings)
-    first_preferences = election[:, 0]
-    tallies = np.bincount(first_preferences)
-    print('Final two:')
-    print_candidates_and_tallies(c, tallies)
-
-    print(f'After {trial} trials')
-
-    break
-
-print(original_c)
-# plt.plot(original_c[:, 0], [1]*n_cands, '|')
-# plt.xlim(-max(abs(original_c))*1.1, max(abs(original_c))*1.1)
-
-# # Call the function with your 'election' array
-# result = count_unique_rows(original_election)
-# for row, count in result:
-#     print(f"Row: {row}, Count: {count}")
+print('Demonstration complete')
 
 
 letters = ['D', 'F', 'R']
