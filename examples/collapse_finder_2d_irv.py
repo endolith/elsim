@@ -95,7 +95,9 @@ for trial in range(n_elections):
         break
 
 print(f'\nOriginal candidate positions:')
-print(original_c)
+np.set_printoptions(precision=2, suppress=True)
+print(original_c.T[0])
+
 
 # Call the function with your 'election' array
 result = count_unique_rows(original_election)
