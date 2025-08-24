@@ -19,6 +19,12 @@ from palettable.cartocolors.qualitative import Prism_9 as cmap
 from elsim.elections import normal_electorate
 from elsim.methods import ranked_election_to_matrix
 
+
+def candidate_name(candidate_index):
+    """Convert candidate index to name (A, B, C, etc.)"""
+    return chr(65 + candidate_index)
+
+
 n_voters = 1_000
 n_cands = 9
 cand_dist = 'normal'
@@ -55,6 +61,9 @@ for trial in range(n_elections):
     c_current = c.copy()
     n_remaining = n_cands
     found_worst_case = False
+    elimination_order = []  # Track the order candidates are eliminated
+    # Track original candidate indices
+    candidate_mapping = list(range(n_cands))
 
     for round_num in range(n_cands - 2):  # Eliminate until 2 candidates remain
         utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c_current)
@@ -67,7 +76,11 @@ for trial in range(n_elections):
 
         # Eliminate the lowest-voted
         loser = np.argmin(tallies)
-        print(f'Candidate {chr(65 + loser)} eliminated')
+        # Get original candidate index
+        original_candidate = candidate_mapping[loser]
+        # Record the eliminated candidate
+        elimination_order.append(candidate_name(original_candidate))
+        print(f'Candidate {candidate_name(original_candidate)} eliminated')
 
         # To find worst-case scenario, eliminated needs to be in best set
         if loser not in set(best_indices):
@@ -77,6 +90,8 @@ for trial in range(n_elections):
 
         # Remove the eliminated candidate
         c_current = np.delete(c_current, loser, axis=0)
+        # Remove the eliminated candidate from mapping
+        candidate_mapping.pop(loser)
         n_remaining -= 1
 
         # If we've reached 2 candidates, we found a worst-case scenario
@@ -87,6 +102,7 @@ for trial in range(n_elections):
             print('Final two:')
             print_candidates_and_tallies(c_current, tallies)
             print(f'Worst-case scenario found after {trial} trials')
+            print(f'Elimination order: {" → ".join(elimination_order)}')
             found_worst_case = True
             break
 
