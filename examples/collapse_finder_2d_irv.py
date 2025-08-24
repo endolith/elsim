@@ -51,15 +51,15 @@ for trial in range(n_elections):
     print_candidates_and_tallies(c, tallies)
     print(f'Best candidates: {set(best_indices)}')
 
-    # IRV elimination rounds - start with 5 candidates, eliminate down to 2
+    # IRV elimination rounds - start with all candidates, eliminate down to 2
     c_current = c.copy()
-    n_remaining = 5
+    n_remaining = n_cands
     found_worst_case = False
 
-    for round_num in range(3):  # 3 rounds: 5->4, 4->3, 3->2
+    for round_num in range(n_cands - 2):  # Eliminate until 2 candidates remain
         utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c_current)
 
-        print(f'Round {round_num + 1} - {n_remaining} candidates:')
+        print(f'Round {round_num + 1} ({n_remaining} remaining candidates):')
         print_candidates_and_tallies(c_current, tallies)
 
         # Find the best candidates (n_remaining - 1 best)
@@ -97,6 +97,7 @@ for trial in range(n_elections):
 print(f'\nOriginal candidate positions:')
 np.set_printoptions(precision=2, suppress=True)
 print(original_c.T[0])
+print()
 
 
 # Call the function with your 'election' array
