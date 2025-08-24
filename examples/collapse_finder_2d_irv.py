@@ -50,12 +50,10 @@ for trial in range(n_elections):
     tallies = np.bincount(first_preferences)
     original_tallies = tallies
 
-    # Find the set of 4 best candidates (by head-to-head wins)
-    best_indices = find_best_candidates(original_election, 4)
+    # We'll calculate the best candidate in each round among remaining candidates
 
     print(f'\nTrial {trial}:')
     print_candidates_and_tallies(c, tallies)
-    print(f'Best candidates: {set(best_indices)}')
 
     # IRV elimination rounds - start with all candidates, eliminate down to 2
     c_current = c.copy()
@@ -71,8 +69,9 @@ for trial in range(n_elections):
         print(f'Round {round_num + 1} ({n_remaining} remaining candidates):')
         print_candidates_and_tallies(c_current, tallies)
 
-        # Find the best candidates (n_remaining - 1 best)
-        best_indices = find_best_candidates(election, n_remaining - 1)
+        # Find the current best candidate among remaining candidates
+        current_best = find_best_candidates(election, 1)[0]
+        current_best_original = candidate_mapping[current_best]
 
         # Eliminate the lowest-voted
         loser = np.argmin(tallies)
@@ -82,8 +81,8 @@ for trial in range(n_elections):
         elimination_order.append(candidate_name(original_candidate))
         print(f'Candidate {candidate_name(original_candidate)} eliminated')
 
-        # To find worst-case scenario, eliminated needs to be in best set
-        if loser not in set(best_indices):
+        # To find worst-case scenario, eliminated candidate should be the current best
+        if original_candidate != current_best_original:
             # This trial didn't produce a worst-case scenario, try next trial
             found_worst_case = False
             break
