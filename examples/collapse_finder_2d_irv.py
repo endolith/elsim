@@ -9,11 +9,10 @@ representative of the electorate.
 
 import matplotlib.pyplot as plt
 import numpy as np
-from collapse_utils import (bottom_n_indices, calculate_election_data,
-                            count_unique_rows, count_wins,
-                            find_best_candidates, indices_to_letters,
-                            plot_candidate_positions, plot_fptp_results,
-                            plot_voter_distribution,
+from collapse_utils import (calculate_election_data, count_unique_rows,
+                            count_wins, find_best_candidates,
+                            indices_to_letters, plot_candidate_positions,
+                            plot_fptp_results, plot_voter_distribution,
                             print_candidates_and_tallies, setup_plot_axes)
 from palettable.cartocolors.qualitative import Prism_9 as cmap
 
@@ -108,12 +107,14 @@ pos = original_c[:, 0]
 
 colors = cmap.mpl_colors[:n_cands]  # Only use first 5 colors for 5 candidates
 
+
 def gaussian(x, mu, sigma):
     """
     Return a normal distribution pdf with center `mu` and standard deviation
     `sigma`
     """
     return np.exp(-(x-mu)**2/(2*sigma**2))
+
 
 # Generate x values
 x = np.linspace(-x_max, x_max, 300)
@@ -140,6 +141,7 @@ plot_voter_distribution(ax_hist, pos, colors, x_max)
 plot_fptp_results(ax_fptp, original_tallies, n_voters, colors,
                   [chr(65 + n) for n in range(n_cands)])
 
+
 def plot_wins(wins, ax, colors='b', gap=0.1):
     """
     Plot number of wins as discrete blocks stacked on top of each other.
@@ -165,6 +167,7 @@ def plot_wins(wins, ax, colors='b', gap=0.1):
     ax.set_xticklabels([chr(65 + n) for n in range(n_cands)])
     ax.set_xlim(-0.5, n_cands-0.5)  # Set fixed x-axis limits
     ax.set_ylabel('Head-to-head wins')
+
 
 # Use the function
 wins = count_wins(original_matrix)
