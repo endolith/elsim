@@ -1,9 +1,5 @@
 """
-Find an example of IRV election with 5 candidates.
-
-This example demonstrates a simple IRV system:
-- 5 candidates compete in a single IRV general election
-- No primary election
+Find an example of IRV election worst-case scenario.
 
 The simulation searches for scenarios where the best candidates (by
 head-to-head wins) are eliminated through vote-splitting in each IRV round,
