@@ -47,7 +47,7 @@ for trial in range(n_elections):
     first_preferences = election[:, 0]
 
     # Tally all first preferences (with index of tally = candidate ID)
-    tallies = np.bincount(first_preferences)
+    tallies = np.bincount(first_preferences, minlength=n_cands)
     original_tallies = tallies
 
     # We'll calculate the best candidate in each round among remaining candidates
