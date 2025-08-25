@@ -113,6 +113,18 @@ print(f'\nOriginal candidate positions:')
 np.set_printoptions(precision=2, suppress=True)
 print(original_c.T[0])
 print()
+# plt.plot(original_c[:, 0], [1]*n_cands, '|')
+# plt.xlim(-max(abs(original_c))*1.1, max(abs(original_c))*1.1)
+
+# # Call the function with your 'election' array
+# result = count_unique_rows(original_election)
+# for row, count in result:
+#     print(f"Row: {row}, Count: {count}")
+
+
+# Define a function to convert indices to letters
+def indices_to_letters(indices):
+    return " > ".join(chr(65 + i) for i in indices)
 
 
 # Call the function with your 'election' array
@@ -123,7 +135,7 @@ for row, count in result:
 x_max = +2.5
 pos = original_c[:, 0]
 
-colors = cmap.mpl_colors[:n_cands]  # Only use first 5 colors for 5 candidates
+colors = cmap.mpl_colors
 
 
 def gaussian(x, mu, sigma):
@@ -158,6 +170,10 @@ plot_voter_distribution(ax_hist, pos, colors, x_max)
 # Plurality results bar chart in percent using shared utility
 plot_fptp_results(ax_fptp, original_tallies, n_voters, colors,
                   [chr(65 + n) for n in range(n_cands)])
+
+# ax_fav.bar(range(n_cands), original_utilities*100,
+#            tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
+# ax_fav.set_ylabel('Favorability [%]')
 
 
 def plot_wins(wins, ax, colors='b', gap=0.1):
