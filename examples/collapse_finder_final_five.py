@@ -30,7 +30,6 @@ n_voters = 1_000
 n_cands = 9
 cand_dist = 'normal'
 
-
 n_elections = 50_000
 n_failures = 0
 for trial in range(n_elections):
@@ -49,7 +48,7 @@ for trial in range(n_elections):
     first_preferences = election[:, 0]
 
     # Tally all first preferences (with index of tally = candidate ID)
-    tallies = np.bincount(first_preferences)
+    tallies = np.bincount(first_preferences, minlength=n_cands)
     original_tallies = tallies
 
     # Find the set of 5 candidates who have the highest tally
@@ -75,10 +74,10 @@ for trial in range(n_elections):
     c = np.delete(c, loser_indices, axis=0)
 
     # RCV elimination rounds - start with 5 candidates, eliminate down to 2
-    n_remaining = 5
+    n_remaining = n_finalists
     found_worst_case = False
 
-    for round_num in range(3):  # 3 rounds: 5->4, 4->3, 3->2
+    for round_num in range(n_finalists - 2):  # 3 rounds: 5->4, 4->3, 3->2
         utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c)
 
         print(f'Final {n_remaining}:')
@@ -116,8 +115,10 @@ for trial in range(n_elections):
     if found_worst_case:
         break
 
-
-print(original_c)
+print(f'\nOriginal candidate positions:')
+np.set_printoptions(precision=2, suppress=True)
+print(original_c.T[0])
+print()
 # plt.plot(original_c[:, 0], [1]*n_cands, '|')
 # plt.xlim(-max(abs(original_c))*1.1, max(abs(original_c))*1.1)
 
@@ -216,9 +217,4 @@ plot_wins(wins, ax_wins, colors)
 ax_wins.set_aspect('equal')
 
 plt.tight_layout()
-plt.show()
-
-
-plt.tight_layout()
-
 plt.show()
