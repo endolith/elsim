@@ -110,7 +110,8 @@ def calculate_election_data(v, c):
     rankings = honest_rankings(utilities)
     election = np.asarray(rankings)
     first_preferences = election[:, 0]
-    tallies = np.bincount(first_preferences)
+    # Use minlength parameter to ensure tallies array has the right length
+    tallies = np.bincount(first_preferences, minlength=len(c))
     return utilities, rankings, election, first_preferences, tallies
 
 
