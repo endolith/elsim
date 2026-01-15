@@ -28,21 +28,19 @@ import matplotlib.pyplot as plt
 from tabulate import tabulate
 from joblib import Parallel, delayed
 from elsim.methods import (utility_winner,
-                           combined_approval)
+                           approval)
 from elsim.elections import random_utilities
 from elsim.strategies import (vote_for_or_against_k)
 from weber_1977_expressions import eff_vote_for_or_against_k
 
 n = 20_000
-n_voters = 1_00
-n_cands_list = (2, 3, 4, 5, 7, 10)  # Reduced for speed and trying things
+n_voters = 1_000 # Increased voters for stability
+n_cands_list = (2, 3, 4, 5, 6, 10) # 10 is key
 
-rated_methods = {'Vfoak1': lambda utilities, tiebreaker:
-                 combined_approval(vote_for_or_against_k(utilities, 1),
-                                   tiebreaker),
-                 }
+# We will dynamically run Vfoak-k inside the loop
 
-count = {key: Counter() for key in (rated_methods.keys() | {'UW'})}
+count = defaultdict(lambda: defaultdict(int)) # accumulated utility
+# We also need to track social utility winner (UW) for normalization
 
 print(f'Doing {n:,} iterations, {n_voters:,} voters, '
       f'{n_cands_list} candidates')
@@ -51,22 +49,26 @@ start_time = time.monotonic()
 
 
 def func():
-    count = defaultdict(dict)
+    # Local accumulation for this batch
+    batch_count = defaultdict(lambda: defaultdict(float))
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
 
         # Find the social utility winner and accumulate utilities
         UW = utility_winner(utilities)
-        count['UW'][n_cands] = utilities.sum(axis=0)[UW]
+        batch_count['UW'][n_cands] = utilities.sum(axis=0)[UW]
 
-        for name, method in rated_methods.items():
+        # VFOAK: iterate all valid k
+        max_k = n_cands // 2
+        for k in range(1, max_k + 1):
             try:
-                winner = method(utilities, tiebreaker='random')
-                count[name][n_cands] = utilities.sum(axis=0)[winner]
+                election = vote_for_or_against_k(utilities, k)
+                winner = approval(election, tiebreaker='random')
+                batch_count[f'Vfoak-{k}'][n_cands] = utilities.sum(axis=0)[winner]
             except ValueError:
-                count[name][n_cands] = np.nan
+                pass
 
-    return count
+    return batch_count
 
 
 p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n))
@@ -82,10 +84,6 @@ print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
 plt.figure(f'Effectiveness, {n_voters} voters, {n} iterations')
 plt.title('The Effectiveness of Several Voting Systems')
-for name, method in (('Vote-for-or-against-1',
-                      lambda m: eff_vote_for_or_against_k(m, 1)),
-                     ):
-    plt.plot(n_cands_list, method(np.array(n_cands_list))*100, ':', lw=0.8)
 
 # Restart color cycle, so result colors match
 plt.gca().set_prop_cycle(None)
@@ -95,11 +93,36 @@ table = {}
 # Calculate Social Utility Efficiency from summed utilities
 x_uw, y_uw = zip(*sorted(count['UW'].items()))
 average_utility = n_voters * n / 2
-for method in ('Vfoak1',):
-    x, y = zip(*sorted(count[method].items()))
-    SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
-    plt.plot(x, SUE*100, '-', label='Vfoak1')
-    table.update({method: SUE*100})
+
+# Calculate Best Vote-for-or-against-k SUE
+best_vfoak_sue = []
+sorted_n_cands = sorted(n_cands_list)
+print("\nDebug Best VFOAK selection:")
+for n_cands in sorted_n_cands:
+    max_util = -np.inf
+    best_k = -1
+
+    # Iterate valid k for this n_cands
+    max_k = n_cands // 2
+    for k in range(1, max_k + 1):
+        method_name = f'Vfoak-{k}'
+        if n_cands in count[method_name]:
+             if count[method_name][n_cands] > max_util:
+                 max_util = count[method_name][n_cands]
+                 best_k = k
+
+    if max_util == -np.inf:
+        # Should not happen if k=1 is always valid for m>=2
+        best_vfoak_sue.append(np.nan)
+    else:
+        uw_util = count['UW'][n_cands]
+        sue = (max_util - average_utility)/(uw_util - average_utility)
+        best_vfoak_sue.append(sue * 100)
+        # Debug output
+        if n_cands in (3, 4, 10):
+            print(f"  m={n_cands}: Best k={best_k} (SUE={sue*100:.2f}%)")
+
+table['Best Vote-for-or-against-k'] = best_vfoak_sue
 
 print(tabulate(table, 'keys', showindex=n_cands_list,
                tablefmt="pipe", floatfmt='.2f'))
