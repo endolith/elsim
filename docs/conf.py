@@ -50,7 +50,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'examples/README.md', 'examples/results']
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -72,26 +72,32 @@ source_suffix = {
 }
 
 
-# Copy ./examples/results images into documentation. Two path conventions:
-# - index.rst includes ../README.md which uses ./examples/results/... so we need
-#   outdir/examples/results/ for index.html.
-# - examples.rst includes ../examples/README.md which uses ./results/... so we
-#   need outdir/results/ for examples.html.
+# So that examples/index gets image paths relative to that page (results/xxx not
+# examples/results/xxx), we include from a copy of the README inside docs/examples/.
+# Paths in that file (./results/) are then relative to the document and resolve
+# correctly. Copy repo examples/README.md and examples/results/ into docs/examples/
+# at build start so the doc and Sphinx can find them.
 import os
 import shutil
 
 
-def copy_examples(app, docname):
-    if app.builder.name == 'html':
-        source_dir = os.path.join(app.srcdir, '..', 'examples', 'results')
-        for subdir in ('results', os.path.join('examples', 'results')):
-            output_dir = os.path.join(app.outdir, subdir)
-            if not os.path.exists(output_dir):
-                shutil.copytree(source_dir, output_dir)
+def prepare_examples_doc(app, config):
+    srcdir = app.srcdir
+    repo_examples = os.path.join(srcdir, '..', 'examples')
+    docs_examples = os.path.join(srcdir, 'examples')
+    for name, dest_subdir in (('README.md', ''), ('results', 'results')):
+        src = os.path.join(repo_examples, name)
+        if name == 'README.md':
+            shutil.copy2(src, os.path.join(docs_examples, name))
+        else:
+            dest = os.path.join(docs_examples, dest_subdir)
+            if os.path.exists(dest):
+                shutil.rmtree(dest)
+            shutil.copytree(src, dest)
 
 
 def setup(app):
-    app.connect('build-finished', copy_examples)
+    app.connect('config-inited', prepare_examples_doc)
 
 # Add this to enable regular markdown mermaid syntax
 myst_fence_as_directive = ["mermaid"]

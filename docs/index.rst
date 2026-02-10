@@ -5,7 +5,7 @@
    :maxdepth: 2
    :caption: Contents:
 
-   examples
+   examples/index
    modules
 
 
