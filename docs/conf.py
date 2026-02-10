@@ -59,6 +59,24 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'examples/README.md', 'e
 # a list of builtin themes.
 #
 html_theme = 'alabaster'
+html_theme_options = {
+    'fixed_sidebar': True,
+}
+# Sidebar: "Contents" (navigation.html) = toctree = which documents exist and
+# where you are; for the current page it also shows that page's outline.
+# "Table of Contents" (localtoc.html) = outline of the current page only
+# (headings → links). Same data can appear in both for the current doc.
+# :tocdepth: 2 on examples/index limits both to major headings (## only).
+html_sidebars = {
+    '**': [
+        'about.html',
+        'searchfield.html',
+        'navigation.html',
+        'localtoc.html',
+        'relations.html',
+        'donate.html',
+    ],
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
