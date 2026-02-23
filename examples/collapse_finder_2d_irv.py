@@ -13,6 +13,7 @@ import numpy as np
 from palettable.colorbrewer.qualitative import Set1_9 as cmap
 
 from elsim.elections import normal_electorate, normed_dist_utilities
+from elsim.methods._common import _inc_pointer, _tally_at_pointer
 from elsim.strategies import honest_rankings
 
 
@@ -187,7 +188,7 @@ def render_frame(
 
 
 n_voters = 5000
-n_cands = 4
+n_cands = 6
 max_trials = 100_000
 frames_per_transfer = 60
 output_dir = Path('Images') / 'collapse_2d_irv'
@@ -215,6 +216,8 @@ final_two = trace['final_two']
 print(f'Found strict center-outward IRV collapse on trial {trial}.')
 print('Elimination order:', ' -> '.join(candidate_name(r['loser']) for r in rounds))
 print('Final two:', candidate_name(final_two[0]), candidate_name(final_two[1]))
+
+raise SystemExit
 
 frame = 0
 initial = rounds[0]
