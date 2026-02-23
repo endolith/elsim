@@ -24,6 +24,7 @@ n_voters = 5000
 n_cands = 7
 max_trials = 100_000
 frames_per_transfer = 60
+disp = 0.5  # Candidates 0.5x spread of voters (more concentrated near center)
 
 
 def candidate_name(candidate_index):
@@ -208,7 +209,7 @@ if n_cands > len(colors):
 colors = colors[:n_cands]
 labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
 
-result = find_center_outward_election(n_voters, n_cands, max_trials)
+result = find_center_outward_election(n_voters, n_cands, max_trials, disp=disp)
 if result is None:
     raise RuntimeError('No strict center-outward collapse found. Increase max_trials or reduce n_cands.')
 
