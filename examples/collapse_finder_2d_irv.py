@@ -239,22 +239,37 @@ eliminated = set()
 
 for round_index, round_data in enumerate(rounds, start=1):
     loser = round_data['loser']
-    ballots = round_data['ballots_before'].copy()
     eliminated_now = set(eliminated)
     eliminated_now.add(loser)
 
+    # Elimination frame: loser and their voters turn gray, tallies unchanged
+    title = f'Round {round_index}: eliminate {candidate_name(loser)}'
+    render_frame(
+        voters=voters,
+        candidates=candidates,
+        ballots=round_data['ballots_before'],
+        tallies=round_data['tallies_before'],
+        colors=colors,
+        labels=labels,
+        frame_title=title,
+        output_path=output_dir / f'{frame:04d}.png',
+        eliminated=eliminated_now,
+    )
+    frame += 1
+
+    # Transfer frames: votes move from eliminated candidate to next choice
+    ballots = round_data['ballots_before'].copy()
     affected = round_data['affected_voters'].copy()
     rng.shuffle(affected)
     per_frame = max(1, ceildiv(len(affected), frames_per_transfer))
 
-    for step in range(frames_per_transfer + 1):
+    for step in range(frames_per_transfer):
         lo = step * per_frame
         hi = lo + per_frame
         changing = affected[lo:hi]
         ballots[changing] = round_data['ballots_after'][changing]
         tallies = np.bincount(ballots, minlength=n_cands)
 
-        title = f'Round {round_index}: eliminate {candidate_name(loser)}'
         render_frame(
             voters=voters,
             candidates=candidates,
