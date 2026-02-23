@@ -21,7 +21,7 @@ from elsim.methods._common import _inc_pointer, _tally_at_pointer
 from elsim.strategies import honest_rankings
 
 n_voters = 5000
-n_cands = 7
+n_cands = 3
 max_trials = 100_000
 frames_per_transfer = 60
 disp = 0.5  # Candidates 0.5x spread of voters (more concentrated near center)
@@ -139,24 +139,32 @@ def render_frame(
 
     n_cands = len(candidates)
     n_voters = len(voters)
-    active_colors = [colors[n] if n not in eliminated else [0.8, 0.8, 0.8] for n in range(n_cands)]
+    active_colors = [colors[n] if n not in eliminated else [0.5, 0.5, 0.5] for n in range(n_cands)]
 
-    fig = plt.figure(figsize=(9, 7.5))
+    fig = plt.figure(figsize=(9, 7.5), facecolor='black')
     ax_sc = plt.subplot2grid(shape=(4, 3), loc=(0, 0), colspan=2, rowspan=4)
     ax_bar = plt.subplot2grid(shape=(4, 3), loc=(1, 2), rowspan=2)
+
+    for ax in (ax_sc, ax_bar):
+        ax.set_facecolor('black')
+        ax.tick_params(colors='white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
+        for spine in ax.spines.values():
+            spine.set_color('white')
 
     voters_kwargs = {'marker': '.', 'alpha': 0.25, 's': 5}
     cands_kwargs = {'marker': 'o', 's': 30, 'edgecolors': 'white'}
 
-    ax_sc.scatter([], [], color='k', **voters_kwargs, label='Voters')
-    ax_sc.scatter([], [], color='k', **cands_kwargs, label='Candidates')
-    ax_sc.legend(loc='lower right', numpoints=1, fontsize='small')
-    ax_sc.grid(True, alpha=0.2)
+    ax_sc.scatter([], [], color='w', **voters_kwargs, label='Voters')
+    ax_sc.scatter([], [], color='w', **cands_kwargs, label='Candidates')
+    ax_sc.legend(loc='lower right', numpoints=1, fontsize='small', labelcolor='white')
+    ax_sc.grid(True, alpha=0.3, color='white')
     ax_sc.set_axisbelow(True)
     ax_sc.axis('square')
     ax_sc.axis([-3, 3, -3, 3])
 
-    path_effects = [PathEffects.withStroke(linewidth=3, foreground='w')]
+    path_effects = [PathEffects.withStroke(linewidth=3, foreground='black')]
 
     for cand in range(n_cands):
         cand_voters = voters[ballots == cand]
@@ -168,7 +176,7 @@ def render_frame(
                   color=[active_colors[c] for c in remaining], **cands_kwargs)
     for cand in remaining:
         ax_sc.annotate(labels[cand], xy=candidates[cand], xytext=(0, -15),
-                       textcoords='offset points', path_effects=path_effects)
+                       textcoords='offset points', path_effects=path_effects, color='white')
 
     bars = ax_bar.bar(range(n_cands), tallies / n_voters * 100, tick_label=list(labels), color=active_colors)
     for rect in bars:
@@ -181,16 +189,17 @@ def render_frame(
                 textcoords='offset points',
                 ha='center',
                 va='bottom',
+                color='white',
             )
 
     ax_bar.set_ylim(0, 100)
     ax_bar.set_ylabel('Votes [%]')
-    ax_bar.grid(True, alpha=0.25, axis='y')
+    ax_bar.grid(True, alpha=0.25, axis='y', color='white')
     ax_bar.set_axisbelow(True)
-    ax_bar.text(0.5, 1.04, frame_title, transform=ax_bar.transAxes, ha='center', va='center')
+    ax_bar.text(0.5, 1.04, frame_title, transform=ax_bar.transAxes, ha='center', va='center', color='white')
 
     plt.tight_layout()
-    plt.savefig(output_path)
+    plt.savefig(output_path, facecolor='black', edgecolor='none')
     plt.close(fig)
 
 
@@ -200,11 +209,11 @@ output_dir.mkdir(parents=True, exist_ok=True)
 
 colors = list(cmap.mpl_colors)
 assert cmap.name == 'Set1'
-if len(colors) > 5:
-    colors.pop(5)  # Throw away yellow; difficult to see on white backgrounds.
-
 if n_cands > len(colors):
-    raise ValueError(f'n_cands={n_cands} exceeds available palette size={len(colors)}')
+    raise ValueError(
+        f'n_cands={n_cands} exceeds Set1_9 palette size ({len(colors)}). '
+        'Use n_cands <= 9 or switch to a larger palette.'
+    )
 
 colors = colors[:n_cands]
 labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
