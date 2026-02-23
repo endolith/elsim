@@ -17,6 +17,11 @@ from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods._common import _inc_pointer, _tally_at_pointer
 from elsim.strategies import honest_rankings
 
+n_voters = 5000
+n_cands = 6
+max_trials = 100_000
+frames_per_transfer = 60
+
 
 def candidate_name(candidate_index):
     """Convert candidate index to name (A, B, C, etc.)."""
@@ -181,11 +186,6 @@ def render_frame(
     plt.savefig(output_path)
     plt.close(fig)
 
-
-n_voters = 5000
-n_cands = 6
-max_trials = 100_000
-frames_per_transfer = 60
 
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 output_dir = Path('Images') / f'collapse_2d_irv_{timestamp}_nc{n_cands}_nv{n_voters}'
