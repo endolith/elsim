@@ -5,6 +5,7 @@ This mirrors the transfer animation style used in elsim2k T2R examples, but
 for full IRV: one candidate eliminated per round until two remain.
 """
 
+from datetime import datetime
 from pathlib import Path
 
 import matplotlib.patheffects as PathEffects
@@ -185,7 +186,9 @@ n_voters = 5000
 n_cands = 6
 max_trials = 100_000
 frames_per_transfer = 60
-output_dir = Path('Images') / 'collapse_2d_irv'
+
+timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+output_dir = Path('Images') / f'collapse_2d_irv_{timestamp}_nc{n_cands}_nv{n_voters}'
 output_dir.mkdir(parents=True, exist_ok=True)
 
 colors = list(cmap.mpl_colors)
@@ -211,7 +214,7 @@ print(f'Found strict center-outward IRV collapse on trial {trial}.')
 print('Elimination order:', ' -> '.join(candidate_name(r['loser']) for r in rounds))
 print('Final two:', candidate_name(final_two[0]), candidate_name(final_two[1]))
 
-raise SystemExit
+np.savez(output_dir / 'positions.npz', voters=voters, candidates=candidates)
 
 frame = 0
 initial = rounds[0]
