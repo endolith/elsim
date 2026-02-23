@@ -1,214 +1,282 @@
 """
-Find an example of IRV election worst-case scenario.
+Find a 2D IRV center-outward collapse and animate transfers by round.
 
-The simulation searches for scenarios where the best candidates (by
-head-to-head wins) are eliminated through vote-splitting in each IRV round,
-creating a worst-case outcome where the final winner is not the best
-representative of the electorate.
+This mirrors the transfer animation style used in elsim2k T2R examples, but
+for full IRV: one candidate eliminated per round until two remain.
 """
 
+from pathlib import Path
+
+import matplotlib.patheffects as PathEffects
 import matplotlib.pyplot as plt
 import numpy as np
-from collapse_utils import (calculate_election_data, count_unique_rows,
-                            count_wins, find_best_candidates,
-                            indices_to_letters, plot_candidate_positions,
-                            plot_fptp_results, plot_voter_distribution,
-                            print_candidates_and_tallies, setup_plot_axes)
-from palettable.cartocolors.qualitative import Prism_9 as cmap
+from palettable.colorbrewer.qualitative import Set1_9 as cmap
 
-from elsim.elections import normal_electorate
-from elsim.methods import ranked_election_to_matrix
+from elsim.elections import normal_electorate, normed_dist_utilities
+from elsim.strategies import honest_rankings
 
 
 def candidate_name(candidate_index):
-    """Convert candidate index to name (A, B, C, etc.)"""
+    """Convert candidate index to name (A, B, C, etc.)."""
     return chr(65 + candidate_index)
 
 
-n_voters = 1_000
-n_cands = 9
-cand_dist = 'normal'
-
-n_elections = 50_000
-n_failures = 0
-for trial in range(n_elections):
-    v, c = normal_electorate(n_voters, n_cands, dims=1, disp=1)
-    c = np.sort(c, axis=0)  # just for ease of viewing
-    original_c = c
-
-    # Calculate initial election data
-    utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c)
-    original_utilities = utilities.sum(axis=0)
-    original_utilities /= original_utilities.max()
-    original_election = election
-    original_matrix = ranked_election_to_matrix(election)
-
-    # Get first preferences from election array
-    first_preferences = election[:, 0]
-
-    # Tally all first preferences (with index of tally = candidate ID)
-    tallies = np.bincount(first_preferences, minlength=n_cands)
-    original_tallies = tallies
-
-    # We'll calculate the best candidate in each round among remaining candidates
-
-    print(f'\nTrial {trial}:')
-    print_candidates_and_tallies(c, tallies)
-
-    # IRV elimination rounds - start with all candidates, eliminate down to 2
-    c_current = c.copy()
-    n_remaining = n_cands
-    found_worst_case = False
-    elimination_order = []  # Track the order candidates are eliminated
-    # Track original candidate indices
-    candidate_mapping = list(range(n_cands))
-
-    for round_num in range(n_cands - 2):  # Eliminate until 2 candidates remain
-        utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c_current)
-
-        print(f'Round {round_num + 1} ({n_remaining} remaining candidates):')
-        print_candidates_and_tallies(c_current, tallies)
-
-        # Find the current best candidate among remaining candidates
-        current_best = find_best_candidates(election, 1)[0]
-        current_best_original = candidate_mapping[current_best]
-
-        # Eliminate the lowest-voted
-        loser = np.argmin(tallies)
-        # Get original candidate index
-        original_candidate = candidate_mapping[loser]
-        # Record the eliminated candidate
-        elimination_order.append(candidate_name(original_candidate))
-        print(f'Candidate {candidate_name(original_candidate)} eliminated')
-
-        # To find worst-case scenario, eliminated candidate should be the current best
-        if original_candidate != current_best_original:
-            # This trial didn't produce a worst-case scenario, try next trial
-            found_worst_case = False
-            break
-
-        # Remove the eliminated candidate
-        c_current = np.delete(c_current, loser, axis=0)
-        # Remove the eliminated candidate from mapping
-        candidate_mapping.pop(loser)
-        n_remaining -= 1
-
-        # If we've reached 2 candidates, we found a worst-case scenario
-        if n_remaining == 2:
-            # Recalculate utilities and tallies for the final 2 candidates
-            utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c_current)
-
-            print('Final two:')
-            print_candidates_and_tallies(c_current, tallies)
-            print(f'Worst-case scenario found after {trial} trials')
-            print(f'Elimination order: {" → ".join(elimination_order)}')
-            found_worst_case = True
-            break
-
-    # If we found a worst-case scenario, exit the trial loop
-    if found_worst_case:
-        break
-
-print(f'\nOriginal candidate positions:')
-np.set_printoptions(precision=2, suppress=True)
-print(original_c.T[0])
-print()
-# plt.plot(original_c[:, 0], [1]*n_cands, '|')
-# plt.xlim(-max(abs(original_c))*1.1, max(abs(original_c))*1.1)
-
-# # Call the function with your 'election' array
-# result = count_unique_rows(original_election)
-# for row, count in result:
-#     print(f"Row: {row}, Count: {count}")
+def ceildiv(a, b):
+    """Ceiling division for positive integers."""
+    return -(-a // b)
 
 
-# Define a function to convert indices to letters
-def indices_to_letters(indices):
-    return " > ".join(chr(65 + i) for i in indices)
-
-
-# Call the function with your 'election' array
-result = count_unique_rows(original_election)
-for row, count in result:
-    print(f"{count:4}: {indices_to_letters(row)}")
-
-x_max = +2.5
-pos = original_c[:, 0]
-
-colors = cmap.mpl_colors
-
-
-def gaussian(x, mu, sigma):
+def simulate_irv_rounds(rankings, candidates):
     """
-    Return a normal distribution pdf with center `mu` and standard deviation
-    `sigma`
+    Simulate IRV with round-by-round trace data.
+
+    Returns None if there is any tie for elimination, because this example is
+    intended to find a clean center-outward pattern with deterministic rounds.
     """
-    return np.exp(-(x-mu)**2/(2*sigma**2))
+    rankings = np.asarray(rankings)
+    n_voters, n_cands = rankings.shape
+    dists_to_origin = np.linalg.norm(candidates, axis=1)
+
+    pointer = np.zeros(n_voters, dtype=np.int32)
+    active = set(range(n_cands))
+    eliminated = set()
+    ballots = rankings[np.arange(n_voters), pointer]
+    rounds = []
+
+    while len(active) > 2:
+        tallies = np.bincount(ballots, minlength=n_cands)
+        active_sorted = sorted(active)
+
+        min_tally = min(tallies[cand] for cand in active_sorted)
+        low_scorers = [cand for cand in active_sorted if tallies[cand] == min_tally]
+        if len(low_scorers) != 1:
+            return None
+
+        loser = low_scorers[0]
+
+        # Strict condition: eliminate closest remaining candidate every round.
+        # This avoids accepting partial center-squeeze cases that only match the
+        # first and last rounds.
+        expected_loser = min(active_sorted, key=lambda cand: (dists_to_origin[cand], cand))
+        if loser != expected_loser:
+            return None
+
+        affected_voters = np.flatnonzero(ballots == loser)
+        next_eliminated = set(eliminated)
+        next_eliminated.add(loser)
+
+        next_pointer = pointer.copy()
+        for voter in affected_voters:
+            while rankings[voter, next_pointer[voter]] in next_eliminated:
+                next_pointer[voter] += 1
+
+        next_ballots = rankings[np.arange(n_voters), next_pointer]
+        next_tallies = np.bincount(next_ballots, minlength=n_cands)
+
+        rounds.append(
+            {
+                'active_before': set(active),
+                'eliminated_before': set(eliminated),
+                'loser': loser,
+                'ballots_before': ballots.copy(),
+                'ballots_after': next_ballots.copy(),
+                'tallies_before': tallies.copy(),
+                'tallies_after': next_tallies.copy(),
+                'affected_voters': affected_voters,
+            }
+        )
+
+        active.remove(loser)
+        eliminated.add(loser)
+        pointer = next_pointer
+        ballots = next_ballots
+
+    final_two = sorted(active)
+    farthest_two = sorted(np.argsort(dists_to_origin)[-2:])
+    if final_two != farthest_two:
+        return None
+
+    return {
+        'rounds': rounds,
+        'final_two': final_two,
+        'final_ballots': ballots.copy(),
+        'final_tallies': np.bincount(ballots, minlength=n_cands),
+        'dists_to_origin': dists_to_origin,
+    }
 
 
-# Generate x values
-x = np.linspace(-x_max, x_max, 300)
-# Define the figure
-fig, ax_hist = plt.subplots(figsize=(8, 4))  # Adjust as necessary
-
-# Setup axes using shared utilities
-ax_fptp = setup_plot_axes(fig, ax_hist, x_max)
-ax_wins = ax_hist.inset_axes([0.72, 0.53, 0.32, 0.45])  # [x, y, width, height]
-
-# Adjust axis parameters for wins axis
-ax_wins.spines['right'].set_visible(False)
-ax_wins.spines['top'].set_visible(False)
-ax_wins.xaxis.set_tick_params(width=0.5)
-ax_wins.yaxis.set_tick_params(width=0.5)
-
-# Plot candidate positions using shared utility
-plot_candidate_positions(ax_hist, pos, colors)
-
-# Plot voter distribution using shared utility
-plot_voter_distribution(ax_hist, pos, colors, x_max)
-
-# Plurality results bar chart in percent using shared utility
-plot_fptp_results(ax_fptp, original_tallies, n_voters, colors,
-                  [chr(65 + n) for n in range(n_cands)])
-
-# ax_fav.bar(range(n_cands), original_utilities*100,
-#            tick_label=[chr(65 + n) for n in range(n_cands)], color=colors)
-# ax_fav.set_ylabel('Favorability [%]')
+def find_center_outward_election(n_voters, n_cands, max_trials, disp=1.0):
+    """Sample random 2D elections until the strict center-outward pattern appears."""
+    for trial in range(1, max_trials + 1):
+        voters, candidates = normal_electorate(n_voters, n_cands, dims=2, disp=disp)
+        utilities = normed_dist_utilities(voters, candidates)
+        rankings = np.asarray(honest_rankings(utilities))
+        trace = simulate_irv_rounds(rankings, candidates)
+        if trace is not None:
+            return trial, voters, candidates, trace
+    return None
 
 
-def plot_wins(wins, ax, colors='b', gap=0.1):
-    """
-    Plot number of wins as discrete blocks stacked on top of each other.
+def render_frame(
+    voters,
+    candidates,
+    ballots,
+    tallies,
+    colors,
+    labels,
+    frame_title,
+    output_path,
+    eliminated=None,
+):
+    """Render one animation frame in the same visual style as T2R examples."""
+    if eliminated is None:
+        eliminated = set()
 
-    Parameters
-    ----------
-    wins : list
-        A list of the number of wins for each candidate.
-    ax : matplotlib axis
-        The axis to plot on.
-    colors : str or list
-        The colors to use for the bars.
-    gap : float
-        The gap to leave between blocks. Default is 0.1.
-    """
-    n_cands = len(wins)
-    for n in range(n_cands):
-        for i in range(int(wins[n])):
-            ax.bar(n, 1 - gap, bottom=i + i * gap,
-                   color=colors if isinstance(colors, str) else colors[n],
-                   edgecolor='black', linewidth=1)
-    ax.set_xticks(range(n_cands))
-    ax.set_xticklabels([chr(65 + n) for n in range(n_cands)])
-    ax.set_xlim(-0.5, n_cands-0.5)  # Set fixed x-axis limits
-    ax.set_ylabel('Head-to-head wins')
+    n_cands = len(candidates)
+    n_voters = len(voters)
+    active_colors = [colors[n] if n not in eliminated else [0.8, 0.8, 0.8] for n in range(n_cands)]
+
+    fig = plt.figure(figsize=(9, 7.5))
+    ax_sc = plt.subplot2grid(shape=(4, 3), loc=(0, 0), colspan=2, rowspan=4)
+    ax_bar = plt.subplot2grid(shape=(4, 3), loc=(1, 2), rowspan=2)
+
+    voters_kwargs = {'marker': '.', 'alpha': 0.25, 's': 5}
+    cands_kwargs = {'marker': 'o', 's': 30, 'edgecolors': 'white'}
+
+    ax_sc.scatter([], [], color='k', **voters_kwargs, label='Voters')
+    ax_sc.scatter([], [], color='k', **cands_kwargs, label='Candidates')
+    ax_sc.legend(loc='lower right', numpoints=1, fontsize='small')
+    ax_sc.grid(True, alpha=0.2)
+    ax_sc.set_axisbelow(True)
+    ax_sc.axis('square')
+    ax_sc.axis([-3, 3, -3, 3])
+
+    path_effects = [PathEffects.withStroke(linewidth=3, foreground='w')]
+
+    for cand in range(n_cands):
+        cand_voters = voters[ballots == cand]
+        if len(cand_voters):
+            ax_sc.scatter(cand_voters[:, 0], cand_voters[:, 1], color=active_colors[cand], **voters_kwargs)
+
+    ax_sc.scatter(candidates[:, 0], candidates[:, 1], color=active_colors, **cands_kwargs)
+    for cand, pos in enumerate(candidates):
+        ax_sc.annotate(labels[cand], xy=pos, xytext=(0, -15), textcoords='offset points', path_effects=path_effects)
+
+    bars = ax_bar.bar(range(n_cands), tallies / n_voters * 100, tick_label=list(labels), color=active_colors)
+    for rect in bars:
+        height = rect.get_height()
+        if height > 0:
+            ax_bar.annotate(
+                f'{height:.0f}',
+                xy=(rect.get_x() + rect.get_width() / 2, height),
+                xytext=(0, 3),
+                textcoords='offset points',
+                ha='center',
+                va='bottom',
+            )
+
+    ax_bar.set_ylim(0, 100)
+    ax_bar.set_ylabel('Votes [%]')
+    ax_bar.grid(True, alpha=0.25, axis='y')
+    ax_bar.set_axisbelow(True)
+    ax_bar.text(0.5, 1.04, frame_title, transform=ax_bar.transAxes, ha='center', va='center')
+
+    plt.tight_layout()
+    plt.savefig(output_path)
+    plt.close(fig)
 
 
-# Use the function
-wins = count_wins(original_matrix)
-plot_wins(wins, ax_wins, colors)
+n_voters = 5000
+n_cands = 4
+max_trials = 100_000
+frames_per_transfer = 60
+output_dir = Path('Images') / 'collapse_2d_irv'
+output_dir.mkdir(parents=True, exist_ok=True)
 
-# This is required to make the blocks in ax_wins square
-ax_wins.set_aspect('equal')
+colors = list(cmap.mpl_colors)
+assert cmap.name == 'Set1'
+if len(colors) > 5:
+    colors.pop(5)  # Throw away yellow; difficult to see on white backgrounds.
 
-plt.tight_layout()
-plt.show()
+if n_cands > len(colors):
+    raise ValueError(f'n_cands={n_cands} exceeds available palette size={len(colors)}')
+
+colors = colors[:n_cands]
+labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
+
+result = find_center_outward_election(n_voters, n_cands, max_trials)
+if result is None:
+    raise RuntimeError('No strict center-outward collapse found. Increase max_trials or reduce n_cands.')
+
+trial, voters, candidates, trace = result
+rounds = trace['rounds']
+final_two = trace['final_two']
+
+print(f'Found strict center-outward IRV collapse on trial {trial}.')
+print('Elimination order:', ' -> '.join(candidate_name(r['loser']) for r in rounds))
+print('Final two:', candidate_name(final_two[0]), candidate_name(final_two[1]))
+
+frame = 0
+initial = rounds[0]
+render_frame(
+    voters=voters,
+    candidates=candidates,
+    ballots=initial['ballots_before'],
+    tallies=initial['tallies_before'],
+    colors=colors,
+    labels=labels,
+    frame_title='IRV start',
+    output_path=output_dir / f'{frame:04d}.png',
+    eliminated=set(),
+)
+frame += 1
+
+rng = np.random.default_rng()
+eliminated = set()
+
+for round_index, round_data in enumerate(rounds, start=1):
+    loser = round_data['loser']
+    ballots = round_data['ballots_before'].copy()
+    eliminated_now = set(eliminated)
+    eliminated_now.add(loser)
+
+    affected = round_data['affected_voters'].copy()
+    rng.shuffle(affected)
+    per_frame = max(1, ceildiv(len(affected), frames_per_transfer))
+
+    for step in range(frames_per_transfer + 1):
+        lo = step * per_frame
+        hi = lo + per_frame
+        changing = affected[lo:hi]
+        ballots[changing] = round_data['ballots_after'][changing]
+        tallies = np.bincount(ballots, minlength=n_cands)
+
+        title = f'Round {round_index}: eliminate {candidate_name(loser)}'
+        render_frame(
+            voters=voters,
+            candidates=candidates,
+            ballots=ballots,
+            tallies=tallies,
+            colors=colors,
+            labels=labels,
+            frame_title=title,
+            output_path=output_dir / f'{frame:04d}.png',
+            eliminated=eliminated_now,
+        )
+        frame += 1
+
+    eliminated.add(loser)
+
+render_frame(
+    voters=voters,
+    candidates=candidates,
+    ballots=trace['final_ballots'],
+    tallies=trace['final_tallies'],
+    colors=colors,
+    labels=labels,
+    frame_title=f'Final two: {candidate_name(final_two[0])} vs {candidate_name(final_two[1])}',
+    output_path=output_dir / f'{frame:04d}.png',
+    eliminated=set(range(n_cands)) - set(final_two),
+)
+
+print(f'Saved frames to {output_dir.resolve()}')
