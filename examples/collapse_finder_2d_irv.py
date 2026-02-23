@@ -8,6 +8,8 @@ for full IRV: one candidate eliminated per round until two remain.
 from datetime import datetime
 from pathlib import Path
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.patheffects as PathEffects
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,7 +20,7 @@ from elsim.methods._common import _inc_pointer, _tally_at_pointer
 from elsim.strategies import honest_rankings
 
 n_voters = 5000
-n_cands = 6
+n_cands = 3
 max_trials = 100_000
 frames_per_transfer = 60
 
