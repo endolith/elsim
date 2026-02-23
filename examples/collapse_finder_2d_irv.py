@@ -21,7 +21,7 @@ from elsim.methods._common import _inc_pointer, _tally_at_pointer
 from elsim.strategies import honest_rankings
 
 n_voters = 5000
-n_cands = 4
+n_cands = 5
 max_trials = 100_000
 frames_per_transfer = 60
 
@@ -162,9 +162,12 @@ def render_frame(
         if len(cand_voters):
             ax_sc.scatter(cand_voters[:, 0], cand_voters[:, 1], color=active_colors[cand], **voters_kwargs)
 
-    ax_sc.scatter(candidates[:, 0], candidates[:, 1], color=active_colors, **cands_kwargs)
-    for cand, pos in enumerate(candidates):
-        ax_sc.annotate(labels[cand], xy=pos, xytext=(0, -15), textcoords='offset points', path_effects=path_effects)
+    remaining = [c for c in range(n_cands) if c not in eliminated]
+    ax_sc.scatter(candidates[remaining, 0], candidates[remaining, 1],
+                  color=[active_colors[c] for c in remaining], **cands_kwargs)
+    for cand in remaining:
+        ax_sc.annotate(labels[cand], xy=candidates[cand], xytext=(0, -15),
+                       textcoords='offset points', path_effects=path_effects)
 
     bars = ax_bar.bar(range(n_cands), tallies / n_voters * 100, tick_label=list(labels), color=active_colors)
     for rect in bars:
