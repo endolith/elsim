@@ -13,6 +13,7 @@ matplotlib.use('Agg')
 import matplotlib.patheffects as PathEffects
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
 from palettable.colorbrewer.qualitative import Set1_9 as cmap
 
 from elsim.elections import normal_electorate, normed_dist_utilities
@@ -281,4 +282,17 @@ render_frame(
     eliminated=set(range(n_cands)) - set(final_two),
 )
 
-print(f'Saved frames to {output_dir.resolve()}')
+frame_paths = sorted(output_dir.glob('*.png'))
+images = [Image.open(p) for p in frame_paths]
+gif_path = output_dir / 'collapse_2d_irv.gif'
+images[0].save(
+    gif_path,
+    save_all=True,
+    append_images=images[1:],
+    duration=50,
+    loop=0,
+)
+for im in images:
+    im.close()
+
+print(f'Saved frames and GIF to {output_dir.resolve()}')
