@@ -21,7 +21,7 @@ from elsim.methods._common import _inc_pointer, _tally_at_pointer
 from elsim.strategies import honest_rankings
 
 n_voters = 5000
-n_cands = 3
+n_cands = 4
 max_trials = 100_000
 frames_per_transfer = 60
 
