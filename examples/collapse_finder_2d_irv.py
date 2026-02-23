@@ -31,21 +31,23 @@ def simulate_irv_rounds(rankings, candidates):
     """
     Simulate IRV with round-by-round trace data.
 
+    Uses elsim3k's numba-compiled _tally_at_pointer and _inc_pointer for speed.
     Returns None if there is any tie for elimination, because this example is
     intended to find a clean center-outward pattern with deterministic rounds.
     """
-    rankings = np.asarray(rankings)
-    n_voters, n_cands = rankings.shape
+    election = np.asarray(rankings, dtype=np.intp)
+    n_voters, n_cands = election.shape
     dists_to_origin = np.linalg.norm(candidates, axis=1)
 
-    pointer = np.zeros(n_voters, dtype=np.int32)
+    pointer = np.zeros(n_voters, dtype=np.uint8)
+    first_tallies = np.empty(n_cands, dtype=np.uint64)
     active = set(range(n_cands))
     eliminated = set()
-    ballots = rankings[np.arange(n_voters), pointer]
     rounds = []
 
     while len(active) > 2:
-        tallies = np.bincount(ballots, minlength=n_cands)
+        _tally_at_pointer(first_tallies, election, pointer)
+        tallies = first_tallies.copy()
         active_sorted = sorted(active)
 
         min_tally = min(tallies[cand] for cand in active_sorted)
@@ -56,52 +58,44 @@ def simulate_irv_rounds(rankings, candidates):
         loser = low_scorers[0]
 
         # Strict condition: eliminate closest remaining candidate every round.
-        # This avoids accepting partial center-squeeze cases that only match the
-        # first and last rounds.
         expected_loser = min(active_sorted, key=lambda cand: (dists_to_origin[cand], cand))
         if loser != expected_loser:
             return None
 
-        affected_voters = np.flatnonzero(ballots == loser)
-        next_eliminated = set(eliminated)
-        next_eliminated.add(loser)
+        ballots_before = election[np.arange(n_voters), pointer].copy()
+        affected_voters = np.flatnonzero(ballots_before == loser)
+        next_eliminated = eliminated | {loser}
 
-        next_pointer = pointer.copy()
-        for voter in affected_voters:
-            while rankings[voter, next_pointer[voter]] in next_eliminated:
-                next_pointer[voter] += 1
+        _inc_pointer(election, pointer, next_eliminated)
+        ballots_after = election[np.arange(n_voters), pointer].copy()
+        _tally_at_pointer(first_tallies, election, pointer)
+        tallies_after = first_tallies.copy()
 
-        next_ballots = rankings[np.arange(n_voters), next_pointer]
-        next_tallies = np.bincount(next_ballots, minlength=n_cands)
-
-        rounds.append(
-            {
-                'active_before': set(active),
-                'eliminated_before': set(eliminated),
-                'loser': loser,
-                'ballots_before': ballots.copy(),
-                'ballots_after': next_ballots.copy(),
-                'tallies_before': tallies.copy(),
-                'tallies_after': next_tallies.copy(),
-                'affected_voters': affected_voters,
-            }
-        )
+        rounds.append({
+            'loser': loser,
+            'ballots_before': ballots_before,
+            'ballots_after': ballots_after,
+            'tallies_before': tallies,
+            'tallies_after': tallies_after,
+            'affected_voters': affected_voters,
+        })
 
         active.remove(loser)
-        eliminated.add(loser)
-        pointer = next_pointer
-        ballots = next_ballots
+        eliminated = next_eliminated
 
     final_two = sorted(active)
     farthest_two = sorted(np.argsort(dists_to_origin)[-2:])
     if final_two != farthest_two:
         return None
 
+    ballots_final = election[np.arange(n_voters), pointer].copy()
+    _tally_at_pointer(first_tallies, election, pointer)
+
     return {
         'rounds': rounds,
         'final_two': final_two,
-        'final_ballots': ballots.copy(),
-        'final_tallies': np.bincount(ballots, minlength=n_cands),
+        'final_ballots': ballots_final,
+        'final_tallies': first_tallies.copy(),
         'dists_to_origin': dists_to_origin,
     }
 
