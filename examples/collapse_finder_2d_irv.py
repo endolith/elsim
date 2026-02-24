@@ -14,7 +14,8 @@ import matplotlib.patheffects as PathEffects
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-from palettable.colorbrewer.qualitative import Set1_9 as cmap
+# from palettable.colorbrewer.qualitative import Set1_9 as cmap
+from palettable.colorbrewer.qualitative import Set3_9 as cmap
 
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods._common import _inc_pointer, _tally_at_pointer
