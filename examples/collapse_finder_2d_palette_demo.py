@@ -57,32 +57,42 @@ def get_palette_colors(name):
     return list(pal.mpl_colors)
 
 
-def render_first_frame(voters, candidates, ballots, tallies, colors, labels, output_path):
-    """Render IRV start frame (scatter + bar chart) with dark background."""
+def render_first_frame(voters, candidates, ballots, tallies, colors, labels, output_path,
+                       dark_background=True):
+    """Render IRV start frame (scatter + bar chart)."""
     n_cands = len(candidates)
     n_voters = len(voters)
 
-    fig = plt.figure(figsize=(9, 7.5), facecolor='black')
+    if dark_background:
+        bg, fg, grid = 'black', 'white', 'white'
+        legend_bg, legend_fg = 'black', 'white'
+        stroke_fg = 'black'
+    else:
+        bg, fg, grid = 'white', 'black', 'gray'
+        legend_bg, legend_fg = 'white', 'black'
+        stroke_fg = 'white'
+
+    fig = plt.figure(figsize=(9, 7.5), facecolor=bg)
     ax_sc = plt.subplot2grid(shape=(4, 3), loc=(0, 0), colspan=2, rowspan=4)
     ax_bar = plt.subplot2grid(shape=(4, 3), loc=(1, 2), rowspan=2)
 
     for ax in (ax_sc, ax_bar):
-        ax.set_facecolor('black')
-        ax.tick_params(colors='white')
-        ax.xaxis.label.set_color('white')
-        ax.yaxis.label.set_color('white')
+        ax.set_facecolor(bg)
+        ax.tick_params(colors=fg)
+        ax.xaxis.label.set_color(fg)
+        ax.yaxis.label.set_color(fg)
         for spine in ax.spines.values():
-            spine.set_color('white')
+            spine.set_color(fg)
 
     voters_kwargs = {'marker': '.', 'alpha': 0.25, 's': 12}
-    cands_kwargs = {'marker': 'o', 's': 30, 'edgecolors': 'white'}
-    path_effects = [PathEffects.withStroke(linewidth=3, foreground='black')]
+    cands_kwargs = {'marker': 'o', 's': 30, 'edgecolors': fg}
+    path_effects = [PathEffects.withStroke(linewidth=3, foreground=stroke_fg)]
 
-    ax_sc.scatter([], [], color='w', **voters_kwargs, label='Voters')
-    ax_sc.scatter([], [], color='w', **cands_kwargs, label='Candidates')
-    ax_sc.legend(loc='lower right', numpoints=1, fontsize='small', labelcolor='white',
-                 facecolor='black', edgecolor='white')
-    ax_sc.grid(True, alpha=0.3, color='white')
+    ax_sc.scatter([], [], color=fg, **voters_kwargs, label='Voters')
+    ax_sc.scatter([], [], color=fg, **cands_kwargs, label='Candidates')
+    ax_sc.legend(loc='lower right', numpoints=1, fontsize='small', labelcolor=legend_fg,
+                 facecolor=legend_bg, edgecolor=legend_fg)
+    ax_sc.grid(True, alpha=0.3, color=grid)
     ax_sc.set_axisbelow(True)
     ax_sc.axis('square')
     ax_sc.axis([-3, 3, -3, 3])
@@ -94,46 +104,70 @@ def render_first_frame(voters, candidates, ballots, tallies, colors, labels, out
     ax_sc.scatter(candidates[:, 0], candidates[:, 1], color=colors, **cands_kwargs)
     for cand, pos in enumerate(candidates):
         ax_sc.annotate(labels[cand], xy=pos, xytext=(0, -15),
-                       textcoords='offset points', path_effects=path_effects, color='white')
+                       textcoords='offset points', path_effects=path_effects, color=fg)
 
     bars = ax_bar.bar(range(n_cands), tallies / n_voters * 100, tick_label=list(labels), color=colors)
     for rect in bars:
         height = rect.get_height()
         if height > 0:
             ax_bar.annotate(f'{height:.0f}', xy=(rect.get_x() + rect.get_width() / 2, height),
-                            xytext=(0, 3), textcoords='offset points', ha='center', va='bottom', color='white')
+                            xytext=(0, 3), textcoords='offset points', ha='center', va='bottom', color=fg)
     ax_bar.set_ylim(0, 100)
     ax_bar.set_ylabel('Votes [%]')
-    ax_bar.grid(True, alpha=0.25, axis='y', color='white')
+    ax_bar.grid(True, alpha=0.25, axis='y', color=grid)
     ax_bar.set_axisbelow(True)
-    ax_bar.text(0.5, 1.04, 'IRV start', transform=ax_bar.transAxes, ha='center', va='center', color='white')
+    ax_bar.text(0.5, 1.04, 'IRV start', transform=ax_bar.transAxes, ha='center', va='center', color=fg)
 
     plt.tight_layout()
-    plt.savefig(output_path, facecolor='black', edgecolor='none')
+    plt.savefig(output_path, facecolor=bg, edgecolor='none')
     plt.close(fig)
 
 
 n_voters = 3000
-n_cands = 8
 disp = 0.5
 
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 output_dir = Path('Images') / f'palette_demo_{timestamp}'
 output_dir.mkdir(parents=True, exist_ok=True)
 
-voters, candidates = normal_electorate(n_voters, n_cands, dims=2, disp=disp)
-utilities = normed_dist_utilities(voters, candidates)
-rankings = np.asarray(honest_rankings(utilities))
-ballots = rankings[:, 0]
-tallies = np.bincount(ballots, minlength=n_cands)
-labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
+def prepare_election(n_cands):
+    v, c = normal_electorate(n_voters, n_cands, dims=2, disp=disp)
+    u = normed_dist_utilities(v, c)
+    r = np.asarray(honest_rankings(u))
+    b = r[:, 0]
+    t = np.bincount(b, minlength=n_cands)
+    lbl = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
+    return v, c, b, t, lbl
+
+election_8 = prepare_election(8)
+election_12 = prepare_election(12)
+
+def get_colors_for_bg(palette_name, n_cands, dark_background):
+    """Get color list, removing yellow from Set1_9 on white background."""
+    raw = get_palette_colors(palette_name)
+    if not dark_background and palette_name == 'Set1_9' and len(raw) > 5:
+        c = list(raw)
+        c.pop(5)  # Yellow has low visibility on white
+        raw = c
+    if len(raw) < n_cands:
+        return None
+    return raw[:n_cands]
 
 for palette_name in PALETTE_OPTIONS:
     try:
-        colors = get_palette_colors(palette_name)[:n_cands]
-        out_path = output_dir / f'{palette_name}.png'
-        render_first_frame(voters, candidates, ballots, tallies, colors, labels, out_path)
-        print(f'Saved {out_path}')
+        raw = get_palette_colors(palette_name)
+
+        for n_cands, election in [(8, election_8), (12, election_12)]:
+            voters, candidates, ballots, tallies, labels = election
+            for dark in (True, False):
+                colors = get_colors_for_bg(palette_name, n_cands, dark)
+                if colors is None:
+                    continue
+                suffix = 'dark' if dark else 'white'
+                out_path = output_dir / f'{palette_name}_{n_cands}cand_{suffix}.png'
+                render_first_frame(voters, candidates, ballots, tallies, colors, labels,
+                                   out_path, dark_background=dark)
+                print(f'Saved {out_path}')
     except Exception as e:
         print(f'Failed {palette_name}: {e}')
 
