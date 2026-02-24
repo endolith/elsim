@@ -17,7 +17,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
+from elsim.methods._common import _inc_pointer, _tally_at_pointer
+from elsim.strategies import honest_rankings
 from elsim.elections import normal_electorate, normed_dist_utilities
+
+
+palette_name = 'Set3_12'
+
+n_voters = 5000
+n_cands = 9
+max_trials = 100_000
+frames_per_transfer = 60
+disp = 0.5  # Candidates 0.5x spread of voters (more concentrated near center)
+dark_background = True  # If False, yellow is removed from Set1_9 (low visibility on white)
+
 
 # (module_path, attr). Uses .mpl_colors except colorcet which uses hex list.
 PALETTE_OPTIONS = {
@@ -56,19 +69,6 @@ def get_palette_colors(name):
     if mod_path == 'colorcet':
         return list(pal)  # hex strings
     return list(pal.mpl_colors)
-
-
-from elsim.methods._common import _inc_pointer, _tally_at_pointer
-from elsim.strategies import honest_rankings
-
-palette_name = 'Set3_12'
-
-n_voters = 5000
-n_cands = 9
-max_trials = 100_000
-frames_per_transfer = 60
-disp = 0.5  # Candidates 0.5x spread of voters (more concentrated near center)
-dark_background = True  # If False, yellow is removed from Set1_9 (low visibility on white)
 
 
 def candidate_name(candidate_index):
