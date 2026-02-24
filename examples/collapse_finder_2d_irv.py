@@ -26,6 +26,7 @@ n_cands = 3
 max_trials = 100_000
 frames_per_transfer = 60
 disp = 0.5  # Candidates 0.5x spread of voters (more concentrated near center)
+dark_background = True  # If False, yellow is removed from Set1_9 (low visibility on white)
 
 
 def candidate_name(candidate_index):
@@ -210,12 +211,10 @@ output_dir = Path('Images') / f'collapse_2d_irv_{timestamp}_nc{n_cands}_nv{n_vot
 output_dir.mkdir(parents=True, exist_ok=True)
 
 colors = list(cmap.mpl_colors)
-assert cmap.name == 'Set1'
+if not dark_background and getattr(cmap, 'name', None) == 'Set1' and len(colors) > 5:
+    colors.pop(5)  # Yellow has low visibility on white backgrounds
 if n_cands > len(colors):
-    raise ValueError(
-        f'n_cands={n_cands} exceeds Set1_9 palette size ({len(colors)}). '
-        'Use n_cands <= 9 or switch to a larger palette.'
-    )
+    raise ValueError(f'n_cands={n_cands} exceeds palette size ({len(colors)}). Use fewer candidates or a larger palette.')
 
 colors = colors[:n_cands]
 labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
