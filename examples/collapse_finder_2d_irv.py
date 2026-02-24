@@ -8,21 +8,63 @@ for full IRV: one candidate eliminated per round until two remain.
 from datetime import datetime
 from pathlib import Path
 
+import importlib
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.patheffects as PathEffects
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-# from palettable.colorbrewer.qualitative import Set1_9 as cmap
-from palettable.colorbrewer.qualitative import Set3_9 as cmap
 
 from elsim.elections import normal_electorate, normed_dist_utilities
+
+# (module_path, attr). Uses .mpl_colors except colorcet which uses hex list.
+PALETTE_OPTIONS = {
+    'Antique_10': ('palettable.cartocolors.qualitative', 'Antique_10'),
+    'Bold_10': ('palettable.cartocolors.qualitative', 'Bold_10'),
+    'Pastel_10': ('palettable.cartocolors.qualitative', 'Pastel_10'),
+    'Prism_10': ('palettable.cartocolors.qualitative', 'Prism_10'),
+    'Safe_10': ('palettable.cartocolors.qualitative', 'Safe_10'),
+    'Vivid_10': ('palettable.cartocolors.qualitative', 'Vivid_10'),
+    'Set3_12': ('palettable.colorbrewer.qualitative', 'Set3_12'),
+    'Set2_8': ('palettable.colorbrewer.qualitative', 'Set2_8'),
+    'Set1_9': ('palettable.colorbrewer.qualitative', 'Set1_9'),
+    'Pastel2_8': ('palettable.colorbrewer.qualitative', 'Pastel2_8'),
+    'Pastel1_9': ('palettable.colorbrewer.qualitative', 'Pastel1_9'),
+    'Paired_12': ('palettable.colorbrewer.qualitative', 'Paired_12'),
+    'Dark2_8': ('palettable.colorbrewer.qualitative', 'Dark2_8'),
+    'Accent_8': ('palettable.colorbrewer.qualitative', 'Accent_8'),
+    'BlueRed_12': ('palettable.tableau', 'BlueRed_12'),
+    'ColorBlind_10': ('palettable.tableau', 'ColorBlind_10'),
+    'GreenOrange_12': ('palettable.tableau', 'GreenOrange_12'),
+    'PurpleGray_12': ('palettable.tableau', 'PurpleGray_12'),
+    'TableauLight_10': ('palettable.tableau', 'TableauLight_10'),
+    'TableauMedium_10': ('palettable.tableau', 'TableauMedium_10'),
+    'Tableau_10': ('palettable.tableau', 'Tableau_10'),
+    'Tableau_20': ('palettable.tableau', 'Tableau_20'),
+    'TrafficLight_9': ('palettable.tableau', 'TrafficLight_9'),
+    'glasbey_light': ('colorcet', 'glasbey_light'),
+}
+
+
+def get_palette_colors(name):
+    """Load palette as list of colors (mpl tuples or hex)."""
+    mod_path, attr = PALETTE_OPTIONS[name]
+    mod = importlib.import_module(mod_path)
+    pal = getattr(mod, attr)
+    if mod_path == 'colorcet':
+        return list(pal)  # hex strings
+    return list(pal.mpl_colors)
+
+
 from elsim.methods._common import _inc_pointer, _tally_at_pointer
 from elsim.strategies import honest_rankings
 
+palette_name = 'Set3_12'
+
 n_voters = 5000
-n_cands = 3
+n_cands = 9
 max_trials = 100_000
 frames_per_transfer = 60
 disp = 0.5  # Candidates 0.5x spread of voters (more concentrated near center)
@@ -210,11 +252,14 @@ timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 output_dir = Path('Images') / f'collapse_2d_irv_{timestamp}_nc{n_cands}_nv{n_voters}'
 output_dir.mkdir(parents=True, exist_ok=True)
 
-colors = list(cmap.mpl_colors)
-if not dark_background and getattr(cmap, 'name', None) == 'Set1' and len(colors) > 5:
+colors = get_palette_colors(palette_name)
+if not dark_background and palette_name == 'Set1_9' and len(colors) > 5:
     colors.pop(5)  # Yellow has low visibility on white backgrounds
 if n_cands > len(colors):
-    raise ValueError(f'n_cands={n_cands} exceeds palette size ({len(colors)}). Use fewer candidates or a larger palette.')
+    raise ValueError(
+        f'n_cands={n_cands} exceeds palette "{palette_name}" size ({len(colors)}). '
+        'Use fewer candidates or a larger palette.'
+    )
 
 colors = colors[:n_cands]
 labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
