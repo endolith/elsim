@@ -153,12 +153,13 @@ def render_frame(
         for spine in ax.spines.values():
             spine.set_color('white')
 
-    voters_kwargs = {'marker': '.', 'alpha': 0.25, 's': 5}
+    voters_kwargs = {'marker': '.', 'alpha': 0.25, 's': 12}
     cands_kwargs = {'marker': 'o', 's': 30, 'edgecolors': 'white'}
 
     ax_sc.scatter([], [], color='w', **voters_kwargs, label='Voters')
     ax_sc.scatter([], [], color='w', **cands_kwargs, label='Candidates')
-    ax_sc.legend(loc='lower right', numpoints=1, fontsize='small', labelcolor='white')
+    leg = ax_sc.legend(loc='lower right', numpoints=1, fontsize='small', labelcolor='white',
+                       facecolor='black', edgecolor='white')
     ax_sc.grid(True, alpha=0.3, color='white')
     ax_sc.set_axisbelow(True)
     ax_sc.axis('square')
