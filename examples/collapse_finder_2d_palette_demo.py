@@ -149,7 +149,7 @@ def render_first_frame(voters, candidates, ballots, tallies, colors, labels, out
 
 
 n_voters = 3000
-disp = 0.5
+disp = 1
 
 # Compare colormaps with similar non-gray counts: 7 and 10 candidates, same election per n.
 N_CAND_SCENARIOS = (7, 10)
