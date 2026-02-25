@@ -1,8 +1,10 @@
 """
 Demo each colormap as a static first frame (2D scatter + bar chart).
 
-Generates one random election and renders the initial IRV state for each
-palette in PALETTE_OPTIONS. Saves images to Images/palette_demo_<timestamp>/.
+Compares colormaps with similar non-gray color counts: one 7-cand and one 10-cand
+election; each scenario reuses the same election so palettes are comparable.
+Only palettes with enough non-gray colors are included (>= 7 for 7cand, >= 10 for 10cand).
+Saves to Images/palette_demo_<timestamp>/{7,10}cand_{dark,white}/.
 """
 
 import importlib
@@ -149,10 +151,15 @@ def render_first_frame(voters, candidates, ballots, tallies, colors, labels, out
 n_voters = 3000
 disp = 0.5
 
+# Compare colormaps with similar non-gray counts: 7 and 10 candidates, same election per n.
+N_CAND_SCENARIOS = (7, 10)
+
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 output_base = Path('Images') / f'palette_demo_{timestamp}'
-for sub in ('8cand_dark', '8cand_white', '12cand_dark', '12cand_white'):
-    (output_base / sub).mkdir(parents=True, exist_ok=True)
+for n in N_CAND_SCENARIOS:
+    for bg in ('dark', 'white'):
+        (output_base / f'{n}cand_{bg}').mkdir(parents=True, exist_ok=True)
+
 
 def prepare_election(n_cands):
     v, c = normal_electorate(n_voters, n_cands, dims=2, disp=disp)
@@ -163,8 +170,8 @@ def prepare_election(n_cands):
     lbl = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
     return v, c, b, t, lbl
 
-election_8 = prepare_election(8)
-election_12 = prepare_election(12)
+
+elections = {n: prepare_election(n) for n in N_CAND_SCENARIOS}
 
 def get_colors_for_bg(palette_name, n_cands, dark_background):
     """Get color list for this background. Returns (colors, n_after_grays) or (None, 0)."""
@@ -193,10 +200,10 @@ print()
 
 for palette_name in PALETTE_OPTIONS:
     try:
-        for n_cands, election in [(8, election_8), (12, election_12)]:
-            voters, candidates, ballots, tallies, labels = election
+        for n_cands in N_CAND_SCENARIOS:
+            voters, candidates, ballots, tallies, labels = elections[n_cands]
             for dark in (True, False):
-                colors, n_after_grays = get_colors_for_bg(palette_name, n_cands, dark)
+                colors, _ = get_colors_for_bg(palette_name, n_cands, dark)
                 if colors is None:
                     continue
                 sub = f'{n_cands}cand_{"dark" if dark else "white"}'
