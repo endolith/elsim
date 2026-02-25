@@ -11,6 +11,7 @@ from pathlib import Path
 
 import matplotlib
 matplotlib.use('Agg')
+import matplotlib.colors as mcolors
 import matplotlib.patheffects as PathEffects
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,7 +19,8 @@ import numpy as np
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings
 
-# Same palette options as collapse_finder_2d_irv
+# Same palette options as collapse_finder_2d_irv. We use the maximum-size variant
+# per series (Set3_12, Paired_12, Tableau_20, etc.); palettable has no other >8 qualitative.
 PALETTE_OPTIONS = {
     'Antique_10': ('palettable.cartocolors.qualitative', 'Antique_10'),
     'Bold_10': ('palettable.cartocolors.qualitative', 'Bold_10'),
@@ -44,7 +46,10 @@ PALETTE_OPTIONS = {
     'Tableau_20': ('palettable.tableau', 'Tableau_20'),
     'TrafficLight_9': ('palettable.tableau', 'TrafficLight_9'),
     'glasbey_light': ('colorcet', 'glasbey_light'),
+    'glasbey_dark': ('colorcet', 'glasbey_dark'),
 }
+# Use glasbey_dark on white background (optimized for light bg); glasbey_light on black.
+GLASBEY_FOR_WHITE_BG = 'glasbey_dark'
 
 
 def get_palette_colors(name):
@@ -55,6 +60,24 @@ def get_palette_colors(name):
     if mod_path == 'colorcet':
         return list(pal)
     return list(pal.mpl_colors)
+
+
+def _color_to_rgb(c):
+    """Normalize color to (r, g, b) in [0, 1]."""
+    if isinstance(c, str):
+        return mcolors.to_rgb(c)
+    return tuple(mcolors.to_rgb(c))
+
+
+def remove_grays(colors, min_saturation=0.12):
+    """Drop colors that are effectively gray (low saturation). Returns (filtered_list, n_remaining)."""
+    out = []
+    for c in colors:
+        rgb = np.array(_color_to_rgb(c)).reshape(1, 3)
+        hsv = mcolors.rgb_to_hsv(rgb)[0]
+        if hsv[1] >= min_saturation:
+            out.append(c)
+    return out, len(out)
 
 
 def render_first_frame(voters, candidates, ballots, tallies, colors, labels, output_path,
@@ -127,8 +150,9 @@ n_voters = 3000
 disp = 0.5
 
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-output_dir = Path('Images') / f'palette_demo_{timestamp}'
-output_dir.mkdir(parents=True, exist_ok=True)
+output_base = Path('Images') / f'palette_demo_{timestamp}'
+for sub in ('8cand_dark', '8cand_white', '12cand_dark', '12cand_white'):
+    (output_base / sub).mkdir(parents=True, exist_ok=True)
 
 def prepare_election(n_cands):
     v, c = normal_electorate(n_voters, n_cands, dims=2, disp=disp)
@@ -143,32 +167,44 @@ election_8 = prepare_election(8)
 election_12 = prepare_election(12)
 
 def get_colors_for_bg(palette_name, n_cands, dark_background):
-    """Get color list, removing yellow from Set1_9 on white background."""
-    raw = get_palette_colors(palette_name)
-    if not dark_background and palette_name == 'Set1_9' and len(raw) > 5:
+    """Get color list for this background. Returns (colors, n_after_grays) or (None, 0)."""
+    name = palette_name
+    if not dark_background and name == 'glasbey_light':
+        name = GLASBEY_FOR_WHITE_BG
+    raw = get_palette_colors(name)
+    if not dark_background and name == 'Set1_9' and len(raw) > 5:
         c = list(raw)
         c.pop(5)  # Yellow has low visibility on white
         raw = c
-    if len(raw) < n_cands:
-        return None
-    return raw[:n_cands]
+    filtered, n_after = remove_grays(raw)
+    if len(filtered) < n_cands:
+        return None, n_after
+    return filtered[:n_cands], n_after
+
+print('Palette sizes (original -> after removing grays):')
+for pname in PALETTE_OPTIONS:
+    try:
+        raw = get_palette_colors(pname)
+        filtered, n = remove_grays(raw)
+        print(f'  {pname}: {len(raw)} -> {n} non-gray')
+    except Exception as e:
+        print(f'  {pname}: failed ({e})')
+print()
 
 for palette_name in PALETTE_OPTIONS:
     try:
-        raw = get_palette_colors(palette_name)
-
         for n_cands, election in [(8, election_8), (12, election_12)]:
             voters, candidates, ballots, tallies, labels = election
             for dark in (True, False):
-                colors = get_colors_for_bg(palette_name, n_cands, dark)
+                colors, n_after_grays = get_colors_for_bg(palette_name, n_cands, dark)
                 if colors is None:
                     continue
-                suffix = 'dark' if dark else 'white'
-                out_path = output_dir / f'{palette_name}_{n_cands}cand_{suffix}.png'
+                sub = f'{n_cands}cand_{"dark" if dark else "white"}'
+                out_path = output_base / sub / f'{palette_name}.png'
                 render_first_frame(voters, candidates, ballots, tallies, colors, labels,
                                    out_path, dark_background=dark)
                 print(f'Saved {out_path}')
     except Exception as e:
         print(f'Failed {palette_name}: {e}')
 
-print(f'Done. Images in {output_dir.resolve()}')
+print(f'Done. Images in {output_base.resolve()}')
