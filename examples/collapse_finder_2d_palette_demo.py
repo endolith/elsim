@@ -203,6 +203,10 @@ for palette_name in PALETTE_OPTIONS:
         for n_cands in N_CAND_SCENARIOS:
             voters, candidates, ballots, tallies, labels = elections[n_cands]
             for dark in (True, False):
+                if not dark and palette_name == 'glasbey_light':
+                    continue  # White bg: only glasbey_dark (for light backgrounds per colorcet)
+                if dark and palette_name == 'glasbey_dark':
+                    continue  # Dark bg: only glasbey_light (for dark backgrounds per colorcet)
                 colors, _ = get_colors_for_bg(palette_name, n_cands, dark)
                 if colors is None:
                     continue
