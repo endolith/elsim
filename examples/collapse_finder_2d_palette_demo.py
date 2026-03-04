@@ -17,6 +17,8 @@ import matplotlib.colors as mcolors
 import matplotlib.patheffects as PathEffects
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.collections import LineCollection
+from scipy.spatial import Voronoi
 
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings
@@ -65,6 +67,49 @@ def _color_to_rgb(c):
     if isinstance(c, str):
         return mcolors.to_rgb(c)
     return tuple(mcolors.to_rgb(c))
+
+
+def voronoi_plot_2d_axes(ax, points, line_color='white', line_alpha=0.2):
+    """Draw Voronoi diagram of points on ax (no bounds change). Like elsim2k _plotutils."""
+    points = np.asarray(points)
+    if len(points) < 2:
+        return
+    if len(points) == 2:
+        (x1, y1), (x2, y2) = points[0], points[1]
+        ylo, yhi = -100, 100
+        xlo = (y2**2 - 2*ylo*y2 - y1**2 + 2*ylo*y1 + x2**2 - x1**2) / (2*x2 - 2*x1)
+        xhi = (y2**2 - 2*yhi*y2 - y1**2 + 2*yhi*y1 + x2**2 - x1**2) / (2*x2 - 2*x1)
+        ax.plot([xlo, xhi], [ylo, yhi], ':', color=line_color, alpha=line_alpha)
+        return
+    vor = Voronoi(points)
+    center = points.mean(axis=0)
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    ptp_bound = max(np.ptp(xlim), np.ptp(ylim))
+
+    finite_segments = []
+    infinite_segments = []
+    for pointidx, simplex in zip(vor.ridge_points, vor.ridge_vertices):
+        simplex = np.asarray(simplex)
+        if np.all(simplex >= 0):
+            finite_segments.append(vor.vertices[simplex])
+        else:
+            i = simplex[simplex >= 0][0]
+            t = vor.points[pointidx[1]] - vor.points[pointidx[0]]
+            t /= np.linalg.norm(t)
+            n = np.array([-t[1], t[0]])
+            midpoint = vor.points[pointidx].mean(axis=0)
+            direction = np.sign(np.dot(midpoint - center, n)) * n
+            far = vor.vertices[i] + direction * 2 * ptp_bound
+            infinite_segments.append([vor.vertices[i], far])
+
+    for segs in (finite_segments, infinite_segments):
+        if segs:
+            lc = LineCollection(segs, colors=line_color, lw=1.5,
+                               alpha=line_alpha, linestyle=':', zorder=0)
+            ax.add_collection(lc)
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
 
 
 def remove_grays(colors, min_saturation=0.12):
@@ -117,6 +162,8 @@ def render_first_frame(voters, candidates, ballots, tallies, colors, labels, out
     ax_sc.set_axisbelow(True)
     ax_sc.axis('square')
     ax_sc.axis([-3, 3, -3, 3])
+
+    voronoi_plot_2d_axes(ax_sc, candidates, line_color=grid, line_alpha=0.2)
 
     for cand in range(n_cands):
         cand_voters = voters[ballots == cand]
