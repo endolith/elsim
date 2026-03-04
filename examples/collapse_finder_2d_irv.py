@@ -8,8 +8,6 @@ for full IRV: one candidate eliminated per round until two remain.
 from datetime import datetime
 from pathlib import Path
 
-import importlib
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.patheffects as PathEffects
@@ -21,8 +19,16 @@ from elsim.methods._common import _inc_pointer, _tally_at_pointer
 from elsim.strategies import honest_rankings
 from elsim.elections import normal_electorate, normed_dist_utilities
 
+from collapse_2d_shared import (
+    PALETTE_OPTIONS,
+    get_palette_colors,
+    get_theme,
+    voronoi_plot_2d_axes,
+)
+
 
 palette_name = 'Set3_12'
+palette_name = 'Bold_10'
 
 n_voters = 5000
 n_cands = 9
@@ -30,45 +36,6 @@ max_trials = 100_000
 frames_per_transfer = 60
 disp = 0.5  # Candidates 0.5x spread of voters (more concentrated near center)
 dark_background = True  # If False, yellow is removed from Set1_9 (low visibility on white)
-
-
-# (module_path, attr). Uses .mpl_colors except colorcet which uses hex list.
-PALETTE_OPTIONS = {
-    'Antique_10': ('palettable.cartocolors.qualitative', 'Antique_10'),
-    'Bold_10': ('palettable.cartocolors.qualitative', 'Bold_10'),
-    'Pastel_10': ('palettable.cartocolors.qualitative', 'Pastel_10'),
-    'Prism_10': ('palettable.cartocolors.qualitative', 'Prism_10'),
-    'Safe_10': ('palettable.cartocolors.qualitative', 'Safe_10'),
-    'Vivid_10': ('palettable.cartocolors.qualitative', 'Vivid_10'),
-    'Set3_12': ('palettable.colorbrewer.qualitative', 'Set3_12'),
-    'Set2_8': ('palettable.colorbrewer.qualitative', 'Set2_8'),
-    'Set1_9': ('palettable.colorbrewer.qualitative', 'Set1_9'),
-    'Pastel2_8': ('palettable.colorbrewer.qualitative', 'Pastel2_8'),
-    'Pastel1_9': ('palettable.colorbrewer.qualitative', 'Pastel1_9'),
-    'Paired_12': ('palettable.colorbrewer.qualitative', 'Paired_12'),
-    'Dark2_8': ('palettable.colorbrewer.qualitative', 'Dark2_8'),
-    'Accent_8': ('palettable.colorbrewer.qualitative', 'Accent_8'),
-    'BlueRed_12': ('palettable.tableau', 'BlueRed_12'),
-    'ColorBlind_10': ('palettable.tableau', 'ColorBlind_10'),
-    'GreenOrange_12': ('palettable.tableau', 'GreenOrange_12'),
-    'PurpleGray_12': ('palettable.tableau', 'PurpleGray_12'),
-    'TableauLight_10': ('palettable.tableau', 'TableauLight_10'),
-    'TableauMedium_10': ('palettable.tableau', 'TableauMedium_10'),
-    'Tableau_10': ('palettable.tableau', 'Tableau_10'),
-    'Tableau_20': ('palettable.tableau', 'Tableau_20'),
-    'TrafficLight_9': ('palettable.tableau', 'TrafficLight_9'),
-    'glasbey_light': ('colorcet', 'glasbey_light'),
-}
-
-
-def get_palette_colors(name):
-    """Load palette as list of colors (mpl tuples or hex)."""
-    mod_path, attr = PALETTE_OPTIONS[name]
-    mod = importlib.import_module(mod_path)
-    pal = getattr(mod, attr)
-    if mod_path == 'colorcet':
-        return list(pal)  # hex strings
-    return list(pal.mpl_colors)
 
 
 def candidate_name(candidate_index):
@@ -176,6 +143,7 @@ def render_frame(
     frame_title,
     output_path,
     eliminated=None,
+    dark_background=True,
 ):
     """Render one animation frame in the same visual style as T2R examples."""
     if eliminated is None:
@@ -185,43 +153,47 @@ def render_frame(
     n_voters = len(voters)
     active_colors = [colors[n] if n not in eliminated else [0.5, 0.5, 0.5] for n in range(n_cands)]
 
-    fig = plt.figure(figsize=(9, 7.5), facecolor='black')
+    bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color = get_theme(dark_background)
+
+    fig = plt.figure(figsize=(9, 7.5), facecolor=bg)
     ax_sc = plt.subplot2grid(shape=(4, 3), loc=(0, 0), colspan=2, rowspan=4)
     ax_bar = plt.subplot2grid(shape=(4, 3), loc=(1, 2), rowspan=2)
 
     for ax in (ax_sc, ax_bar):
-        ax.set_facecolor('black')
-        ax.tick_params(colors='white')
-        ax.xaxis.label.set_color('white')
-        ax.yaxis.label.set_color('white')
+        ax.set_facecolor(bg)
+        ax.tick_params(colors=fg)
+        ax.xaxis.label.set_color(fg)
+        ax.yaxis.label.set_color(fg)
         for spine in ax.spines.values():
-            spine.set_color('white')
+            spine.set_color(fg)
 
     voters_kwargs = {'marker': '.', 'alpha': 0.25, 's': 12}
-    cands_kwargs = {'marker': 'o', 's': 30, 'edgecolors': 'white'}
+    cands_kwargs = {'marker': 'o', 's': 30, 'edgecolors': fg}
 
-    ax_sc.scatter([], [], color='w', **voters_kwargs, label='Voters')
-    ax_sc.scatter([], [], color='w', **cands_kwargs, label='Candidates')
-    leg = ax_sc.legend(loc='lower right', numpoints=1, fontsize='small', labelcolor='white',
-                       facecolor='black', edgecolor='white')
-    ax_sc.grid(True, alpha=0.3, color='white')
+    ax_sc.scatter([], [], color=fg, **voters_kwargs, label='Voters')
+    ax_sc.scatter([], [], color=fg, **cands_kwargs, label='Candidates')
+    ax_sc.legend(loc='lower right', numpoints=1, fontsize='small', labelcolor=legend_fg,
+                 facecolor=legend_bg, edgecolor=legend_fg)
+    ax_sc.grid(True, alpha=0.3, color=grid)
     ax_sc.set_axisbelow(True)
     ax_sc.axis('square')
     ax_sc.axis([-3, 3, -3, 3])
 
-    path_effects = [PathEffects.withStroke(linewidth=3, foreground='black')]
+    remaining = [c for c in range(n_cands) if c not in eliminated]
+    voronoi_plot_2d_axes(ax_sc, candidates[remaining], line_color=voronoi_color, line_alpha=0.45)
+
+    path_effects = [PathEffects.withStroke(linewidth=3, foreground=stroke_fg)]
 
     for cand in range(n_cands):
         cand_voters = voters[ballots == cand]
         if len(cand_voters):
             ax_sc.scatter(cand_voters[:, 0], cand_voters[:, 1], color=active_colors[cand], **voters_kwargs)
 
-    remaining = [c for c in range(n_cands) if c not in eliminated]
     ax_sc.scatter(candidates[remaining, 0], candidates[remaining, 1],
                   color=[active_colors[c] for c in remaining], **cands_kwargs)
     for cand in remaining:
         ax_sc.annotate(labels[cand], xy=candidates[cand], xytext=(0, -15),
-                       textcoords='offset points', path_effects=path_effects, color='white')
+                       textcoords='offset points', path_effects=path_effects, color=fg)
 
     bars = ax_bar.bar(range(n_cands), tallies / n_voters * 100, tick_label=list(labels), color=active_colors)
     for rect in bars:
@@ -234,17 +206,17 @@ def render_frame(
                 textcoords='offset points',
                 ha='center',
                 va='bottom',
-                color='white',
+                color=fg,
             )
 
     ax_bar.set_ylim(0, 100)
     ax_bar.set_ylabel('Votes [%]')
-    ax_bar.grid(True, alpha=0.25, axis='y', color='white')
+    ax_bar.grid(True, alpha=0.25, axis='y', color=grid)
     ax_bar.set_axisbelow(True)
-    ax_bar.text(0.5, 1.04, frame_title, transform=ax_bar.transAxes, ha='center', va='center', color='white')
+    ax_bar.text(0.5, 1.04, frame_title, transform=ax_bar.transAxes, ha='center', va='center', color=fg)
 
     plt.tight_layout()
-    plt.savefig(output_path, facecolor='black', edgecolor='none')
+    plt.savefig(output_path, facecolor=bg, edgecolor='none')
     plt.close(fig)
 
 
@@ -290,6 +262,7 @@ render_frame(
     frame_title='IRV start',
     output_path=output_dir / f'{frame:04d}.png',
     eliminated=set(),
+    dark_background=dark_background,
 )
 frame += 1
 
@@ -313,6 +286,7 @@ for round_index, round_data in enumerate(rounds, start=1):
         frame_title=title,
         output_path=output_dir / f'{frame:04d}.png',
         eliminated=eliminated_now,
+        dark_background=dark_background,
     )
     frame += 1
 
@@ -339,6 +313,7 @@ for round_index, round_data in enumerate(rounds, start=1):
             frame_title=title,
             output_path=output_dir / f'{frame:04d}.png',
             eliminated=eliminated_now,
+            dark_background=dark_background,
         )
         frame += 1
 
@@ -354,6 +329,7 @@ render_frame(
     frame_title=f'Final two: {candidate_name(final_two[0])} vs {candidate_name(final_two[1])}',
     output_path=output_dir / f'{frame:04d}.png',
     eliminated=set(range(n_cands)) - set(final_two),
+    dark_background=dark_background,
 )
 
 frame_paths = sorted(output_dir.glob('*.png'))
