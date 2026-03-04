@@ -50,10 +50,6 @@ PALETTE_OPTIONS = {
     'glasbey_light': ('colorcet', 'glasbey_light'),
     'glasbey_dark': ('colorcet', 'glasbey_dark'),
 }
-# Use glasbey_dark on white background (optimized for light bg); glasbey_light on black.
-GLASBEY_FOR_WHITE_BG = 'glasbey_dark'
-
-
 def get_palette_colors(name):
     """Load palette as list of colors (mpl tuples or hex)."""
     mod_path, attr = PALETTE_OPTIONS[name]
@@ -175,11 +171,8 @@ elections = {n: prepare_election(n) for n in N_CAND_SCENARIOS}
 
 def get_colors_for_bg(palette_name, n_cands, dark_background):
     """Get color list for this background. Returns (colors, n_after_grays) or (None, 0)."""
-    name = palette_name
-    if not dark_background and name == 'glasbey_light':
-        name = GLASBEY_FOR_WHITE_BG
-    raw = get_palette_colors(name)
-    if not dark_background and name == 'Set1_9' and len(raw) > 5:
+    raw = get_palette_colors(palette_name)
+    if not dark_background and palette_name == 'Set1_9' and len(raw) > 5:
         c = list(raw)
         c.pop(5)  # Yellow has low visibility on white
         raw = c
