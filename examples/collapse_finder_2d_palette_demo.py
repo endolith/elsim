@@ -33,15 +33,15 @@ PALETTE_OPTIONS = {
     'Set3_12': ('palettable.colorbrewer.qualitative', 'Set3_12'),
     'Set2_8': ('palettable.colorbrewer.qualitative', 'Set2_8'),
     'Set1_9': ('palettable.colorbrewer.qualitative', 'Set1_9'),
-    'Pastel2_8': ('palettable.colorbrewer.qualitative', 'Pastel2_8'),
-    'Pastel1_9': ('palettable.colorbrewer.qualitative', 'Pastel1_9'),
+    # 'Pastel2_8': ('palettable.colorbrewer.qualitative', 'Pastel2_8'),  # always bad
+    # 'Pastel1_9': ('palettable.colorbrewer.qualitative', 'Pastel1_9'),  # always bad
     'Paired_12': ('palettable.colorbrewer.qualitative', 'Paired_12'),
     'Dark2_8': ('palettable.colorbrewer.qualitative', 'Dark2_8'),
     'Accent_8': ('palettable.colorbrewer.qualitative', 'Accent_8'),
-    'BlueRed_12': ('palettable.tableau', 'BlueRed_12'),
+    # 'BlueRed_12': ('palettable.tableau', 'BlueRed_12'),  # always bad
     'ColorBlind_10': ('palettable.tableau', 'ColorBlind_10'),
     'GreenOrange_12': ('palettable.tableau', 'GreenOrange_12'),
-    'PurpleGray_12': ('palettable.tableau', 'PurpleGray_12'),
+    # 'PurpleGray_12': ('palettable.tableau', 'PurpleGray_12'),  # always bad
     'TableauLight_10': ('palettable.tableau', 'TableauLight_10'),
     'TableauMedium_10': ('palettable.tableau', 'TableauMedium_10'),
     'Tableau_10': ('palettable.tableau', 'Tableau_10'),
