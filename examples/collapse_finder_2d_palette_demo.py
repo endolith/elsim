@@ -200,6 +200,10 @@ for palette_name in PALETTE_OPTIONS:
                     continue  # White bg: only glasbey_dark (for light backgrounds per colorcet)
                 if dark and palette_name == 'glasbey_dark':
                     continue  # Dark bg: only glasbey_light (for dark backgrounds per colorcet)
+                if dark and palette_name == 'Safe_10':
+                    continue
+                if not dark and palette_name in ('Pastel_10', 'Set3_12'):
+                    continue
                 colors, _ = get_colors_for_bg(palette_name, n_cands, dark)
                 if colors is None:
                     continue
