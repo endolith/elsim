@@ -133,10 +133,12 @@ def render_first_frame(voters, candidates, ballots, tallies, colors, labels, out
         bg, fg, grid = 'black', 'white', 'white'
         legend_bg, legend_fg = 'black', 'white'
         stroke_fg = 'black'
+        voronoi_color = (0.85, 0.85, 0.85)
     else:
         bg, fg, grid = 'white', 'black', 'gray'
         legend_bg, legend_fg = 'white', 'black'
         stroke_fg = 'white'
+        voronoi_color = (0.25, 0.25, 0.25)
 
     fig = plt.figure(figsize=(9, 7.5), facecolor=bg)
     ax_sc = plt.subplot2grid(shape=(4, 3), loc=(0, 0), colspan=2, rowspan=4)
@@ -163,7 +165,7 @@ def render_first_frame(voters, candidates, ballots, tallies, colors, labels, out
     ax_sc.axis('square')
     ax_sc.axis([-3, 3, -3, 3])
 
-    voronoi_plot_2d_axes(ax_sc, candidates, line_color=grid, line_alpha=0.2)
+    voronoi_plot_2d_axes(ax_sc, candidates, line_color=voronoi_color, line_alpha=0.2)
 
     for cand in range(n_cands):
         cand_voters = voters[ballots == cand]
