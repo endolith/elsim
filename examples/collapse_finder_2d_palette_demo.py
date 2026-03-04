@@ -7,120 +7,25 @@ Only palettes with enough non-gray colors are included (>= 7 for 7cand, >= 10 fo
 Saves to Images/palette_demo_<timestamp>/{7,10}cand_{dark,white}/.
 """
 
-import importlib
 from datetime import datetime
 from pathlib import Path
 
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.colors as mcolors
 import matplotlib.patheffects as PathEffects
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.collections import LineCollection
-from scipy.spatial import Voronoi
 
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings
 
-# Same palette options as collapse_finder_2d_irv. We use the maximum-size variant
-# per series (Set3_12, Paired_12, Tableau_20, etc.); palettable has no other >8 qualitative.
-PALETTE_OPTIONS = {
-    'Antique_10': ('palettable.cartocolors.qualitative', 'Antique_10'),
-    'Bold_10': ('palettable.cartocolors.qualitative', 'Bold_10'),
-    'Pastel_10': ('palettable.cartocolors.qualitative', 'Pastel_10'),
-    'Prism_10': ('palettable.cartocolors.qualitative', 'Prism_10'),
-    'Safe_10': ('palettable.cartocolors.qualitative', 'Safe_10'),
-    'Vivid_10': ('palettable.cartocolors.qualitative', 'Vivid_10'),
-    'Set3_12': ('palettable.colorbrewer.qualitative', 'Set3_12'),
-    'Set2_8': ('palettable.colorbrewer.qualitative', 'Set2_8'),
-    'Set1_9': ('palettable.colorbrewer.qualitative', 'Set1_9'),
-    # 'Pastel2_8': ('palettable.colorbrewer.qualitative', 'Pastel2_8'),  # always bad
-    # 'Pastel1_9': ('palettable.colorbrewer.qualitative', 'Pastel1_9'),  # always bad
-    'Paired_12': ('palettable.colorbrewer.qualitative', 'Paired_12'),
-    'Dark2_8': ('palettable.colorbrewer.qualitative', 'Dark2_8'),
-    'Accent_8': ('palettable.colorbrewer.qualitative', 'Accent_8'),
-    # 'BlueRed_12': ('palettable.tableau', 'BlueRed_12'),  # always bad
-    'ColorBlind_10': ('palettable.tableau', 'ColorBlind_10'),
-    'GreenOrange_12': ('palettable.tableau', 'GreenOrange_12'),
-    # 'PurpleGray_12': ('palettable.tableau', 'PurpleGray_12'),  # always bad
-    'TableauLight_10': ('palettable.tableau', 'TableauLight_10'),
-    'TableauMedium_10': ('palettable.tableau', 'TableauMedium_10'),
-    'Tableau_10': ('palettable.tableau', 'Tableau_10'),
-    'Tableau_20': ('palettable.tableau', 'Tableau_20'),
-    'TrafficLight_9': ('palettable.tableau', 'TrafficLight_9'),
-    'glasbey_light': ('colorcet', 'glasbey_light'),
-    'glasbey_dark': ('colorcet', 'glasbey_dark'),
-}
-def get_palette_colors(name):
-    """Load palette as list of colors (mpl tuples or hex)."""
-    mod_path, attr = PALETTE_OPTIONS[name]
-    mod = importlib.import_module(mod_path)
-    pal = getattr(mod, attr)
-    if mod_path == 'colorcet':
-        return list(pal)
-    return list(pal.mpl_colors)
-
-
-def _color_to_rgb(c):
-    """Normalize color to (r, g, b) in [0, 1]."""
-    if isinstance(c, str):
-        return mcolors.to_rgb(c)
-    return tuple(mcolors.to_rgb(c))
-
-
-def voronoi_plot_2d_axes(ax, points, line_color='white', line_alpha=0.2):
-    """Draw Voronoi diagram of points on ax (no bounds change). Like elsim2k _plotutils."""
-    points = np.asarray(points)
-    if len(points) < 2:
-        return
-    if len(points) == 2:
-        (x1, y1), (x2, y2) = points[0], points[1]
-        ylo, yhi = -100, 100
-        xlo = (y2**2 - 2*ylo*y2 - y1**2 + 2*ylo*y1 + x2**2 - x1**2) / (2*x2 - 2*x1)
-        xhi = (y2**2 - 2*yhi*y2 - y1**2 + 2*yhi*y1 + x2**2 - x1**2) / (2*x2 - 2*x1)
-        ax.plot([xlo, xhi], [ylo, yhi], ':', color=line_color, alpha=line_alpha)
-        return
-    vor = Voronoi(points)
-    center = points.mean(axis=0)
-    xlim = ax.get_xlim()
-    ylim = ax.get_ylim()
-    ptp_bound = max(np.ptp(xlim), np.ptp(ylim))
-
-    finite_segments = []
-    infinite_segments = []
-    for pointidx, simplex in zip(vor.ridge_points, vor.ridge_vertices):
-        simplex = np.asarray(simplex)
-        if np.all(simplex >= 0):
-            finite_segments.append(vor.vertices[simplex])
-        else:
-            i = simplex[simplex >= 0][0]
-            t = vor.points[pointidx[1]] - vor.points[pointidx[0]]
-            t /= np.linalg.norm(t)
-            n = np.array([-t[1], t[0]])
-            midpoint = vor.points[pointidx].mean(axis=0)
-            direction = np.sign(np.dot(midpoint - center, n)) * n
-            far = vor.vertices[i] + direction * 2 * ptp_bound
-            infinite_segments.append([vor.vertices[i], far])
-
-    for segs in (finite_segments, infinite_segments):
-        if segs:
-            lc = LineCollection(segs, colors=line_color, lw=1.5,
-                               alpha=line_alpha, linestyle=':', zorder=0)
-            ax.add_collection(lc)
-    ax.set_xlim(xlim)
-    ax.set_ylim(ylim)
-
-
-def remove_grays(colors, min_saturation=0.12):
-    """Drop colors that are effectively gray (low saturation). Returns (filtered_list, n_remaining)."""
-    out = []
-    for c in colors:
-        rgb = np.array(_color_to_rgb(c)).reshape(1, 3)
-        hsv = mcolors.rgb_to_hsv(rgb)[0]
-        if hsv[1] >= min_saturation:
-            out.append(c)
-    return out, len(out)
+from collapse_2d_shared import (
+    PALETTE_OPTIONS,
+    get_palette_colors,
+    get_theme,
+    remove_grays,
+    voronoi_plot_2d_axes,
+)
 
 
 def render_first_frame(voters, candidates, ballots, tallies, colors, labels, output_path,
@@ -129,16 +34,7 @@ def render_first_frame(voters, candidates, ballots, tallies, colors, labels, out
     n_cands = len(candidates)
     n_voters = len(voters)
 
-    if dark_background:
-        bg, fg, grid = 'black', 'white', 'white'
-        legend_bg, legend_fg = 'black', 'white'
-        stroke_fg = 'black'
-        voronoi_color = (0.98, 0.98, 0.98)
-    else:
-        bg, fg, grid = 'white', 'black', 'gray'
-        legend_bg, legend_fg = 'white', 'black'
-        stroke_fg = 'white'
-        voronoi_color = (0.12, 0.12, 0.12)
+    bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color = get_theme(dark_background)
 
     fig = plt.figure(figsize=(9, 7.5), facecolor=bg)
     ax_sc = plt.subplot2grid(shape=(4, 3), loc=(0, 0), colspan=2, rowspan=4)
