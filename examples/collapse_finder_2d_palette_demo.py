@@ -24,6 +24,7 @@ from collapse_2d_shared import (
     get_palette_colors,
     get_theme,
     remove_grays,
+    setup_scatter_axis_sigma,
     voronoi_plot_2d_axes,
 )
 
@@ -56,10 +57,7 @@ def render_first_frame(voters, candidates, ballots, tallies, colors, labels, out
     ax_sc.scatter([], [], color=fg, **cands_kwargs, label='Candidates')
     ax_sc.legend(loc='lower right', numpoints=1, fontsize='small', labelcolor=legend_fg,
                  facecolor=legend_bg, edgecolor=legend_fg)
-    ax_sc.grid(True, alpha=0.3, color=grid)
-    ax_sc.set_axisbelow(True)
-    ax_sc.axis('square')
-    ax_sc.axis([-3, 3, -3, 3])
+    setup_scatter_axis_sigma(ax_sc, voters)
 
     voronoi_plot_2d_axes(ax_sc, candidates, line_color=voronoi_color, line_alpha=0.45)
 
