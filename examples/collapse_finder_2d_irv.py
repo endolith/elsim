@@ -23,6 +23,7 @@ from collapse_2d_shared import (
     PALETTE_OPTIONS,
     get_palette_colors,
     get_theme,
+    setup_scatter_axis_sigma,
     voronoi_plot_2d_axes,
 )
 
@@ -31,10 +32,10 @@ from collapse_2d_shared import (
 palette_name = 'Bold_10'
 
 n_voters = 5000
-n_cands = 9
+n_cands = 7
 max_trials = 100_000
 frames_per_transfer = 60
-disp = 0.5  # Candidates 0.5x spread of voters (more concentrated near center)
+disp = 0.8  # 0.5 is worst-case center squeeze
 dark_background = True  # If False, yellow is removed from Set1_9 (low visibility on white)
 
 
@@ -174,10 +175,7 @@ def render_frame(
     ax_sc.scatter([], [], color=fg, **cands_kwargs, label='Candidates')
     ax_sc.legend(loc='lower right', numpoints=1, fontsize='small', labelcolor=legend_fg,
                  facecolor=legend_bg, edgecolor=legend_fg)
-    ax_sc.grid(True, alpha=0.3, color=grid)
-    ax_sc.set_axisbelow(True)
-    ax_sc.axis('square')
-    ax_sc.axis([-3, 3, -3, 3])
+    setup_scatter_axis_sigma(ax_sc, voters)
 
     remaining = [c for c in range(n_cands) if c not in eliminated]
     voronoi_plot_2d_axes(ax_sc, candidates[remaining], line_color=voronoi_color, line_alpha=0.45)
