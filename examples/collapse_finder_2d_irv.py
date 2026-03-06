@@ -27,7 +27,7 @@ from collapse_2d_shared import (
 )
 
 
-palette_name = 'Set3_12'
+# palette_name = 'Set3_12'
 palette_name = 'Bold_10'
 
 n_voters = 5000
