@@ -125,12 +125,12 @@ def get_theme(dark_background):
 def setup_scatter_axis_sigma(ax, voters):
     """
     No grid; axis limits and tick labels in units of voter distribution sigma.
-    sigma = std(voters). Limits ±max(3, 2.5*sigma); ticks at ±2σ, ±σ, 0 with σ labels.
+    sigma = std(voters). Limits ±1.5*sigma; ticks at ±2σ, ±σ, 0 with σ labels.
     """
     ax.grid(False)
     ax.set_axisbelow(False)
     sigma = float(np.std(voters))
-    lim = max(3.0, 2.5 * sigma)
+    lim = 1.5 * sigma
     ax.set_xlim(-lim, lim)
     ax.set_ylim(-lim, lim)
     ax.axis('square')
