@@ -194,6 +194,7 @@ def render_frame(
     voters,
     candidates,
     borda_scores,
+    n_borda_active,
     colors,
     labels,
     frame_title,
@@ -206,14 +207,20 @@ def render_frame(
     """Render one TVR animation frame.
 
     borda_scores : ndarray of shape (n_cands,)
-        Current Borda scores (0 for eliminated candidates).
-        Used for the top bar chart showing average rank.
+        Current Borda scores.  For candidates still active (including the loser
+        currently being animated out), their scores may be non-zero.  For
+        candidates eliminated in a previous round, scores are 0.
+    n_borda_active : int
+        The number of candidates whose Borda scores are non-trivially included in
+        borda_scores (i.e. the active-set size when borda_scores was tallied).
+        Used to convert Borda scores to avg_rank values for annotations.
     """
     if eliminated is None:
         eliminated = set()
 
     n_cands = len(candidates)
-    n_remaining = n_cands - len(eliminated)
+    # Candidates visible on scatter and coloured in bar charts (no loser, no old eliminated).
+    remaining = [c for c in range(n_cands) if c not in eliminated]
     active_colors = [colors[n] if n not in eliminated else [0.5, 0.5, 0.5]
                      for n in range(n_cands)]
 
@@ -243,7 +250,6 @@ def render_frame(
                  labelcolor=legend_fg, facecolor=legend_bg, edgecolor=legend_fg)
     setup_scatter_axis_sigma(ax_sc, voters)
 
-    remaining = [c for c in range(n_cands) if c not in eliminated]
     voronoi_plot_2d_axes(ax_sc, candidates[remaining], line_color=voronoi_color,
                          line_alpha=0.45)
 
@@ -273,21 +279,23 @@ def render_frame(
                        color=fg)
 
     # ── Borda/average-rank bar chart ─────────────────────────────────────────
-    # Bar height = n_remaining - avg_rank  (0 for worst rank, n_remaining-1 for best).
-    # avg_rank = n_remaining - borda_score/n_voters  for each active candidate.
-    # y-axis fixed to [0, n_cands - 1] so scale is stable across rounds.
+    # bar_height[c] = borda_scores[c] / n_voters, computed for ALL candidates.
+    # This naturally equals 0 for candidates eliminated in a prior round
+    # (their borda_scores[c] == 0), and decreases to 0 for the loser currently
+    # being animated out.  The y-axis is fixed to [0, n_cands-1] throughout.
+    # avg_rank for annotation: n_borda_active - borda/n_voters (1=best, n_borda_active=worst).
     n_total_voters = len(voters)
-    bar_heights = np.zeros(n_cands)
+    bar_heights = np.array([max(0.0, borda_scores[c] / n_total_voters)
+                            for c in range(n_cands)])
     avg_ranks = np.zeros(n_cands)
-    if n_remaining > 0:
-        for c in remaining:
-            avg_ranks[c] = n_remaining - borda_scores[c] / n_total_voters
-            bar_heights[c] = max(0.0, n_remaining - avg_ranks[c])  # = borda/n_voters
+    for c in remaining:
+        avg_ranks[c] = n_borda_active - borda_scores[c] / n_total_voters
 
     bars = ax_bar.bar(range(n_cands), bar_heights, tick_label=list(labels),
                       color=active_colors)
     for c, rect in enumerate(bars):
         height = rect.get_height()
+        # Only annotate surviving candidates (not the loser being faded out).
         if height > 0 and c in remaining:
             ax_bar.annotate(
                 f'{avg_ranks[c]:.1f}',
@@ -408,6 +416,7 @@ render_frame(
     voters=voters,
     candidates=candidates,
     borda_scores=initial_borda,
+    n_borda_active=n_cands,
     colors=colors,
     labels=labels,
     frame_title='TVR start',
@@ -422,13 +431,17 @@ frame += 1
 for round_index, round_data in enumerate(rounds, start=1):
     loser = round_data['loser']
     eliminated_now = set(eliminated) | {loser}
+    # n_borda_active = active-set size when borda_before was tallied (includes the loser).
+    n_borda_active_this_round = n_cands - len(eliminated)
 
-    # Elimination frame: loser grayed, Borda scores unchanged.
+    # Elimination frame: loser grayed out but bar still shows their full Borda score.
+    # Tallies are unchanged — transfer animation comes next.
     title = f'Round {round_index}: eliminate {candidate_name(loser)}'
     render_frame(
         voters=voters,
         candidates=candidates,
         borda_scores=round_data['borda_before'],
+        n_borda_active=n_borda_active_this_round,
         colors=colors,
         labels=labels,
         frame_title=title,
@@ -440,14 +453,12 @@ for round_index, round_data in enumerate(rounds, start=1):
     )
     frame += 1
 
-    # Transfer frames: one voter at a time has the loser removed from their ballot.
-    # Their lower-ranked candidates each gain +1 Borda point; loser loses their points.
-    # Shuffle all voters and update in random order across frames_per_transfer frames.
+    # Transfer frames: remove loser from one voter's ballot at a time.
+    # Their lower-ranked candidates gain +1 Borda; loser loses their contribution.
     all_voters = np.arange(len(voters))
     rng.shuffle(all_voters)
     per_frame = max(1, ceildiv(len(all_voters), frames_per_transfer))
 
-    # running Borda sums start from borda_before and transition to borda_after.
     running_borda = round_data['borda_before'].copy()
     promoted_per_voter = round_data['promoted_per_voter']
 
@@ -457,13 +468,10 @@ for round_index, round_data in enumerate(rounds, start=1):
         batch = all_voters[lo:hi]
 
         for v in batch:
-            # Compute this voter's contribution to the loser's Borda score:
-            # loser had rank (n_remaining - 1 - loser_borda_contribution_of_v),
-            # but it's simpler to derive the loser's contribution from promoted list.
-            # loser_pos (0-indexed among active) = len(promoted_per_voter[v]) reversed:
-            # actually: loser_contribution = n_remaining - 1 - loser_pos_among_active
-            # promoted[v] has length = n_remaining - 1 - loser_pos_among_active
-            # So loser contribution = len(promoted_per_voter[v])
+            # promoted[v] = active candidates voter ranked below the loser.
+            # When loser is removed: each gains +1 Borda; loser loses len(promoted[v]).
+            # (loser_pos_among_active = n_active - 1 - len(promoted[v]),
+            #  so loser's Borda contribution from this voter = len(promoted[v]))
             running_borda[loser] -= len(promoted_per_voter[v])
             for c in promoted_per_voter[v]:
                 running_borda[c] += 1.0
@@ -472,6 +480,7 @@ for round_index, round_data in enumerate(rounds, start=1):
             voters=voters,
             candidates=candidates,
             borda_scores=running_borda,
+            n_borda_active=n_borda_active_this_round,
             colors=colors,
             labels=labels,
             frame_title=title,
@@ -487,11 +496,12 @@ for round_index, round_data in enumerate(rounds, start=1):
 
 # Final frame: TVR winner.
 final_borda = np.zeros(n_cands)
-final_borda[winner] = 0.0  # only one candidate left; Borda score trivially 0
+# winner's Borda score is trivially 0 (only candidate left; 0 points in 1-candidate round).
 render_frame(
     voters=voters,
     candidates=candidates,
     borda_scores=final_borda,
+    n_borda_active=1,
     colors=colors,
     labels=labels,
     frame_title=f'TVR winner: {candidate_name(winner)}',
