@@ -102,6 +102,7 @@ for n in N_CAND_SCENARIOS:
 
 def prepare_election(n_cands):
     v, c = normal_electorate(n_voters, n_cands, dims=2, disp=disp)
+    c[0] = 0.0  # Always one perfect candidate
     u = normed_dist_utilities(v, c)
     r = np.asarray(honest_rankings(u))
     b = r[:, 0]
