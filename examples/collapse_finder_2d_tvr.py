@@ -284,33 +284,33 @@ def render_frame(
 
     # ── Borda/average-rank bar chart ─────────────────────────────────────────
     # y-axis is fixed at [0, n_cands-1] with tick labels: 1 (best) at top, n_cands (worst) at bottom.
-    # So bar_height in data coords must be (n_cands - avg_rank) so the bar top lines up with
-    # the correct rank on the axis.  Otherwise when n_borda_active drops (e.g. 9→8), the same
-    # avg_rank would give a shorter bar and appear at the wrong tick (e.g. 4.4 label at 5.4).
+    # dead_height = the number of rank slots that no longer exist (= n_cands - n_borda_active).
+    # All bars sit on top of the dead zone: bottom=dead_height, so bars appear to rest on the band.
+    # bar_segment = n_cands - avg_rank - dead_height  (the visible portion above the dead zone).
     # avg_rank = n_borda_active - borda/n_voters for candidates with active Borda scores.
+    dead_height = n_cands - n_borda_active  # 0 in round 0, grows by 1 per round
     n_total_voters = len(voters)
-    bar_heights = np.zeros(n_cands)
+    bar_segments = np.zeros(n_cands)
     avg_ranks = np.zeros(n_cands)
     for c in range(n_cands):
         if c in eliminated and borda_scores[c] == 0:
-            bar_heights[c] = 0.0
+            bar_segments[c] = 0.0
         else:
             avg_ranks[c] = n_borda_active - borda_scores[c] / n_total_voters
-            bar_heights[c] = n_cands - avg_ranks[c]
+            bar_segments[c] = max(0.0, n_cands - avg_ranks[c] - dead_height)
 
-    bars = ax_bar.bar(range(n_cands), bar_heights, tick_label=list(labels),
-                      color=active_colors)
+    bars = ax_bar.bar(range(n_cands), bar_segments, bottom=dead_height,
+                      tick_label=list(labels), color=active_colors)
     for c, rect in enumerate(bars):
-        height = rect.get_height()
+        top = rect.get_y() + rect.get_height()  # = dead_height + bar_segments[c]
         # Only annotate surviving candidates (not the loser being faded out).
-        if height > 0 and c in remaining:
-            # When the bar is near the top of the axis, the label above it would
-            # overflow outside the plot and shift tight_layout frame-to-frame.
-            # Instead, place it inside the bar with the background colour as text colour.
-            near_top = height >= n_cands - 1.5
+        if bar_segments[c] > 0 and c in remaining:
+            # When the bar top is within 2 units of the axis top, the label above
+            # would overflow; place it inside the bar instead.
+            near_top = top >= n_cands - 2
             ax_bar.annotate(
                 f'{avg_ranks[c]:.1f}',
-                xy=(rect.get_x() + rect.get_width() / 2, height),
+                xy=(rect.get_x() + rect.get_width() / 2, top),
                 xytext=(0, -4 if near_top else 3),
                 textcoords='offset points',
                 ha='center',
@@ -319,8 +319,7 @@ def render_frame(
             )
 
     ax_bar.set_ylim(0, n_cands - 1)
-    # Dead zone: ranks that no longer exist (bottom n_cands - n_borda_active units).
-    dead_height = n_cands - n_borda_active  # 0 in round 0, grows by 1 per round
+    # Dead zone band: dark shading over the unreachable rank slots.
     if dead_height > 0:
         ax_bar.axhspan(0, dead_height, color='0.15', zorder=0)
     # Custom y-ticks: rank labels (1 at top = n_cands-1, n_cands at bottom = 0).
