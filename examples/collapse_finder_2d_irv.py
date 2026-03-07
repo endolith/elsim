@@ -34,10 +34,10 @@ from collapse_utils import count_wins
 palette_name = 'Bold_10'
 
 n_voters = 5000
-n_cands = 4
+n_cands = 9
 max_trials = 100_000
 frames_per_transfer = 60
-disp = 0.8  # 0.5 is worst-case center squeeze
+disp = 0.5  # 0.5 is worst-case center squeeze
 dark_background = True  # If False, yellow is removed from Set1_9 (low visibility on white)
 
 
