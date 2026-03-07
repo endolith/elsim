@@ -25,6 +25,7 @@ from collapse_2d_shared import (
     get_palette_colors,
     get_theme,
     setup_scatter_axis_sigma,
+    sort_candidates_bell_curve,
     voronoi_plot_2d_axes,
 )
 from collapse_utils import count_wins
@@ -145,30 +146,6 @@ def simulate_irv_rounds(rankings, candidates):
         'final_tallies': first_tallies.copy(),
         'dists_to_origin': dists_to_origin,
     }
-
-
-def sort_candidates_bell_curve(candidates):
-    """
-    Reorder candidates so bar graphs form an approximate bell curve:
-      left hemisphere (x < 0): farthest → nearest from origin
-      the (0, 0) candidate
-      right hemisphere (x > 0): nearest → farthest from origin
-    "Left" and "right" are determined by the sign of the x-coordinate.
-    Candidates exactly at x=0 (other than origin) are treated as right-side.
-    """
-    dists = np.linalg.norm(candidates, axis=1)
-    center_mask = np.all(candidates == 0.0, axis=1)
-    left_mask = candidates[:, 0] < 0
-    right_mask = ~left_mask & ~center_mask
-
-    center_idx = np.where(center_mask)[0]
-    left_idx = np.where(left_mask)[0]
-    right_idx = np.where(right_mask)[0]
-
-    left_sorted = left_idx[np.argsort(dists[left_idx])[::-1]]   # farthest first
-    right_sorted = right_idx[np.argsort(dists[right_idx])]       # nearest first
-
-    return candidates[np.concatenate([left_sorted, center_idx, right_sorted])]
 
 
 def find_center_outward_election(n_voters, n_cands, max_trials, disp=1.0):
