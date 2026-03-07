@@ -146,9 +146,13 @@ def simulate_tvr_rounds(rankings, candidates):
     if winner != center:
         return None  # TVR didn't converge to center candidate; skip this election
 
+    # final_two: the loser of the last elimination round and the overall winner.
+    final_two = [rounds[-1]['loser'], winner]
+
     return {
         'rounds': rounds,
         'winner': winner,
+        'final_two': final_two,
     }
 
 
@@ -300,21 +304,30 @@ def render_frame(
         height = rect.get_height()
         # Only annotate surviving candidates (not the loser being faded out).
         if height > 0 and c in remaining:
+            # When the bar is near the top of the axis, the label above it would
+            # overflow outside the plot and shift tight_layout frame-to-frame.
+            # Instead, place it inside the bar with the background colour as text colour.
+            near_top = height >= n_cands - 1.5
             ax_bar.annotate(
                 f'{avg_ranks[c]:.1f}',
                 xy=(rect.get_x() + rect.get_width() / 2, height),
-                xytext=(0, 3),
+                xytext=(0, -4 if near_top else 3),
                 textcoords='offset points',
                 ha='center',
-                va='bottom',
-                color=fg,
+                va='top' if near_top else 'bottom',
+                color=bg if near_top else fg,
             )
 
     ax_bar.set_ylim(0, n_cands - 1)
-    # Custom y-ticks: rank labels (1 at top = n_cands-1, n_cands at bottom = 0)
-    tick_vals = range(n_cands)
-    tick_labels = [str(n_cands - v) for v in tick_vals]
-    ax_bar.set_yticks(list(tick_vals))
+    # Dead zone: ranks that no longer exist (bottom n_cands - n_borda_active units).
+    dead_height = n_cands - n_borda_active  # 0 in round 0, grows by 1 per round
+    if dead_height > 0:
+        ax_bar.axhspan(0, dead_height, color='0.15', zorder=0)
+    # Custom y-ticks: rank labels (1 at top = n_cands-1, n_cands at bottom = 0).
+    # Suppress labels inside the dead zone.
+    tick_vals = list(range(n_cands))
+    tick_labels = ['' if v < dead_height else str(n_cands - v) for v in tick_vals]
+    ax_bar.set_yticks(tick_vals)
     ax_bar.set_yticklabels(tick_labels)
     ax_bar.set_ylabel('Avg. rank (1=best)')
     ax_bar.grid(True, alpha=0.25, axis='y', color=grid)
@@ -398,6 +411,7 @@ else:
 
 rounds = trace['rounds']
 winner = trace['winner']
+final_two = trace['final_two']
 
 print('TVR elimination order:', ' -> '.join(candidate_name(r['loser']) for r in rounds))
 print('TVR winner:', candidate_name(winner))
@@ -431,7 +445,8 @@ render_frame(
 )
 frame += 1
 
-for round_index, round_data in enumerate(rounds, start=1):
+# Animate all rounds except the last: stop when 2 candidates remain, mirroring IRV.
+for round_index, round_data in enumerate(rounds[:-1], start=1):
     loser = round_data['loser']
     eliminated_now = set(eliminated) | {loser}
     # n_borda_active = active-set size when borda_before was tallied (includes the loser).
@@ -497,21 +512,21 @@ for round_index, round_data in enumerate(rounds, start=1):
 
     eliminated.add(loser)
 
-# Final frame: TVR winner.
-final_borda = np.zeros(n_cands)
-# winner's Borda score is trivially 0 (only candidate left; 0 points in 1-candidate round).
+# Final frame: show the last two candidates with their Borda scores from the
+# final 2-candidate round.  The winner is the one with the higher Borda score
+# (lower avg rank) among the pair.
 render_frame(
     voters=voters,
     candidates=candidates,
-    borda_scores=final_borda,
-    n_borda_active=1,
+    borda_scores=rounds[-1]['borda_before'],
+    n_borda_active=2,
     colors=colors,
     labels=labels,
     frame_title=f'TVR winner: {candidate_name(winner)}',
     output_path=output_dir / f'{frame:04d}.png',
     approval_pct=approval_pct,
     wins=wins,
-    eliminated=set(range(n_cands)) - {winner},
+    eliminated=set(range(n_cands)) - set(final_two),
     dark_background=dark_background,
 )
 
