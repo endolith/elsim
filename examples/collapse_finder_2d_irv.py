@@ -73,7 +73,7 @@ def plot_wins(ax, wins, colors, edgecolor='black', gap=0.15):
     ax.set_xlim(-0.5, n_cands - 0.5)
     ax.set_ylim(0, max_w if max_w > 0 else 1)
     ax.set_aspect('equal')
-    ax.set_title('Head-to-head wins')
+    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
     ax.set_ylabel('')
 
 
@@ -267,12 +267,13 @@ def render_frame(
     ax_score.set_ylabel('Approval [%]')
     ax_score.grid(True, alpha=0.25, axis='y', color=grid)
     ax_score.set_axisbelow(True)
-    ax_score.text(0.5, 1.04, 'Approval [%]', transform=ax_score.transAxes, ha='center', va='center', color=fg)
+    ax_score.text(0.5, 1.04, 'Approval rating', transform=ax_score.transAxes, ha='center', va='center', color=fg)
 
     election = np.asarray(rankings, dtype=np.intp)
     matrix = ranked_election_to_matrix(election)
     wins = count_wins(matrix)
     plot_wins(ax_wins, wins, active_colors, edgecolor=fg, gap=0.1)
+    ax_wins.text(0.5, 1.04, 'Head-to-head wins', transform=ax_wins.transAxes, ha='center', va='center', color=fg)
 
     plt.tight_layout()
     plt.savefig(output_path, facecolor=bg, edgecolor='none')
