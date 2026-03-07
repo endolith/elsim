@@ -279,17 +279,20 @@ def render_frame(
                        color=fg)
 
     # ── Borda/average-rank bar chart ─────────────────────────────────────────
-    # bar_height[c] = borda_scores[c] / n_voters, computed for ALL candidates.
-    # This naturally equals 0 for candidates eliminated in a prior round
-    # (their borda_scores[c] == 0), and decreases to 0 for the loser currently
-    # being animated out.  The y-axis is fixed to [0, n_cands-1] throughout.
-    # avg_rank for annotation: n_borda_active - borda/n_voters (1=best, n_borda_active=worst).
+    # y-axis is fixed at [0, n_cands-1] with tick labels: 1 (best) at top, n_cands (worst) at bottom.
+    # So bar_height in data coords must be (n_cands - avg_rank) so the bar top lines up with
+    # the correct rank on the axis.  Otherwise when n_borda_active drops (e.g. 9→8), the same
+    # avg_rank would give a shorter bar and appear at the wrong tick (e.g. 4.4 label at 5.4).
+    # avg_rank = n_borda_active - borda/n_voters for candidates with active Borda scores.
     n_total_voters = len(voters)
-    bar_heights = np.array([max(0.0, borda_scores[c] / n_total_voters)
-                            for c in range(n_cands)])
+    bar_heights = np.zeros(n_cands)
     avg_ranks = np.zeros(n_cands)
-    for c in remaining:
-        avg_ranks[c] = n_borda_active - borda_scores[c] / n_total_voters
+    for c in range(n_cands):
+        if c in eliminated and borda_scores[c] == 0:
+            bar_heights[c] = 0.0
+        else:
+            avg_ranks[c] = n_borda_active - borda_scores[c] / n_total_voters
+            bar_heights[c] = n_cands - avg_ranks[c]
 
     bars = ax_bar.bar(range(n_cands), bar_heights, tick_label=list(labels),
                       color=active_colors)
