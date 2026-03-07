@@ -51,7 +51,7 @@ def ceildiv(a, b):
     return -(-a // b)
 
 
-def plot_wins(ax, wins, colors, edgecolor='black', gap=0.15):
+def plot_wins(ax, wins, colors, labels, edgecolor='black', gap=0.15):
     """
     Plot head-to-head wins as stacked square blocks per candidate.
     Blocks are square, symmetrically spaced between integer y-ticks (gap above and below),
@@ -69,7 +69,7 @@ def plot_wins(ax, wins, colors, edgecolor='black', gap=0.15):
                    edgecolor=edgecolor, linewidth=1)
 
     ax.set_xticks(range(n_cands))
-    ax.set_xticklabels([chr(65 + n) for n in range(n_cands)])
+    ax.set_xticklabels(list(labels))
     ax.set_xlim(-0.5, n_cands - 0.5)
     ax.set_ylim(0, max_w if max_w > 0 else 1)
     ax.set_aspect('equal')
@@ -118,15 +118,12 @@ def simulate_irv_rounds(rankings, candidates):
 
         _inc_pointer(election, pointer, next_eliminated)
         ballots_after = election[np.arange(n_voters), pointer].copy()
-        _tally_at_pointer(first_tallies, election, pointer)
-        tallies_after = first_tallies.copy()
 
         rounds.append({
             'loser': loser,
             'ballots_before': ballots_before,
             'ballots_after': ballots_after,
             'tallies_before': tallies,
-            'tallies_after': tallies_after,
             'affected_voters': affected_voters,
         })
 
@@ -150,16 +147,46 @@ def simulate_irv_rounds(rankings, candidates):
     }
 
 
+def sort_candidates_bell_curve(candidates):
+    """
+    Reorder candidates so bar graphs form an approximate bell curve:
+      left hemisphere (x < 0): farthest → nearest from origin
+      the (0, 0) candidate
+      right hemisphere (x > 0): nearest → farthest from origin
+    "Left" and "right" are determined by the sign of the x-coordinate.
+    Candidates exactly at x=0 (other than origin) are treated as right-side.
+    """
+    dists = np.linalg.norm(candidates, axis=1)
+    center_mask = np.all(candidates == 0.0, axis=1)
+    left_mask = candidates[:, 0] < 0
+    right_mask = ~left_mask & ~center_mask
+
+    center_idx = np.where(center_mask)[0]
+    left_idx = np.where(left_mask)[0]
+    right_idx = np.where(right_mask)[0]
+
+    left_sorted = left_idx[np.argsort(dists[left_idx])[::-1]]   # farthest first
+    right_sorted = right_idx[np.argsort(dists[right_idx])]       # nearest first
+
+    return candidates[np.concatenate([left_sorted, center_idx, right_sorted])]
+
+
 def find_center_outward_election(n_voters, n_cands, max_trials, disp=1.0):
-    """Sample random 2D elections until the strict center-outward pattern appears."""
+    """Sample random 2D elections until the strict center-outward pattern appears.
+
+    Returns (trial, voters, candidates, rankings, trace).
+    rankings is the full honest-rankings ballot matrix (n_voters × n_cands),
+    returned so callers don't need to recompute it.
+    """
     for trial in range(1, max_trials + 1):
         voters, candidates = normal_electorate(n_voters, n_cands, dims=2, disp=disp)
-        candidates[0] = 0.0  # Always one perfect candidate
+        candidates[0] = 0.0  # Always one candidate exactly at the center
+        candidates = sort_candidates_bell_curve(candidates)
         utilities = normed_dist_utilities(voters, candidates)
         rankings = np.asarray(honest_rankings(utilities))
         trace = simulate_irv_rounds(rankings, candidates)
         if trace is not None:
-            return trial, voters, candidates, trace
+            return trial, voters, candidates, rankings, trace
     return None
 
 
@@ -172,15 +199,20 @@ def render_frame(
     labels,
     frame_title,
     output_path,
+    approval_pct,
+    wins,
     eliminated=None,
     dark_background=True,
-    rankings=None,
 ):
-    """Render one animation frame in the same visual style as T2R examples."""
+    """Render one animation frame in the same visual style as T2R examples.
+
+    approval_pct : ndarray of shape (n_cands,)
+        Per-candidate approval rating 0–100, precomputed from utilities.
+    wins : list of int
+        Head-to-head win count per candidate, precomputed from full rankings.
+    """
     if eliminated is None:
         eliminated = set()
-    if rankings is None:
-        rankings = np.tile(np.arange(len(candidates)), (len(voters), 1))
 
     n_cands = len(candidates)
     n_voters = len(voters)
@@ -247,9 +279,6 @@ def render_frame(
     ax_bar.set_axisbelow(True)
     ax_bar.text(0.5, 1.04, frame_title, transform=ax_bar.transAxes, ha='center', va='center', color=fg)
 
-    utilities = normed_dist_utilities(voters, candidates)
-    approval_pct = utilities.mean(axis=0) * 100
-
     score_bars = ax_score.bar(range(n_cands), approval_pct, tick_label=list(labels), color=active_colors)
     for rect in score_bars:
         height = rect.get_height()
@@ -269,10 +298,7 @@ def render_frame(
     ax_score.set_axisbelow(True)
     ax_score.text(0.5, 1.04, 'Approval rating', transform=ax_score.transAxes, ha='center', va='center', color=fg)
 
-    election = np.asarray(rankings, dtype=np.intp)
-    matrix = ranked_election_to_matrix(election)
-    wins = count_wins(matrix)
-    plot_wins(ax_wins, wins, active_colors, edgecolor=fg, gap=0.1)
+    plot_wins(ax_wins, wins, active_colors, labels, edgecolor=fg, gap=0.1)
     ax_wins.text(0.5, 1.04, 'Head-to-head wins', transform=ax_wins.transAxes, ha='center', va='center', color=fg)
 
     plt.tight_layout()
@@ -300,7 +326,7 @@ result = find_center_outward_election(n_voters, n_cands, max_trials, disp=disp)
 if result is None:
     raise RuntimeError('No strict center-outward collapse found. Increase max_trials or reduce n_cands.')
 
-trial, voters, candidates, trace = result
+trial, voters, candidates, rankings, trace = result
 rounds = trace['rounds']
 final_two = trace['final_two']
 
@@ -310,7 +336,10 @@ print('Final two:', candidate_name(final_two[0]), candidate_name(final_two[1]))
 
 np.savez(output_dir / 'positions.npz', voters=voters, candidates=candidates)
 
-rankings = np.asarray(honest_rankings(normed_dist_utilities(voters, candidates)))
+# Precompute constants used in every frame.
+utilities = normed_dist_utilities(voters, candidates)
+approval_pct = utilities.mean(axis=0) * 100
+wins = count_wins(ranked_election_to_matrix(rankings))
 
 frame = 0
 initial = rounds[0]
@@ -323,9 +352,10 @@ render_frame(
     labels=labels,
     frame_title='IRV start',
     output_path=output_dir / f'{frame:04d}.png',
+    approval_pct=approval_pct,
+    wins=wins,
     eliminated=set(),
     dark_background=dark_background,
-    rankings=rankings,
 )
 frame += 1
 
@@ -348,9 +378,10 @@ for round_index, round_data in enumerate(rounds, start=1):
         labels=labels,
         frame_title=title,
         output_path=output_dir / f'{frame:04d}.png',
+        approval_pct=approval_pct,
+        wins=wins,
         eliminated=eliminated_now,
         dark_background=dark_background,
-        rankings=rankings,
     )
     frame += 1
 
@@ -376,9 +407,10 @@ for round_index, round_data in enumerate(rounds, start=1):
             labels=labels,
             frame_title=title,
             output_path=output_dir / f'{frame:04d}.png',
+            approval_pct=approval_pct,
+            wins=wins,
             eliminated=eliminated_now,
             dark_background=dark_background,
-            rankings=rankings,
         )
         frame += 1
 
@@ -393,9 +425,10 @@ render_frame(
     labels=labels,
     frame_title=f'Final two: {candidate_name(final_two[0])} vs {candidate_name(final_two[1])}',
     output_path=output_dir / f'{frame:04d}.png',
+    approval_pct=approval_pct,
+    wins=wins,
     eliminated=set(range(n_cands)) - set(final_two),
     dark_background=dark_background,
-    rankings=rankings,
 )
 
 frame_paths = sorted(output_dir.glob('*.png'))
