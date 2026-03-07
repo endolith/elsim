@@ -126,6 +126,7 @@ def find_center_outward_election(n_voters, n_cands, max_trials, disp=1.0):
     """Sample random 2D elections until the strict center-outward pattern appears."""
     for trial in range(1, max_trials + 1):
         voters, candidates = normal_electorate(n_voters, n_cands, dims=2, disp=disp)
+        candidates[0] = 0.0  # Always one perfect candidate
         utilities = normed_dist_utilities(voters, candidates)
         rankings = np.asarray(honest_rankings(utilities))
         trace = simulate_irv_rounds(rankings, candidates)
