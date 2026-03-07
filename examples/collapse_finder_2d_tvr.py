@@ -39,7 +39,8 @@ from collapse_utils import count_wins
 
 # ── Configuration ────────────────────────────────────────────────────────────
 
-INPUT_POSITIONS = None  # Path to positions.npz from IRV run, or None to search
+# Path to positions.npz from IRV run, or None to search
+INPUT_POSITIONS = r".\Images\collapse_2d_irv_20260307_005817_nc9_nv5000\positions.npz"
 
 palette_name = 'Bold_10'
 
