@@ -159,9 +159,10 @@ def render_frame(
 
     fig = plt.figure(figsize=(9, 7.5), facecolor=bg)
     ax_sc = plt.subplot2grid(shape=(4, 3), loc=(0, 0), colspan=2, rowspan=4)
-    ax_bar = plt.subplot2grid(shape=(4, 3), loc=(1, 2), rowspan=2)
+    ax_bar = plt.subplot2grid(shape=(4, 3), loc=(0, 2), rowspan=2)
+    ax_score = plt.subplot2grid(shape=(4, 3), loc=(2, 2), rowspan=2)
 
-    for ax in (ax_sc, ax_bar):
+    for ax in (ax_sc, ax_bar, ax_score):
         ax.set_facecolor(bg)
         ax.tick_params(colors=fg)
         ax.xaxis.label.set_color(fg)
@@ -213,6 +214,28 @@ def render_frame(
     ax_bar.grid(True, alpha=0.25, axis='y', color=grid)
     ax_bar.set_axisbelow(True)
     ax_bar.text(0.5, 1.04, frame_title, transform=ax_bar.transAxes, ha='center', va='center', color=fg)
+
+    utilities = normed_dist_utilities(voters, candidates)
+    approval_pct = utilities.mean(axis=0) * 100
+
+    score_bars = ax_score.bar(range(n_cands), approval_pct, tick_label=list(labels), color=active_colors)
+    for rect in score_bars:
+        height = rect.get_height()
+        if height > 0:
+            ax_score.annotate(
+                f'{height:.0f}',
+                xy=(rect.get_x() + rect.get_width() / 2, height),
+                xytext=(0, 3),
+                textcoords='offset points',
+                ha='center',
+                va='bottom',
+                color=fg,
+            )
+    ax_score.set_ylim(0, 100)
+    ax_score.set_ylabel('Approval [%]')
+    ax_score.grid(True, alpha=0.25, axis='y', color=grid)
+    ax_score.set_axisbelow(True)
+    ax_score.text(0.5, 1.04, 'Approval [%]', transform=ax_score.transAxes, ha='center', va='center', color=fg)
 
     plt.tight_layout()
     plt.savefig(output_path, facecolor=bg, edgecolor='none')
