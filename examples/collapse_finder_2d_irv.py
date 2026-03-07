@@ -32,7 +32,7 @@ from collapse_2d_shared import (
 palette_name = 'Bold_10'
 
 n_voters = 5000
-n_cands = 7
+n_cands = 4
 max_trials = 100_000
 frames_per_transfer = 60
 disp = 0.8  # 0.5 is worst-case center squeeze
