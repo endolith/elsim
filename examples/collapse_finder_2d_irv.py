@@ -16,6 +16,7 @@ import numpy as np
 from PIL import Image
 
 from elsim.methods._common import _inc_pointer, _tally_at_pointer
+from elsim.methods import ranked_election_to_matrix
 from elsim.strategies import honest_rankings
 from elsim.elections import normal_electorate, normed_dist_utilities
 
@@ -26,6 +27,7 @@ from collapse_2d_shared import (
     setup_scatter_axis_sigma,
     voronoi_plot_2d_axes,
 )
+from collapse_utils import count_wins
 
 
 # palette_name = 'Set3_12'
@@ -47,6 +49,21 @@ def candidate_name(candidate_index):
 def ceildiv(a, b):
     """Ceiling division for positive integers."""
     return -(-a // b)
+
+
+def plot_wins(ax, wins, colors, edgecolor='black', gap=0.1):
+    """Plot head-to-head wins as stacked square blocks per candidate (like 1D collapse_finder)."""
+    n_cands = len(wins)
+    for n in range(n_cands):
+        for i in range(int(wins[n])):
+            ax.bar(n, 1 - gap, bottom=i + i * gap,
+                   color=colors[n],
+                   edgecolor=edgecolor, linewidth=1)
+    ax.set_xticks(range(n_cands))
+    ax.set_xticklabels([chr(65 + n) for n in range(n_cands)])
+    ax.set_xlim(-0.5, n_cands - 0.5)
+    ax.set_ylabel('Head-to-head wins')
+    ax.set_aspect('equal')
 
 
 def simulate_irv_rounds(rankings, candidates):
@@ -146,10 +163,13 @@ def render_frame(
     output_path,
     eliminated=None,
     dark_background=True,
+    rankings=None,
 ):
     """Render one animation frame in the same visual style as T2R examples."""
     if eliminated is None:
         eliminated = set()
+    if rankings is None:
+        rankings = np.tile(np.arange(len(candidates)), (len(voters), 1))
 
     n_cands = len(candidates)
     n_voters = len(voters)
@@ -158,11 +178,12 @@ def render_frame(
     bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color = get_theme(dark_background)
 
     fig = plt.figure(figsize=(9, 7.5), facecolor=bg)
-    ax_sc = plt.subplot2grid(shape=(4, 3), loc=(0, 0), colspan=2, rowspan=4)
-    ax_bar = plt.subplot2grid(shape=(4, 3), loc=(0, 2), rowspan=2)
-    ax_score = plt.subplot2grid(shape=(4, 3), loc=(2, 2), rowspan=2)
+    ax_sc = plt.subplot2grid(shape=(6, 3), loc=(0, 0), colspan=2, rowspan=6)
+    ax_bar = plt.subplot2grid(shape=(6, 3), loc=(0, 2), rowspan=2)
+    ax_score = plt.subplot2grid(shape=(6, 3), loc=(2, 2), rowspan=2)
+    ax_wins = plt.subplot2grid(shape=(6, 3), loc=(4, 2), rowspan=2)
 
-    for ax in (ax_sc, ax_bar, ax_score):
+    for ax in (ax_sc, ax_bar, ax_score, ax_wins):
         ax.set_facecolor(bg)
         ax.tick_params(colors=fg)
         ax.xaxis.label.set_color(fg)
@@ -237,6 +258,11 @@ def render_frame(
     ax_score.set_axisbelow(True)
     ax_score.text(0.5, 1.04, 'Approval [%]', transform=ax_score.transAxes, ha='center', va='center', color=fg)
 
+    election = np.asarray(rankings, dtype=np.intp)
+    matrix = ranked_election_to_matrix(election)
+    wins = count_wins(matrix)
+    plot_wins(ax_wins, wins, active_colors, edgecolor=fg, gap=0.1)
+
     plt.tight_layout()
     plt.savefig(output_path, facecolor=bg, edgecolor='none')
     plt.close(fig)
@@ -272,6 +298,8 @@ print('Final two:', candidate_name(final_two[0]), candidate_name(final_two[1]))
 
 np.savez(output_dir / 'positions.npz', voters=voters, candidates=candidates)
 
+rankings = np.asarray(honest_rankings(normed_dist_utilities(voters, candidates)))
+
 frame = 0
 initial = rounds[0]
 render_frame(
@@ -285,6 +313,7 @@ render_frame(
     output_path=output_dir / f'{frame:04d}.png',
     eliminated=set(),
     dark_background=dark_background,
+    rankings=rankings,
 )
 frame += 1
 
@@ -309,6 +338,7 @@ for round_index, round_data in enumerate(rounds, start=1):
         output_path=output_dir / f'{frame:04d}.png',
         eliminated=eliminated_now,
         dark_background=dark_background,
+        rankings=rankings,
     )
     frame += 1
 
@@ -336,6 +366,7 @@ for round_index, round_data in enumerate(rounds, start=1):
             output_path=output_dir / f'{frame:04d}.png',
             eliminated=eliminated_now,
             dark_background=dark_background,
+            rankings=rankings,
         )
         frame += 1
 
@@ -352,6 +383,7 @@ render_frame(
     output_path=output_dir / f'{frame:04d}.png',
     eliminated=set(range(n_cands)) - set(final_two),
     dark_background=dark_background,
+    rankings=rankings,
 )
 
 frame_paths = sorted(output_dir.glob('*.png'))
