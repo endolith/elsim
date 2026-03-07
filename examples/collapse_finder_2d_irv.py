@@ -51,19 +51,30 @@ def ceildiv(a, b):
     return -(-a // b)
 
 
-def plot_wins(ax, wins, colors, edgecolor='black', gap=0.1):
-    """Plot head-to-head wins as stacked square blocks per candidate (like 1D collapse_finder)."""
+def plot_wins(ax, wins, colors, edgecolor='black', gap=0.15):
+    """
+    Plot head-to-head wins as stacked square blocks per candidate.
+    Blocks are square, symmetrically spaced between integer y-ticks (gap above and below),
+    with similar horizontal spacing between columns. Title at top; no y-axis label.
+    """
     n_cands = len(wins)
+    block = 1.0 - 2 * gap
+    max_w = max(wins) if wins else 0
+
     for n in range(n_cands):
         for i in range(int(wins[n])):
-            ax.bar(n, 1 - gap, bottom=i + i * gap,
+            bottom = i + gap
+            ax.bar(n, block, bottom=bottom, width=block,
                    color=colors[n],
                    edgecolor=edgecolor, linewidth=1)
+
     ax.set_xticks(range(n_cands))
     ax.set_xticklabels([chr(65 + n) for n in range(n_cands)])
     ax.set_xlim(-0.5, n_cands - 0.5)
-    ax.set_ylabel('Head-to-head wins')
+    ax.set_ylim(-0.5, max_w + 0.5 if max_w > 0 else 1.0)
     ax.set_aspect('equal')
+    ax.set_title('Head-to-head wins')
+    ax.set_ylabel('')
 
 
 def simulate_irv_rounds(rankings, candidates):
