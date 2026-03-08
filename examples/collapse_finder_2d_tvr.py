@@ -40,7 +40,8 @@ from collapse_utils import count_wins
 # ── Configuration ────────────────────────────────────────────────────────────
 
 # Path to positions.npz from IRV run, or None to search
-INPUT_POSITIONS = r".\Images\collapse_2d_irv_20260307_005817_nc9_nv5000\positions.npz"
+# INPUT_POSITIONS = r".\Images\collapse_2d_irv_20260307_005817_nc9_nv5000\positions.npz"
+INPUT_POSITIONS = r".\Images\collapse_2d_irv_20260307_181044_nc9_nv5000\positions.npz"
 
 palette_name = 'Bold_10'
 
@@ -197,6 +198,7 @@ def plot_wins(ax, wins, colors, labels, edgecolor='black', gap=0.15):
 def render_frame(
     voters,
     candidates,
+    ballots,
     borda_scores,
     n_borda_active,
     colors,
@@ -210,6 +212,11 @@ def render_frame(
 ):
     """Render one TVR animation frame.
 
+    ballots : ndarray of shape (n_voters,)
+        Per-voter current first-choice candidate index.  Voters whose first
+        choice is in `eliminated` are shown gray; others are colored by their
+        first choice.  Updated incrementally during the transfer animation,
+        exactly like the IRV script.
     borda_scores : ndarray of shape (n_cands,)
         Current Borda scores.  For candidates still active (including the loser
         currently being animated out), their scores may be non-zero.  For
@@ -259,18 +266,11 @@ def render_frame(
 
     path_effects = [PathEffects.withStroke(linewidth=3, foreground=stroke_fg)]
 
-    # Color voters by their first preference among remaining candidates.
-    # Compute first-preference ballots from the original rankings for display only;
-    # we pass 'ballots' directly as the IRV script does.  Here we color by which
-    # remaining candidate each voter most prefers (closest).
-    dists_voters = np.linalg.norm(
-        voters[:, np.newaxis, :] - candidates[np.newaxis, remaining, :], axis=2
-    )
-    nearest_remaining_idx = np.argmin(dists_voters, axis=1)
-    nearest_cand = np.array(remaining)[nearest_remaining_idx]
-
-    for cand in remaining:
-        cand_voters = voters[nearest_cand == cand]
+    # Color voters by their current first-choice candidate (the `ballots` array),
+    # exactly like the IRV animation.  Voters whose first choice is in `eliminated`
+    # are shown gray (active_colors handles this since eliminated candidates get gray).
+    for cand in range(len(candidates)):
+        cand_voters = voters[ballots == cand]
         if len(cand_voters):
             ax_sc.scatter(cand_voters[:, 0], cand_voters[:, 1],
                           color=active_colors[cand], **voters_kwargs)
@@ -426,11 +426,16 @@ rng = np.random.default_rng()
 frame = 0
 eliminated = set()
 
+# Per-voter current first-choice pointer, mirroring the IRV animation.
+# rankings[:, 0] is always active initially (no one eliminated yet).
+ballots = rankings[:, 0].copy()
+
 # Initial frame: full Borda scores, no one eliminated.
 initial_borda = rounds[0]['borda_before']
 render_frame(
     voters=voters,
     candidates=candidates,
+    ballots=ballots,
     borda_scores=initial_borda,
     n_borda_active=n_cands,
     colors=colors,
@@ -452,11 +457,12 @@ for round_index, round_data in enumerate(rounds[:-1], start=1):
     n_borda_active_this_round = n_cands - len(eliminated)
 
     # Elimination frame: loser grayed out but bar still shows their full Borda score.
-    # Tallies are unchanged — transfer animation comes next.
+    # Voters whose first choice is the loser turn gray here; transfers come next.
     title = f'Round {round_index}: eliminate {candidate_name(loser)}'
     render_frame(
         voters=voters,
         candidates=candidates,
+        ballots=ballots,
         borda_scores=round_data['borda_before'],
         n_borda_active=n_borda_active_this_round,
         colors=colors,
@@ -472,6 +478,7 @@ for round_index, round_data in enumerate(rounds[:-1], start=1):
 
     # Transfer frames: remove loser from one voter's ballot at a time.
     # Their lower-ranked candidates gain +1 Borda; loser loses their contribution.
+    # Voters whose first choice was the loser get re-colored to their next active choice.
     all_voters = np.arange(len(voters))
     rng.shuffle(all_voters)
     per_frame = max(1, ceildiv(len(all_voters), frames_per_transfer))
@@ -487,15 +494,22 @@ for round_index, round_data in enumerate(rounds[:-1], start=1):
         for v in batch:
             # promoted[v] = active candidates voter ranked below the loser.
             # When loser is removed: each gains +1 Borda; loser loses len(promoted[v]).
-            # (loser_pos_among_active = n_active - 1 - len(promoted[v]),
-            #  so loser's Borda contribution from this voter = len(promoted[v]))
             running_borda[loser] -= len(promoted_per_voter[v])
             for c in promoted_per_voter[v]:
                 running_borda[c] += 1.0
 
+            # Advance this voter's displayed first-choice pointer past the loser,
+            # exactly as the IRV animation does with _inc_pointer.
+            if ballots[v] == loser:
+                for cand in rankings[v]:
+                    if cand not in eliminated_now:
+                        ballots[v] = cand
+                        break
+
         render_frame(
             voters=voters,
             candidates=candidates,
+            ballots=ballots,
             borda_scores=running_borda,
             n_borda_active=n_borda_active_this_round,
             colors=colors,
@@ -517,6 +531,7 @@ for round_index, round_data in enumerate(rounds[:-1], start=1):
 render_frame(
     voters=voters,
     candidates=candidates,
+    ballots=ballots,
     borda_scores=rounds[-1]['borda_before'],
     n_borda_active=2,
     colors=colors,
