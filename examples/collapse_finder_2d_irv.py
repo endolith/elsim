@@ -283,103 +283,81 @@ def render_frame(
     plt.close(fig)
 
 
-timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-output_dir = Path('Images') / f'collapse_2d_irv_{timestamp}_nc{n_cands}_nv{n_voters}'
-output_dir.mkdir(parents=True, exist_ok=True)
+def run_irv_animation(
+    voters,
+    candidates,
+    rankings,
+    trace,
+    output_dir,
+    *,
+    palette_name='Bold_10',
+    n_cands=None,
+    n_voters=None,
+    frames_per_transfer=60,
+    dark_background=True,
+):
+    """Render IRV center-outward animation and save frames + GIF to output_dir.
 
-colors = get_palette_colors(palette_name)
-if not dark_background and palette_name == 'Set1_9' and len(colors) > 5:
-    colors.pop(5)  # Yellow has low visibility on white backgrounds
-if n_cands > len(colors):
-    raise ValueError(
-        f'n_cands={n_cands} exceeds palette "{palette_name}" size ({len(colors)}). '
-        'Use fewer candidates or a larger palette.'
-    )
+    output_dir is created if needed. Caller can pass n_cands/n_voters for labels
+    (defaults from candidates/voters shape).
+    """
+    n_cands = len(candidates) if n_cands is None else n_cands
+    n_voters = len(voters) if n_voters is None else n_voters
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-colors = colors[:n_cands]
-labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
+    colors = get_palette_colors(palette_name)
+    if not dark_background and palette_name == 'Set1_9' and len(colors) > 5:
+        colors.pop(5)
+    if n_cands > len(colors):
+        raise ValueError(
+            f'n_cands={n_cands} exceeds palette "{palette_name}" size ({len(colors)}). '
+            'Use fewer candidates or a larger palette.'
+        )
+    colors = colors[:n_cands]
+    labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
 
-result = find_center_outward_election(n_voters, n_cands, max_trials, disp=disp)
-if result is None:
-    raise RuntimeError('No strict center-outward collapse found. Increase max_trials or reduce n_cands.')
+    rounds = trace['rounds']
+    final_two = trace['final_two']
 
-trial, voters, candidates, rankings, trace = result
-rounds = trace['rounds']
-final_two = trace['final_two']
+    np.savez(output_dir / 'positions.npz', voters=voters, candidates=candidates)
 
-print(f'Found strict center-outward IRV collapse on trial {trial}.')
-print('Elimination order:', ' -> '.join(candidate_name(r['loser']) for r in rounds))
-print('Final two:', candidate_name(final_two[0]), candidate_name(final_two[1]))
+    utilities = normed_dist_utilities(voters, candidates)
+    approval_pct = utilities.mean(axis=0) * 100
+    wins = count_wins(ranked_election_to_matrix(rankings))
 
-np.savez(output_dir / 'positions.npz', voters=voters, candidates=candidates)
-
-# Precompute constants used in every frame.
-utilities = normed_dist_utilities(voters, candidates)
-approval_pct = utilities.mean(axis=0) * 100
-wins = count_wins(ranked_election_to_matrix(rankings))
-
-frame = 0
-initial = rounds[0]
-render_frame(
-    voters=voters,
-    candidates=candidates,
-    ballots=initial['ballots_before'],
-    tallies=initial['tallies_before'],
-    colors=colors,
-    labels=labels,
-    frame_title='IRV start',
-    output_path=output_dir / f'{frame:04d}.png',
-    approval_pct=approval_pct,
-    wins=wins,
-    eliminated=set(),
-    dark_background=dark_background,
-)
-frame += 1
-
-rng = np.random.default_rng()
-eliminated = set()
-
-for round_index, round_data in enumerate(rounds, start=1):
-    loser = round_data['loser']
-    eliminated_now = set(eliminated)
-    eliminated_now.add(loser)
-
-    # Elimination frame: loser and their voters turn gray, tallies unchanged
-    title = f'Round {round_index}: eliminate {candidate_name(loser)}'
+    frame = 0
+    initial = rounds[0]
     render_frame(
         voters=voters,
         candidates=candidates,
-        ballots=round_data['ballots_before'],
-        tallies=round_data['tallies_before'],
+        ballots=initial['ballots_before'],
+        tallies=initial['tallies_before'],
         colors=colors,
         labels=labels,
-        frame_title=title,
+        frame_title='IRV start',
         output_path=output_dir / f'{frame:04d}.png',
         approval_pct=approval_pct,
         wins=wins,
-        eliminated=eliminated_now,
+        eliminated=set(),
         dark_background=dark_background,
     )
     frame += 1
 
-    # Transfer frames: votes move from eliminated candidate to next choice
-    ballots = round_data['ballots_before'].copy()
-    affected = round_data['affected_voters'].copy()
-    rng.shuffle(affected)
-    per_frame = max(1, ceildiv(len(affected), frames_per_transfer))
+    rng = np.random.default_rng()
+    eliminated = set()
 
-    for step in range(frames_per_transfer):
-        lo = step * per_frame
-        hi = lo + per_frame
-        changing = affected[lo:hi]
-        ballots[changing] = round_data['ballots_after'][changing]
-        tallies = np.bincount(ballots, minlength=n_cands)
+    for round_index, round_data in enumerate(rounds, start=1):
+        loser = round_data['loser']
+        eliminated_now = set(eliminated)
+        eliminated_now.add(loser)
 
+        title = f'Round {round_index}: eliminate {candidate_name(loser)}'
         render_frame(
             voters=voters,
             candidates=candidates,
-            ballots=ballots,
-            tallies=tallies,
+            ballots=round_data['ballots_before'],
+            tallies=round_data['tallies_before'],
             colors=colors,
             labels=labels,
             frame_title=title,
@@ -391,34 +369,86 @@ for round_index, round_data in enumerate(rounds, start=1):
         )
         frame += 1
 
-    eliminated.add(loser)
+        ballots = round_data['ballots_before'].copy()
+        affected = round_data['affected_voters'].copy()
+        rng.shuffle(affected)
+        per_frame = max(1, ceildiv(len(affected), frames_per_transfer))
 
-render_frame(
-    voters=voters,
-    candidates=candidates,
-    ballots=trace['final_ballots'],
-    tallies=trace['final_tallies'],
-    colors=colors,
-    labels=labels,
-    frame_title=f'Final two: {candidate_name(final_two[0])} vs {candidate_name(final_two[1])}',
-    output_path=output_dir / f'{frame:04d}.png',
-    approval_pct=approval_pct,
-    wins=wins,
-    eliminated=set(range(n_cands)) - set(final_two),
-    dark_background=dark_background,
-)
+        for step in range(frames_per_transfer):
+            lo = step * per_frame
+            hi = lo + per_frame
+            changing = affected[lo:hi]
+            ballots[changing] = round_data['ballots_after'][changing]
+            tallies = np.bincount(ballots, minlength=n_cands)
 
-frame_paths = sorted(output_dir.glob('*.png'))
-images = [Image.open(p) for p in frame_paths]
-gif_path = output_dir / 'collapse_2d_irv.gif'
-images[0].save(
-    gif_path,
-    save_all=True,
-    append_images=images[1:],
-    duration=50,
-    loop=0,
-)
-for im in images:
-    im.close()
+            render_frame(
+                voters=voters,
+                candidates=candidates,
+                ballots=ballots,
+                tallies=tallies,
+                colors=colors,
+                labels=labels,
+                frame_title=title,
+                output_path=output_dir / f'{frame:04d}.png',
+                approval_pct=approval_pct,
+                wins=wins,
+                eliminated=eliminated_now,
+                dark_background=dark_background,
+            )
+            frame += 1
 
-print(f'Saved frames and GIF to {output_dir.resolve()}')
+        eliminated.add(loser)
+
+    render_frame(
+        voters=voters,
+        candidates=candidates,
+        ballots=trace['final_ballots'],
+        tallies=trace['final_tallies'],
+        colors=colors,
+        labels=labels,
+        frame_title=f'Final two: {candidate_name(final_two[0])} vs {candidate_name(final_two[1])}',
+        output_path=output_dir / f'{frame:04d}.png',
+        approval_pct=approval_pct,
+        wins=wins,
+        eliminated=set(range(n_cands)) - set(final_two),
+        dark_background=dark_background,
+    )
+
+    frame_paths = sorted(output_dir.glob('*.png'))
+    images = [Image.open(p) for p in frame_paths]
+    gif_path = output_dir / 'collapse_2d_irv.gif'
+    images[0].save(
+        gif_path,
+        save_all=True,
+        append_images=images[1:],
+        duration=50,
+        loop=0,
+    )
+    for im in images:
+        im.close()
+
+    return output_dir
+
+
+if __name__ == '__main__':
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    output_dir = Path('Images') / f'collapse_2d_irv_{timestamp}_nc{n_cands}_nv{n_voters}'
+
+    result = find_center_outward_election(n_voters, n_cands, max_trials, disp=disp)
+    if result is None:
+        raise RuntimeError('No strict center-outward collapse found. Increase max_trials or reduce n_cands.')
+
+    trial, voters, candidates, rankings, trace = result
+    print(f'Found strict center-outward IRV collapse on trial {trial}.')
+    print('Elimination order:', ' -> '.join(candidate_name(r['loser']) for r in trace['rounds']))
+    print('Final two:', candidate_name(trace['final_two'][0]), candidate_name(trace['final_two'][1]))
+
+    run_irv_animation(
+        voters, candidates, rankings, trace, output_dir,
+        palette_name=palette_name,
+        n_cands=n_cands,
+        n_voters=n_voters,
+        frames_per_transfer=frames_per_transfer,
+        dark_background=dark_background,
+    )
+    print(f'Saved frames and GIF to {output_dir.resolve()}')
