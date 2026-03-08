@@ -326,6 +326,12 @@ def run_irv_animation(
     approval_pct = utilities.mean(axis=0) * 100
     wins = count_wins(ranked_election_to_matrix(rankings))
 
+    KEY_FRAME_MS = 3000
+    TRANSITION_TOTAL_MS = 3000
+    n_transfer = frames_per_transfer
+    transfer_step_ms = TRANSITION_TOTAL_MS // max(1, n_transfer - 1) if n_transfer > 1 else 0
+    durations = []
+
     frame = 0
     initial = rounds[0]
     render_frame(
@@ -342,6 +348,7 @@ def run_irv_animation(
         eliminated=set(),
         dark_background=dark_background,
     )
+    durations.append(KEY_FRAME_MS)
     frame += 1
 
     rng = np.random.default_rng()
@@ -367,6 +374,7 @@ def run_irv_animation(
             eliminated=eliminated_now,
             dark_background=dark_background,
         )
+        durations.append(KEY_FRAME_MS)
         frame += 1
 
         ballots = round_data['ballots_before'].copy()
@@ -392,10 +400,12 @@ def run_irv_animation(
                 output_path=output_dir / f'{frame:04d}.png',
                 approval_pct=approval_pct,
                 wins=wins,
-                eliminated=eliminated_now,
-                dark_background=dark_background,
-            )
-            frame += 1
+            eliminated=eliminated_now,
+            dark_background=dark_background,
+        )
+        is_last_transfer = (step == frames_per_transfer - 1)
+        durations.append(KEY_FRAME_MS if is_last_transfer else transfer_step_ms)
+        frame += 1
 
         eliminated.add(loser)
 
@@ -413,6 +423,7 @@ def run_irv_animation(
         eliminated=set(range(n_cands)) - set(final_two),
         dark_background=dark_background,
     )
+    durations.append(KEY_FRAME_MS)
 
     frame_paths = sorted(output_dir.glob('*.png'))
     images = [Image.open(p) for p in frame_paths]
@@ -421,7 +432,7 @@ def run_irv_animation(
         gif_path,
         save_all=True,
         append_images=images[1:],
-        duration=50,
+        duration=durations,
         loop=0,
     )
     for im in images:

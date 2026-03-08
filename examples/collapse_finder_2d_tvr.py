@@ -405,6 +405,12 @@ def run_tvr_animation(
     approval_pct = utilities.mean(axis=0) * 100
     wins = count_wins(ranked_election_to_matrix(rankings))
 
+    KEY_FRAME_MS = 3000
+    TRANSITION_TOTAL_MS = 3000
+    n_transfer = frames_per_transfer
+    transfer_step_ms = TRANSITION_TOTAL_MS // max(1, n_transfer - 1) if n_transfer > 1 else 0
+    durations = []
+
     rng = np.random.default_rng()
     frame = 0
     eliminated = set()
@@ -426,6 +432,7 @@ def run_tvr_animation(
         eliminated=set(),
         dark_background=dark_background,
     )
+    durations.append(KEY_FRAME_MS)
     frame += 1
 
     for round_index, round_data in enumerate(rounds[:-1], start=1):
@@ -449,6 +456,7 @@ def run_tvr_animation(
             eliminated=eliminated_now,
             dark_background=dark_background,
         )
+        durations.append(KEY_FRAME_MS)
         frame += 1
 
         all_voters = np.arange(len(voters))
@@ -489,6 +497,8 @@ def run_tvr_animation(
                 eliminated=eliminated_now,
                 dark_background=dark_background,
             )
+            is_last_transfer = (step == frames_per_transfer - 1)
+            durations.append(KEY_FRAME_MS if is_last_transfer else transfer_step_ms)
             frame += 1
 
         eliminated.add(loser)
@@ -508,6 +518,7 @@ def run_tvr_animation(
         eliminated=set(range(n_cands)) - set(final_two),
         dark_background=dark_background,
     )
+    durations.append(KEY_FRAME_MS)
 
     frame_paths = sorted(output_dir.glob('*.png'))
     images = [Image.open(p) for p in frame_paths]
@@ -516,7 +527,7 @@ def run_tvr_animation(
         gif_path,
         save_all=True,
         append_images=images[1:],
-        duration=50,
+        duration=durations,
         loop=0,
     )
     for im in images:
