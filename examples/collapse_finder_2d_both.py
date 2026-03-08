@@ -24,6 +24,10 @@ from collapse_finder_2d_tvr import simulate_tvr_rounds, run_tvr_animation
 
 # ── Config (match IRV/TVR scripts) ────────────────────────────────────────────
 
+# Path to positions.npz from a previous run, or None to search for a new election.
+INPUT_POSITIONS = Path('Images/collapse_2d_both_20260308_141324_nc9_nv5000 great/positions.npz')
+# INPUT_POSITIONS = None
+
 palette_name = 'Bold_10'
 n_voters = 5000
 n_cands = 9
@@ -60,14 +64,33 @@ def find_both_election(n_voters, n_cands, max_trials, disp=1.0):
 
 
 if __name__ == '__main__':
-    result = find_both_election(n_voters, n_cands, max_trials, disp=disp)
-    if result is None:
-        raise RuntimeError(
-            'No election found that satisfies both IRV center-outward and TVR '
-            'center-winner. Increase max_trials or reduce n_cands.'
-        )
-
-    trial, voters, candidates, rankings, irv_trace, tvr_trace = result
+    if INPUT_POSITIONS is not None:
+        data = np.load(INPUT_POSITIONS)
+        voters = data['voters']
+        candidates = data['candidates']
+        utilities = normed_dist_utilities(voters, candidates)
+        rankings = np.asarray(honest_rankings(utilities))
+        irv_trace = simulate_irv_rounds(rankings, candidates)
+        tvr_trace = simulate_tvr_rounds(rankings, candidates)
+        if irv_trace is None:
+            raise RuntimeError(
+                f'IRV did not yield center-outward order for {INPUT_POSITIONS}.'
+            )
+        if tvr_trace is None:
+            raise RuntimeError(
+                f'TVR did not converge to center for {INPUT_POSITIONS}.'
+            )
+        trial = None
+        print(f'Loaded election from {INPUT_POSITIONS}.')
+    else:
+        result = find_both_election(n_voters, n_cands, max_trials, disp=disp)
+        if result is None:
+            raise RuntimeError(
+                'No election found that satisfies both IRV center-outward and TVR '
+                'center-winner. Increase max_trials or reduce n_cands.'
+            )
+        trial, voters, candidates, rankings, irv_trace, tvr_trace = result
+        print(f'Found election on trial {trial} (IRV center-outward + TVR center winner).')
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     output_dir = Path('Images') / f'collapse_2d_both_{timestamp}_nc{n_cands}_nv{n_voters}'
@@ -75,7 +98,6 @@ if __name__ == '__main__':
 
     np.savez(output_dir / 'positions.npz', voters=voters, candidates=candidates)
 
-    print(f'Found election on trial {trial} (IRV center-outward + TVR center winner).')
     print('Rendering IRV animation...')
     run_irv_animation(
         voters, candidates, rankings, irv_trace, output_dir / 'irv',
