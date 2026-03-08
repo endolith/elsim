@@ -39,9 +39,8 @@ from collapse_utils import count_wins
 
 # ── Configuration ────────────────────────────────────────────────────────────
 
-# Path to positions.npz from IRV run, or None to search
-# INPUT_POSITIONS = r".\Images\collapse_2d_irv_20260307_005817_nc9_nv5000\positions.npz"
-INPUT_POSITIONS = r".\Images\collapse_2d_irv_20260307_181044_nc9_nv5000\positions.npz"
+# Path to positions.npz from a previous run, or None to search for a fresh election.
+INPUT_POSITIONS = None
 
 palette_name = 'Bold_10'
 
@@ -366,151 +365,80 @@ def render_frame(
     plt.close(fig)
 
 
-# ── Election loading / search ──────────────────────────────────────────────────
+def run_tvr_animation(
+    voters,
+    candidates,
+    rankings,
+    trace,
+    output_dir,
+    *,
+    palette_name='Bold_10',
+    n_cands=None,
+    n_voters=None,
+    frames_per_transfer=60,
+    dark_background=True,
+):
+    """Render TVR (Baldwin) animation and save frames + GIF to output_dir."""
+    n_cands = len(candidates) if n_cands is None else n_cands
+    n_voters = len(voters) if n_voters is None else n_voters
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-output_dir = Path('Images') / f'collapse_2d_tvr_{timestamp}_nc{n_cands}_nv{n_voters}'
-output_dir.mkdir(parents=True, exist_ok=True)
-
-colors = get_palette_colors(palette_name)
-if not dark_background and palette_name == 'Set1_9' and len(colors) > 5:
-    colors.pop(5)  # Yellow has low visibility on white backgrounds
-if n_cands > len(colors):
-    raise ValueError(
-        f'n_cands={n_cands} exceeds palette "{palette_name}" size ({len(colors)}). '
-        'Use fewer candidates or a larger palette.'
-    )
-colors = colors[:n_cands]
-labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
-
-if INPUT_POSITIONS is not None:
-    data = np.load(INPUT_POSITIONS)
-    voters = data['voters']
-    candidates = data['candidates']
-    utilities = normed_dist_utilities(voters, candidates)
-    rankings = np.asarray(honest_rankings(utilities))
-    trace = simulate_tvr_rounds(rankings, candidates)
-    if trace is None:
-        raise RuntimeError(
-            f'TVR did not converge to center candidate for the election in '
-            f'{INPUT_POSITIONS}.  Try a different positions.npz.'
+    colors = get_palette_colors(palette_name)
+    if not dark_background and palette_name == 'Set1_9' and len(colors) > 5:
+        colors.pop(5)
+    if n_cands > len(colors):
+        raise ValueError(
+            f'n_cands={n_cands} exceeds palette "{palette_name}" size ({len(colors)}). '
+            'Use fewer candidates or a larger palette.'
         )
-    trial = 0
-    print(f'Loaded election from {INPUT_POSITIONS}.')
-else:
-    result = find_center_convergent_election(n_voters, n_cands, max_trials, disp=disp)
-    if result is None:
-        raise RuntimeError(
-            'No TVR-convergent center election found. '
-            'Increase max_trials or reduce n_cands.'
-        )
-    trial, voters, candidates, rankings, trace = result
+    colors = colors[:n_cands]
+    labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
+
+    rounds = trace['rounds']
+    winner = trace['winner']
+    final_two = trace['final_two']
+
     np.savez(output_dir / 'positions.npz', voters=voters, candidates=candidates)
-    print(f'Found TVR-convergent election on trial {trial}.')
 
-rounds = trace['rounds']
-winner = trace['winner']
-final_two = trace['final_two']
+    utilities = normed_dist_utilities(voters, candidates)
+    approval_pct = utilities.mean(axis=0) * 100
+    wins = count_wins(ranked_election_to_matrix(rankings))
 
-print('TVR elimination order:', ' -> '.join(candidate_name(r['loser']) for r in rounds))
-print('TVR winner:', candidate_name(winner))
+    rng = np.random.default_rng()
+    frame = 0
+    eliminated = set()
+    ballots = rankings[:, 0].copy()
 
-# Precompute constants used in every frame.
-utilities = normed_dist_utilities(voters, candidates)
-approval_pct = utilities.mean(axis=0) * 100
-wins = count_wins(ranked_election_to_matrix(rankings))
-
-# ── Animation ─────────────────────────────────────────────────────────────────
-
-rng = np.random.default_rng()
-frame = 0
-eliminated = set()
-
-# Per-voter current first-choice pointer, mirroring the IRV animation.
-# rankings[:, 0] is always active initially (no one eliminated yet).
-ballots = rankings[:, 0].copy()
-
-# Initial frame: full Borda scores, no one eliminated.
-initial_borda = rounds[0]['borda_before']
-render_frame(
-    voters=voters,
-    candidates=candidates,
-    ballots=ballots,
-    borda_scores=initial_borda,
-    n_borda_active=n_cands,
-    colors=colors,
-    labels=labels,
-    frame_title='TVR start',
-    output_path=output_dir / f'{frame:04d}.png',
-    approval_pct=approval_pct,
-    wins=wins,
-    eliminated=set(),
-    dark_background=dark_background,
-)
-frame += 1
-
-# Animate all rounds except the last: stop when 2 candidates remain, mirroring IRV.
-for round_index, round_data in enumerate(rounds[:-1], start=1):
-    loser = round_data['loser']
-    eliminated_now = set(eliminated) | {loser}
-    # n_borda_active = active-set size when borda_before was tallied (includes the loser).
-    n_borda_active_this_round = n_cands - len(eliminated)
-
-    # Elimination frame: loser grayed out but bar still shows their full Borda score.
-    # Voters whose first choice is the loser turn gray here; transfers come next.
-    title = f'Round {round_index}: eliminate {candidate_name(loser)}'
+    initial_borda = rounds[0]['borda_before']
     render_frame(
         voters=voters,
         candidates=candidates,
         ballots=ballots,
-        borda_scores=round_data['borda_before'],
-        n_borda_active=n_borda_active_this_round,
+        borda_scores=initial_borda,
+        n_borda_active=n_cands,
         colors=colors,
         labels=labels,
-        frame_title=title,
+        frame_title='TVR start',
         output_path=output_dir / f'{frame:04d}.png',
         approval_pct=approval_pct,
         wins=wins,
-        eliminated=eliminated_now,
+        eliminated=set(),
         dark_background=dark_background,
     )
     frame += 1
 
-    # Transfer frames: remove loser from one voter's ballot at a time.
-    # Their lower-ranked candidates gain +1 Borda; loser loses their contribution.
-    # Voters whose first choice was the loser get re-colored to their next active choice.
-    all_voters = np.arange(len(voters))
-    rng.shuffle(all_voters)
-    per_frame = max(1, ceildiv(len(all_voters), frames_per_transfer))
+    for round_index, round_data in enumerate(rounds[:-1], start=1):
+        loser = round_data['loser']
+        eliminated_now = set(eliminated) | {loser}
+        n_borda_active_this_round = n_cands - len(eliminated)
 
-    running_borda = round_data['borda_before'].copy()
-    promoted_per_voter = round_data['promoted_per_voter']
-
-    for step in range(frames_per_transfer):
-        lo = step * per_frame
-        hi = lo + per_frame
-        batch = all_voters[lo:hi]
-
-        for v in batch:
-            # promoted[v] = active candidates voter ranked below the loser.
-            # When loser is removed: each gains +1 Borda; loser loses len(promoted[v]).
-            running_borda[loser] -= len(promoted_per_voter[v])
-            for c in promoted_per_voter[v]:
-                running_borda[c] += 1.0
-
-            # Advance this voter's displayed first-choice pointer past the loser,
-            # exactly as the IRV animation does with _inc_pointer.
-            if ballots[v] == loser:
-                for cand in rankings[v]:
-                    if cand not in eliminated_now:
-                        ballots[v] = cand
-                        break
-
+        title = f'Round {round_index}: eliminate {candidate_name(loser)}'
         render_frame(
             voters=voters,
             candidates=candidates,
             ballots=ballots,
-            borda_scores=running_borda,
+            borda_scores=round_data['borda_before'],
             n_borda_active=n_borda_active_this_round,
             colors=colors,
             labels=labels,
@@ -523,40 +451,116 @@ for round_index, round_data in enumerate(rounds[:-1], start=1):
         )
         frame += 1
 
-    eliminated.add(loser)
+        all_voters = np.arange(len(voters))
+        rng.shuffle(all_voters)
+        per_frame = max(1, ceildiv(len(all_voters), frames_per_transfer))
 
-# Final frame: show the last two candidates with their Borda scores from the
-# final 2-candidate round.  The winner is the one with the higher Borda score
-# (lower avg rank) among the pair.
-render_frame(
-    voters=voters,
-    candidates=candidates,
-    ballots=ballots,
-    borda_scores=rounds[-1]['borda_before'],
-    n_borda_active=2,
-    colors=colors,
-    labels=labels,
-    frame_title=f'TVR winner: {candidate_name(winner)}',
-    output_path=output_dir / f'{frame:04d}.png',
-    approval_pct=approval_pct,
-    wins=wins,
-    eliminated=set(range(n_cands)) - set(final_two),
-    dark_background=dark_background,
-)
+        running_borda = round_data['borda_before'].copy()
+        promoted_per_voter = round_data['promoted_per_voter']
 
-# ── Build GIF ─────────────────────────────────────────────────────────────────
+        for step in range(frames_per_transfer):
+            lo = step * per_frame
+            hi = lo + per_frame
+            batch = all_voters[lo:hi]
 
-frame_paths = sorted(output_dir.glob('*.png'))
-images = [Image.open(p) for p in frame_paths]
-gif_path = output_dir / 'collapse_2d_tvr.gif'
-images[0].save(
-    gif_path,
-    save_all=True,
-    append_images=images[1:],
-    duration=50,
-    loop=0,
-)
-for im in images:
-    im.close()
+            for v in batch:
+                running_borda[loser] -= len(promoted_per_voter[v])
+                for c in promoted_per_voter[v]:
+                    running_borda[c] += 1.0
 
-print(f'Saved frames and GIF to {output_dir.resolve()}')
+                if ballots[v] == loser:
+                    for cand in rankings[v]:
+                        if cand not in eliminated_now:
+                            ballots[v] = cand
+                            break
+
+            render_frame(
+                voters=voters,
+                candidates=candidates,
+                ballots=ballots,
+                borda_scores=running_borda,
+                n_borda_active=n_borda_active_this_round,
+                colors=colors,
+                labels=labels,
+                frame_title=title,
+                output_path=output_dir / f'{frame:04d}.png',
+                approval_pct=approval_pct,
+                wins=wins,
+                eliminated=eliminated_now,
+                dark_background=dark_background,
+            )
+            frame += 1
+
+        eliminated.add(loser)
+
+    render_frame(
+        voters=voters,
+        candidates=candidates,
+        ballots=ballots,
+        borda_scores=rounds[-1]['borda_before'],
+        n_borda_active=2,
+        colors=colors,
+        labels=labels,
+        frame_title=f'TVR winner: {candidate_name(winner)}',
+        output_path=output_dir / f'{frame:04d}.png',
+        approval_pct=approval_pct,
+        wins=wins,
+        eliminated=set(range(n_cands)) - set(final_two),
+        dark_background=dark_background,
+    )
+
+    frame_paths = sorted(output_dir.glob('*.png'))
+    images = [Image.open(p) for p in frame_paths]
+    gif_path = output_dir / 'collapse_2d_tvr.gif'
+    images[0].save(
+        gif_path,
+        save_all=True,
+        append_images=images[1:],
+        duration=50,
+        loop=0,
+    )
+    for im in images:
+        im.close()
+
+    return output_dir
+
+
+if __name__ == '__main__':
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    output_dir = Path('Images') / f'collapse_2d_tvr_{timestamp}_nc{n_cands}_nv{n_voters}'
+
+    if INPUT_POSITIONS is not None:
+        data = np.load(INPUT_POSITIONS)
+        voters = data['voters']
+        candidates = data['candidates']
+        utilities = normed_dist_utilities(voters, candidates)
+        rankings = np.asarray(honest_rankings(utilities))
+        trace = simulate_tvr_rounds(rankings, candidates)
+        if trace is None:
+            raise RuntimeError(
+                f'TVR did not converge to center candidate for the election in '
+                f'{INPUT_POSITIONS}.  Try a different positions.npz.'
+            )
+        print(f'Loaded election from {INPUT_POSITIONS}.')
+    else:
+        result = find_center_convergent_election(n_voters, n_cands, max_trials, disp=disp)
+        if result is None:
+            raise RuntimeError(
+                'No TVR-convergent center election found. '
+                'Increase max_trials or reduce n_cands.'
+            )
+        trial, voters, candidates, rankings, trace = result
+        print(f'Found TVR-convergent election on trial {trial}.')
+
+    print('TVR elimination order:', ' -> '.join(candidate_name(r['loser']) for r in trace['rounds']))
+    print('TVR winner:', candidate_name(trace['winner']))
+
+    run_tvr_animation(
+        voters, candidates, rankings, trace, output_dir,
+        palette_name=palette_name,
+        n_cands=n_cands,
+        n_voters=n_voters,
+        frames_per_transfer=frames_per_transfer,
+        dark_background=dark_background,
+    )
+    print(f'Saved frames and GIF to {output_dir.resolve()}')
