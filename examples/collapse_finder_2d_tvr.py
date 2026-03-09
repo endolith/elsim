@@ -46,7 +46,7 @@ from collapse_2d_shared import (
 from collapse_utils import count_wins
 
 
-# Script-only: path to positions.npz to reuse an election, or None to search.
+# Path to positions.npz from a previous run, or None to search for a fresh election.
 INPUT_POSITIONS = None
 
 

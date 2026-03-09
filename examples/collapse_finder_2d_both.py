@@ -17,9 +17,6 @@ import numpy as np
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings
 
-from collapse_finder_2d_irv import simulate_irv_rounds, run_irv_animation
-from collapse_finder_2d_tvr import simulate_tvr_rounds, run_tvr_animation
-
 from collapse_2d_shared import (
     sort_candidates_bell_curve,
     palette_name,
@@ -30,8 +27,11 @@ from collapse_2d_shared import (
     disp,
     dark_background,
 )
+from collapse_finder_2d_irv import simulate_irv_rounds, run_irv_animation
+from collapse_finder_2d_tvr import simulate_tvr_rounds, run_tvr_animation
 
-# Script-only: load from this npz instead of searching. Set to None to search.
+
+# Path to positions.npz from a previous run, or None to search for a new election.
 INPUT_POSITIONS = Path('Images/collapse_2d_both_20260308_141324_nc9_nv5000 great/positions.npz')
 # INPUT_POSITIONS = None
 
