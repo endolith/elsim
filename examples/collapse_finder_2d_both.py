@@ -17,24 +17,23 @@ import numpy as np
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings
 
-from collapse_2d_shared import sort_candidates_bell_curve
 from collapse_finder_2d_irv import simulate_irv_rounds, run_irv_animation
 from collapse_finder_2d_tvr import simulate_tvr_rounds, run_tvr_animation
 
+from collapse_2d_shared import (
+    sort_candidates_bell_curve,
+    palette_name,
+    n_voters,
+    n_cands,
+    max_trials,
+    frames_per_transfer,
+    disp,
+    dark_background,
+)
 
-# ── Config (match IRV/TVR scripts) ────────────────────────────────────────────
-
-# Path to positions.npz from a previous run, or None to search for a new election.
+# Script-only: load from this npz instead of searching. Set to None to search.
 INPUT_POSITIONS = Path('Images/collapse_2d_both_20260308_141324_nc9_nv5000 great/positions.npz')
 # INPUT_POSITIONS = None
-
-palette_name = 'Bold_10'
-n_voters = 5000
-n_cands = 9
-max_trials = 100_000
-frames_per_transfer = 60
-disp = 0.5
-dark_background = True
 
 
 def find_both_election(n_voters, n_cands, max_trials, disp=1.0):

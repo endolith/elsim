@@ -1,7 +1,13 @@
 """
-Shared palette, Voronoi, and theme for 2D collapse finder scripts.
+Shared palette, Voronoi, theme, and config for 2D collapse finder scripts.
 
-Used by collapse_finder_2d_irv.py and collapse_finder_2d_palette_demo.py.
+Used by collapse_finder_2d_irv.py, collapse_finder_2d_tvr.py, collapse_finder_2d_both.py,
+and collapse_finder_2d_palette_demo.py.
+
+Config (palette_name, n_voters, n_cands, max_trials, frames_per_transfer, disp,
+dark_background, KEY_FRAME_MS, TRANSITION_TOTAL_MS) is the single source of truth;
+scripts can override by redefining after import if needed.
+
 Blacklist: Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12 omitted (always bad).
 """
 
@@ -36,6 +42,25 @@ PALETTE_OPTIONS = {
     'glasbey_light': ('colorcet', 'glasbey_light'),
     'glasbey_dark': ('colorcet', 'glasbey_dark'),
 }
+
+# ── Shared config for 2D collapse animations (IRV, TVR, both) ─────────────────
+# Override in a script if needed; single source of truth here.
+palette_name = 'Bold_10'
+n_voters = 5000
+n_cands = 9
+max_trials = 100_000
+frames_per_transfer = 60
+disp = 0.5
+dark_background = True
+
+# GIF timing: key frames (start, eliminate, last of transition, winner) and transition total.
+KEY_FRAME_MS = 3000
+TRANSITION_TOTAL_MS = 3000
+
+
+def transition_step_ms(n_transfer):
+    """Per-frame ms for non-final transfer frames so they total TRANSITION_TOTAL_MS."""
+    return TRANSITION_TOTAL_MS // max(1, n_transfer - 1) if n_transfer > 1 else 0
 
 
 def get_palette_colors(name):

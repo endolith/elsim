@@ -28,28 +28,26 @@ from elsim.elections import normal_electorate, normed_dist_utilities
 
 from collapse_2d_shared import (
     PALETTE_OPTIONS,
+    KEY_FRAME_MS,
+    transition_step_ms,
     get_palette_colors,
     get_theme,
     setup_scatter_axis_sigma,
     sort_candidates_bell_curve,
     voronoi_plot_2d_axes,
+    palette_name,
+    n_voters,
+    n_cands,
+    max_trials,
+    frames_per_transfer,
+    disp,
+    dark_background,
 )
 from collapse_utils import count_wins
 
 
-# ── Configuration ────────────────────────────────────────────────────────────
-
-# Path to positions.npz from a previous run, or None to search for a fresh election.
+# Script-only: path to positions.npz to reuse an election, or None to search.
 INPUT_POSITIONS = None
-
-palette_name = 'Bold_10'
-
-n_voters = 5000
-n_cands = 9
-max_trials = 100_000
-frames_per_transfer = 60
-disp = 0.5
-dark_background = True
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -405,10 +403,8 @@ def run_tvr_animation(
     approval_pct = utilities.mean(axis=0) * 100
     wins = count_wins(ranked_election_to_matrix(rankings))
 
-    KEY_FRAME_MS = 3000
-    TRANSITION_TOTAL_MS = 3000
     n_transfer = frames_per_transfer
-    transfer_step_ms = TRANSITION_TOTAL_MS // max(1, n_transfer - 1) if n_transfer > 1 else 0
+    transfer_step_ms = transition_step_ms(n_transfer)
     durations = []
 
     rng = np.random.default_rng()
