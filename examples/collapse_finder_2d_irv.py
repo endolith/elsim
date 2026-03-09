@@ -396,12 +396,12 @@ def run_irv_animation(
                 output_path=output_dir / f'{frame:04d}.png',
                 approval_pct=approval_pct,
                 wins=wins,
-            eliminated=eliminated_now,
-            dark_background=dark_background,
-        )
-        is_last_transfer = (step == frames_per_transfer - 1)
-        durations.append(KEY_FRAME_MS if is_last_transfer else transfer_step_ms)
-        frame += 1
+                eliminated=eliminated_now,
+                dark_background=dark_background,
+            )
+            is_last_transfer = (step == frames_per_transfer - 1)
+            durations.append(KEY_FRAME_MS if is_last_transfer else transfer_step_ms)
+            frame += 1
 
         eliminated.add(loser)
 
