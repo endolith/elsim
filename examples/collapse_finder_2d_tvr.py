@@ -232,7 +232,7 @@ def render_frame(
     active_colors = [colors[n] if n not in eliminated else [0.5, 0.5, 0.5]
                      for n in range(n_cands)]
 
-    bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color = get_theme(dark_background)
+    bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color, dead_zone_color = get_theme(dark_background)
 
     fig = plt.figure(figsize=(9, 7.5), facecolor=bg)
     ax_sc = plt.subplot2grid(shape=(6, 3), loc=(0, 0), colspan=2, rowspan=6)
@@ -318,7 +318,7 @@ def render_frame(
     ax_bar.set_ylim(0, n_cands - 1)
     # Dead zone band: dark shading over the unreachable rank slots.
     if dead_height > 0:
-        ax_bar.axhspan(0, dead_height, color='0.15', zorder=0)
+        ax_bar.axhspan(0, dead_height, color=dead_zone_color, zorder=0)
     # Custom y-ticks: rank labels (1 at top = n_cands-1, n_cands at bottom = 0).
     # Suppress labels inside the dead zone.
     tick_vals = list(range(n_cands))
