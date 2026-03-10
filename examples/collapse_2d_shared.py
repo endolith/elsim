@@ -156,15 +156,17 @@ def sort_candidates_bell_curve(candidates):
 
 
 def get_theme(dark_background):
-    """Return (bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color)."""
+    """Return (bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color, dead_zone_color)."""
     if dark_background:
         return (
             'black', 'white', 'white', 'black', 'black', 'white',
             (0.98, 0.98, 0.98),
+            '0.15',  # dark gray band for TVR rank dead zone
         )
     return (
         'white', 'black', 'gray', 'white', 'white', 'black',
         (0.12, 0.12, 0.12),
+        '0.88',  # light gray band for TVR rank dead zone (dark band looks wrong on white)
     )
 
 

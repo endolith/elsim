@@ -40,7 +40,7 @@ def render_first_frame(voters, candidates, ballots, tallies, approval_pct, wins,
     n_cands = len(candidates)
     n_voters = len(voters)
 
-    bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color = get_theme(dark_background)
+    bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color, _ = get_theme(dark_background)
 
     fig = plt.figure(figsize=(9, 7.5), facecolor=bg)
     ax_sc = plt.subplot2grid(shape=(6, 3), loc=(0, 0), colspan=2, rowspan=6)
