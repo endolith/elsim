@@ -32,7 +32,7 @@ PALETTE_OPTIONS = {
     'TableauMedium_10': ('palettable.tableau', 'TableauMedium_10'),
     'Tableau_10': ('palettable.tableau', 'Tableau_10'),
     'Tableau_20': ('palettable.tableau', 'Tableau_20'),
-    'TrafficLight_9': ('palettable.tableau', 'TrafficLight_9'),
+    # 'TrafficLight_9': ('palettable.tableau', 'TrafficLight_9'),
     'glasbey_light': ('colorcet', 'glasbey_light'),
     'glasbey_dark': ('colorcet', 'glasbey_dark'),
 }
@@ -48,13 +48,16 @@ def transition_step_ms(n_transfer):
 
 
 # Shared animation config for IRV/TVR/both scripts. Override in script if needed.
-palette_name = 'Bold_10'
 n_voters = 5000
 n_cands = 9
 max_trials = 100_000
 frames_per_transfer = 60
 disp = 0.5
-dark_background = True
+# dark_background = True
+# palette_name = 'Bold_10'
+
+dark_background = False
+palette_name = 'Bold_10'
 
 
 def get_palette_colors(name):
