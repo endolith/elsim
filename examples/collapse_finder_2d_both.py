@@ -36,6 +36,18 @@ INPUT_POSITIONS = Path('Images/collapse_2d_both_20260308_141324_nc9_nv5000 great
 # INPUT_POSITIONS = None
 
 
+def election_to_traces(voters, candidates):
+    """
+    From (voters, candidates) compute rankings and both traces.
+    Returns (rankings, irv_trace, tvr_trace). Either trace may be None if that method fails.
+    """
+    utilities = normed_dist_utilities(voters, candidates)
+    rankings = np.asarray(honest_rankings(utilities))
+    irv_trace = simulate_irv_rounds(rankings, candidates)
+    tvr_trace = simulate_tvr_rounds(rankings, candidates)
+    return rankings, irv_trace, tvr_trace
+
+
 def find_both_election(n_voters, n_cands, max_trials, disp=1.0):
     """
     Sample random 2D elections until one satisfies both IRV center-outward
@@ -47,30 +59,24 @@ def find_both_election(n_voters, n_cands, max_trials, disp=1.0):
         voters, candidates = normal_electorate(n_voters, n_cands, dims=2, disp=disp)
         candidates[0] = 0.0
         candidates = sort_candidates_bell_curve(candidates)
-        utilities = normed_dist_utilities(voters, candidates)
-        rankings = np.asarray(honest_rankings(utilities))
-
-        irv_trace = simulate_irv_rounds(rankings, candidates)
-        if irv_trace is None:
+        rankings, irv_trace, tvr_trace = election_to_traces(voters, candidates)
+        if irv_trace is None or tvr_trace is None:
             continue
-
-        tvr_trace = simulate_tvr_rounds(rankings, candidates)
-        if tvr_trace is None:
-            continue
-
         return trial, voters, candidates, rankings, irv_trace, tvr_trace
     return None
 
 
-if __name__ == '__main__':
+def load_or_find_election():
+    """
+    Load from INPUT_POSITIONS or search for a new election. Validate both traces.
+    Returns (voters, candidates, rankings, irv_trace, tvr_trace, message).
+    message is a one-line string to print (e.g. "Loaded ..." or "Found ... on trial N").
+    """
     if INPUT_POSITIONS is not None:
         data = np.load(INPUT_POSITIONS)
         voters = data['voters']
         candidates = data['candidates']
-        utilities = normed_dist_utilities(voters, candidates)
-        rankings = np.asarray(honest_rankings(utilities))
-        irv_trace = simulate_irv_rounds(rankings, candidates)
-        tvr_trace = simulate_tvr_rounds(rankings, candidates)
+        rankings, irv_trace, tvr_trace = election_to_traces(voters, candidates)
         if irv_trace is None:
             raise RuntimeError(
                 f'IRV did not yield center-outward order for {INPUT_POSITIONS}.'
@@ -79,17 +85,24 @@ if __name__ == '__main__':
             raise RuntimeError(
                 f'TVR did not converge to center for {INPUT_POSITIONS}.'
             )
-        trial = None
-        print(f'Loaded election from {INPUT_POSITIONS}.')
-    else:
-        result = find_both_election(n_voters, n_cands, max_trials, disp=disp)
-        if result is None:
-            raise RuntimeError(
-                'No election found that satisfies both IRV center-outward and TVR '
-                'center-winner. Increase max_trials or reduce n_cands.'
-            )
-        trial, voters, candidates, rankings, irv_trace, tvr_trace = result
-        print(f'Found election on trial {trial} (IRV center-outward + TVR center winner).')
+        return voters, candidates, rankings, irv_trace, tvr_trace, f'Loaded election from {INPUT_POSITIONS}.'
+
+    result = find_both_election(n_voters, n_cands, max_trials, disp=disp)
+    if result is None:
+        raise RuntimeError(
+            'No election found that satisfies both IRV center-outward and TVR '
+            'center-winner. Increase max_trials or reduce n_cands.'
+        )
+    trial, voters, candidates, rankings, irv_trace, tvr_trace = result
+    return (
+        voters, candidates, rankings, irv_trace, tvr_trace,
+        f'Found election on trial {trial} (IRV center-outward + TVR center winner).',
+    )
+
+
+if __name__ == '__main__':
+    voters, candidates, rankings, irv_trace, tvr_trace, message = load_or_find_election()
+    print(message)
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     output_dir = Path('Images') / f'collapse_2d_both_{timestamp}_nc{n_cands}_nv{n_voters}'
