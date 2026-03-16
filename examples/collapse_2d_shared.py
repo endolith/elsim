@@ -13,25 +13,6 @@ import numpy as np
 from matplotlib.collections import LineCollection
 from scipy.spatial import Voronoi
 
-# module_path -> list of palette attr names. Uses .mpl_colors except colorcet (hex list).
-# Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12, TrafficLight_9 omitted (always bad).
-PALETTE_OPTIONS = {
-    'palettable.cartocolors.qualitative': ['Antique_10', 'Bold_10', 'Pastel_10', 'Prism_10', 'Safe_10', 'Vivid_10'],
-    'palettable.colorbrewer.qualitative': ['Set3_12', 'Set2_8', 'Set1_9', 'Paired_12', 'Dark2_8', 'Accent_8'],
-    'palettable.tableau': ['ColorBlind_10', 'GreenOrange_12', 'TableauLight_10', 'TableauMedium_10', 'Tableau_10', 'Tableau_20'],
-    'colorcet': ['glasbey_light', 'glasbey_dark'],
-}
-
-# GIF timing: key frames (start, eliminate, last of transition, winner) and transition total.
-KEY_FRAME_MS = 3000
-TRANSITION_TOTAL_MS = 3000
-
-
-def transition_step_ms(n_transfer):
-    """Per-frame ms for non-final transfer frames so they total TRANSITION_TOTAL_MS."""
-    return TRANSITION_TOTAL_MS // max(1, n_transfer - 1) if n_transfer > 1 else 0
-
-
 # Shared animation config for IRV/TVR/both scripts. Override in script if needed.
 n_voters = 5000
 n_cands = 9
@@ -43,6 +24,26 @@ disp = 0.5
 
 dark_background = False
 palette_name = 'Bold_10'
+
+
+# GIF timing: key frames (start, eliminate, last of transition, winner) and transition total.
+KEY_FRAME_MS = 3000
+TRANSITION_TOTAL_MS = 3000
+
+
+# module_path -> list of palette attr names. Uses .mpl_colors except colorcet (hex list).
+# Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12, TrafficLight_9 omitted (always bad).
+PALETTE_OPTIONS = {
+    'palettable.cartocolors.qualitative': ['Antique_10', 'Bold_10', 'Pastel_10', 'Prism_10', 'Safe_10', 'Vivid_10'],
+    'palettable.colorbrewer.qualitative': ['Set3_12', 'Set2_8', 'Set1_9', 'Paired_12', 'Dark2_8', 'Accent_8'],
+    'palettable.tableau': ['ColorBlind_10', 'GreenOrange_12', 'TableauLight_10', 'TableauMedium_10', 'Tableau_10', 'Tableau_20'],
+    'colorcet': ['glasbey_light', 'glasbey_dark'],
+}
+
+
+def transition_step_ms(n_transfer):
+    """Per-frame ms for non-final transfer frames so they total TRANSITION_TOTAL_MS."""
+    return TRANSITION_TOTAL_MS // max(1, n_transfer - 1) if n_transfer > 1 else 0
 
 
 def get_palette_colors(name):
