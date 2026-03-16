@@ -8,6 +8,7 @@ Blacklist: Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12 omitted (always bad).
 import importlib
 import numpy as np
 import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from scipy.spatial import Voronoi
 
@@ -68,6 +69,56 @@ def get_palette_colors(name):
     if mod_path == 'colorcet':
         return list(pal)
     return list(pal.mpl_colors)
+
+
+def candidate_name(candidate_index):
+    """Convert candidate index to name (A, B, C, etc.)."""
+    return chr(65 + candidate_index)
+
+
+def ceildiv(a, b):
+    """Ceiling division for positive integers."""
+    return -(-a // b)
+
+
+def plot_wins(ax, wins, colors, labels, edgecolor='black', gap=0.15):
+    """
+    Plot head-to-head wins as stacked square blocks per candidate.
+    Blocks are square, symmetrically spaced; integer y-ticks. Used by IRV and TVR.
+    """
+    n_cands = len(wins)
+    block = 1.0 - 2 * gap
+    max_w = max(wins) if wins else 0
+    for n in range(n_cands):
+        for i in range(int(wins[n])):
+            bottom = i + gap
+            ax.bar(n, block, bottom=bottom, width=block,
+                   color=colors[n], edgecolor=edgecolor, linewidth=1)
+    ax.set_xticks(range(n_cands))
+    ax.set_xticklabels(list(labels))
+    ax.set_xlim(-0.5, n_cands - 0.5)
+    ax.set_ylim(0, max_w if max_w > 0 else 1)
+    ax.set_aspect('equal')
+    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    ax.set_ylabel('')
+
+
+def prepare_palette_and_labels(palette_name, n_cands, dark_background):
+    """
+    Load palette, apply Set1_9 yellow fix for light bg, trim to n_cands, build labels.
+    Returns (colors, labels). Raises ValueError if palette has fewer than n_cands colors.
+    """
+    colors = get_palette_colors(palette_name)
+    if not dark_background and palette_name == 'Set1_9' and len(colors) > 5:
+        colors.pop(5)
+    if n_cands > len(colors):
+        raise ValueError(
+            f'n_cands={n_cands} exceeds palette "{palette_name}" size ({len(colors)}). '
+            'Use fewer candidates or a larger palette.'
+        )
+    colors = colors[:n_cands]
+    labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
+    return colors, labels
 
 
 def _color_to_rgb(c):
