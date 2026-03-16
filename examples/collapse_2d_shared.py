@@ -6,9 +6,10 @@ Blacklist: Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12 omitted (always bad).
 """
 
 import importlib
-import numpy as np
+
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.collections import LineCollection
 from scipy.spatial import Voronoi
 
