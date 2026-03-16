@@ -22,9 +22,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
+from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods import ranked_election_to_matrix
 from elsim.strategies import honest_rankings
-from elsim.elections import normal_electorate, normed_dist_utilities
 
 from collapse_2d_shared import (
     PALETTE_OPTIONS,
