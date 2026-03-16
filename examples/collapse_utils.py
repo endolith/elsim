@@ -190,3 +190,22 @@ def plot_fptp_results(ax_fptp, tallies, n_voters, colors, labels):
     ax_fptp.bar(range(len(tallies)), tallies/n_voters*100,
                 tick_label=labels, color=colors)
     ax_fptp.set_ylabel('1st rankings [%]')
+
+
+def plot_wins(ax, wins, colors='b', gap=0.1, edgecolor='black', labels=None):
+    """
+    Plot head-to-head wins as stacked square blocks (1D collapse finder style).
+    Used by collapse_finder.py and collapse_finder_final_five.py.
+    """
+    n_cands = len(wins)
+    if labels is None:
+        labels = [chr(65 + n) for n in range(n_cands)]
+    for n in range(n_cands):
+        for i in range(int(wins[n])):
+            ax.bar(n, 1 - gap, bottom=i + i * gap,
+                   color=colors if isinstance(colors, str) else colors[n],
+                   edgecolor=edgecolor, linewidth=1)
+    ax.set_xticks(range(n_cands))
+    ax.set_xticklabels(list(labels))
+    ax.set_xlim(-0.5, n_cands - 0.5)
+    ax.set_ylabel('Head-to-head wins')
