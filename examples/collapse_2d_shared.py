@@ -12,30 +12,13 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from scipy.spatial import Voronoi
 
-# (module_path, attr). Uses .mpl_colors except colorcet which uses hex list.
-# Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12 omitted (always bad).
+# module_path -> list of palette attr names. Uses .mpl_colors except colorcet (hex list).
+# Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12, TrafficLight_9 omitted (always bad).
 PALETTE_OPTIONS = {
-    'Antique_10': ('palettable.cartocolors.qualitative', 'Antique_10'),
-    'Bold_10': ('palettable.cartocolors.qualitative', 'Bold_10'),
-    'Pastel_10': ('palettable.cartocolors.qualitative', 'Pastel_10'),
-    'Prism_10': ('palettable.cartocolors.qualitative', 'Prism_10'),
-    'Safe_10': ('palettable.cartocolors.qualitative', 'Safe_10'),
-    'Vivid_10': ('palettable.cartocolors.qualitative', 'Vivid_10'),
-    'Set3_12': ('palettable.colorbrewer.qualitative', 'Set3_12'),
-    'Set2_8': ('palettable.colorbrewer.qualitative', 'Set2_8'),
-    'Set1_9': ('palettable.colorbrewer.qualitative', 'Set1_9'),
-    'Paired_12': ('palettable.colorbrewer.qualitative', 'Paired_12'),
-    'Dark2_8': ('palettable.colorbrewer.qualitative', 'Dark2_8'),
-    'Accent_8': ('palettable.colorbrewer.qualitative', 'Accent_8'),
-    'ColorBlind_10': ('palettable.tableau', 'ColorBlind_10'),
-    'GreenOrange_12': ('palettable.tableau', 'GreenOrange_12'),
-    'TableauLight_10': ('palettable.tableau', 'TableauLight_10'),
-    'TableauMedium_10': ('palettable.tableau', 'TableauMedium_10'),
-    'Tableau_10': ('palettable.tableau', 'Tableau_10'),
-    'Tableau_20': ('palettable.tableau', 'Tableau_20'),
-    # 'TrafficLight_9': ('palettable.tableau', 'TrafficLight_9'),
-    'glasbey_light': ('colorcet', 'glasbey_light'),
-    'glasbey_dark': ('colorcet', 'glasbey_dark'),
+    'palettable.cartocolors.qualitative': ['Antique_10', 'Bold_10', 'Pastel_10', 'Prism_10', 'Safe_10', 'Vivid_10'],
+    'palettable.colorbrewer.qualitative': ['Set3_12', 'Set2_8', 'Set1_9', 'Paired_12', 'Dark2_8', 'Accent_8'],
+    'palettable.tableau': ['ColorBlind_10', 'GreenOrange_12', 'TableauLight_10', 'TableauMedium_10', 'Tableau_10', 'Tableau_20'],
+    'colorcet': ['glasbey_light', 'glasbey_dark'],
 }
 
 # GIF timing: key frames (start, eliminate, last of transition, winner) and transition total.
@@ -63,9 +46,13 @@ palette_name = 'Bold_10'
 
 def get_palette_colors(name):
     """Load palette as list of colors (mpl tuples or hex)."""
-    mod_path, attr = PALETTE_OPTIONS[name]
+    for mod_path, names in PALETTE_OPTIONS.items():
+        if name in names:
+            break
+    else:
+        raise KeyError(name)
     mod = importlib.import_module(mod_path)
-    pal = getattr(mod, attr)
+    pal = getattr(mod, name)
     if mod_path == 'colorcet':
         return list(pal)
     return list(pal.mpl_colors)
