@@ -94,6 +94,34 @@ def plot_wins(ax, wins, colors, labels, edgecolor='black', gap=0.15):
     ax.set_ylabel('')
 
 
+def plot_approval_bar(ax, approval_pct, labels, colors, fg, grid):
+    """Bar chart for approval rating 0–100%. Used by IRV, TVR, and palette_demo."""
+    bars = ax.bar(range(len(labels)), approval_pct, tick_label=list(labels), color=colors)
+    for rect in bars:
+        height = rect.get_height()
+        if height > 0:
+            ax.annotate(
+                f'{height:.0f}',
+                xy=(rect.get_x() + rect.get_width() / 2, height),
+                xytext=(0, 3),
+                textcoords='offset points',
+                ha='center',
+                va='bottom',
+                color=fg,
+            )
+    ax.set_ylim(0, 100)
+    ax.set_ylabel('Approval [%]')
+    ax.grid(True, alpha=0.25, axis='y', color=grid)
+    ax.set_axisbelow(True)
+    ax.text(0.5, 1.04, 'Approval rating', transform=ax.transAxes, ha='center', va='center', color=fg)
+
+
+def plot_wins_with_title(ax, wins, colors, labels, fg, gap=0.1):
+    """Plot head-to-head wins and set the standard subplot title. Used by IRV, TVR, palette_demo."""
+    plot_wins(ax, wins, colors, labels, edgecolor=fg, gap=gap)
+    ax.text(0.5, 1.04, 'Head-to-head wins', transform=ax.transAxes, ha='center', va='center', color=fg)
+
+
 def prepare_palette_and_labels(palette_name, n_cands, dark_background):
     """
     Load palette, apply Set1_9 yellow fix for light bg, trim to n_cands, build labels.

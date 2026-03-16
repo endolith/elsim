@@ -25,7 +25,8 @@ from collapse_2d_shared import (
     transition_step_ms,
     candidate_name,
     ceildiv,
-    plot_wins,
+    plot_approval_bar,
+    plot_wins_with_title,
     prepare_palette_and_labels,
     get_theme,
     setup_scatter_axis_sigma,
@@ -220,27 +221,8 @@ def render_frame(
     ax_bar.set_axisbelow(True)
     ax_bar.text(0.5, 1.04, frame_title, transform=ax_bar.transAxes, ha='center', va='center', color=fg)
 
-    score_bars = ax_score.bar(range(n_cands), approval_pct, tick_label=list(labels), color=active_colors)
-    for rect in score_bars:
-        height = rect.get_height()
-        if height > 0:
-            ax_score.annotate(
-                f'{height:.0f}',
-                xy=(rect.get_x() + rect.get_width() / 2, height),
-                xytext=(0, 3),
-                textcoords='offset points',
-                ha='center',
-                va='bottom',
-                color=fg,
-            )
-    ax_score.set_ylim(0, 100)
-    ax_score.set_ylabel('Approval [%]')
-    ax_score.grid(True, alpha=0.25, axis='y', color=grid)
-    ax_score.set_axisbelow(True)
-    ax_score.text(0.5, 1.04, 'Approval rating', transform=ax_score.transAxes, ha='center', va='center', color=fg)
-
-    plot_wins(ax_wins, wins, active_colors, labels, edgecolor=fg, gap=0.1)
-    ax_wins.text(0.5, 1.04, 'Head-to-head wins', transform=ax_wins.transAxes, ha='center', va='center', color=fg)
+    plot_approval_bar(ax_score, approval_pct, labels, active_colors, fg, grid)
+    plot_wins_with_title(ax_wins, wins, active_colors, labels, fg, gap=0.1)
 
     plt.tight_layout()
     plt.savefig(output_path, facecolor=bg, edgecolor='none')
