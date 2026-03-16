@@ -4,86 +4,26 @@ Find worst-case scenarios with RCV.
 
 import matplotlib.pyplot as plt
 import numpy as np
-from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods import ranked_election_to_matrix
 from elsim.strategies import honest_rankings
 
+from collapse_utils import (
+    bottom_n_indices,
+    closest_to_origin_indices,
+    count_unique_rows,
+    count_wins,
+    gaussian,
+    indices_to_letters,
+    plot_wins,
+    print_candidates_and_tallies,
+    top_n_indices,
+)
+
 n_voters = 1_000
 n_cands = 9
 cand_dist = 'normal'
-
-
-def human_format(num):
-    for unit in ['', 'k', 'M', 'B', 'T']:
-        if abs(num) < 1000:
-            return f"{num:.3g}{unit}"
-        num /= 1000.0
-
-
-def print_candidates_and_tallies(c, tallies):
-    # If the two lists have different lengths, raise an error.
-    assert len(c) == len(tallies)
-
-    table = [
-        ["Cand pos:"] + [f"{i:.3f}" for i in c[:, 0]],
-        ["Tallies:"] + list(tallies)
-    ]
-
-    print(tabulate(table, tablefmt='pipe', numalign="center"))
-
-
-# ChatGPT
-def top_n_indices(arr, n):
-    return arr.argsort()[-n:][::-1]
-
-
-def bottom_n_indices(arr, n):
-    return arr.argsort()[:n]
-
-
-# ChatGPT
-def closest_to_origin_indices(arr, n):
-    dist = np.linalg.norm(arr, axis=1)
-    return dist.argsort()[:n]
-
-
-def count_unique_rows(election):
-    # We need to ensure rows are viewed as single items
-    rows_as_tuples = map(tuple, election)
-
-    # Use np.unique to find unique rows and their counts
-    unique_rows, counts = np.unique(list(rows_as_tuples), return_counts=True,
-                                    axis=0)
-
-    # Zip together the unique rows and their counts for easy viewing
-    result = list(zip(unique_rows, counts))
-
-    return result
-
-
-# ChatGPT
-def count_wins(matrix):
-    """
-    Count the number of candidates beaten by each candidate.
-
-    Parameters
-    ----------
-    matrix : ndarray
-        A pairwise comparison matrix of candidate vs candidate defeats.
-
-    Returns
-    -------
-    wins : list
-        A list of the number of candidates beaten by each candidate.
-    """
-    n_cands = matrix.shape[0]
-    wins = []
-    for i in range(n_cands):
-        wins.append(sum(matrix[i, j] > matrix[j, i] for j in range(n_cands)))
-    return wins
-
 
 n_elections = 50_000
 n_failures = 0
@@ -228,11 +168,6 @@ print(original_c)
 #     print(f"Row: {row}, Count: {count}")
 
 
-# Define a function to convert indices to letters
-def indices_to_letters(indices):
-    return " > ".join(chr(65 + i) for i in indices)
-
-
 # Call the function with your 'election' array
 result = count_unique_rows(original_election)
 for row, count in result:
@@ -257,14 +192,6 @@ from palettable.cartocolors.qualitative import Prism_9 as cmap
 colors = cmap.mpl_colors
 
 # colors = plt.rcParams['axes.prop_cycle'].by_key()['color'][:n_cands]
-
-
-def gaussian(x, mu, sigma):
-    """
-    Return a normal distribution pdf with center `mu` and standard deviation
-    `sigma`
-    """
-    return np.exp(-(x-mu)**2/(2*sigma**2))
 
 
 # Generate x values
@@ -334,36 +261,9 @@ ax_fptp.set_ylabel('1st rankings [%]')
 
 
 
-def plot_wins(wins, ax, colors='b', gap=0.1):
-    """
-    Plot number of wins as discrete blocks stacked on top of each other.
-
-    Parameters
-    ----------
-    wins : list
-        A list of the number of wins for each candidate.
-    ax : matplotlib axis
-        The axis to plot on.
-    colors : str or list
-        The colors to use for the bars.
-    gap : float
-        The gap to leave between blocks. Default is 0.1.
-    """
-    n_cands = len(wins)
-    for n in range(n_cands):
-        for i in range(int(wins[n])):
-            ax.bar(n, 1 - gap, bottom=i + i * gap,
-                   color=colors if isinstance(colors, str) else colors[n],
-                   edgecolor='black', linewidth=1)
-    ax.set_xticks(range(n_cands))
-    ax.set_xticklabels([chr(65 + n) for n in range(n_cands)])
-    ax.set_xlim(-0.5, n_cands-0.5)  # Set fixed x-axis limits
-    ax.set_ylabel('Head-to-head wins')
-
-
 # Use the function
 wins = count_wins(original_matrix)
-plot_wins(wins, ax_wins, colors)
+plot_wins(ax_wins, wins, colors)
 
 # This is required to make the blocks in ax_wins square
 ax_wins.set_aspect('equal')
