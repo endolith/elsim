@@ -243,7 +243,7 @@ def render_frame(
     plot_wins(ax_wins, wins, active_colors, labels, edgecolor=fg, gap=0.1)
     ax_wins.text(0.5, 1.04, 'Head-to-head wins', transform=ax_wins.transAxes, ha='center', va='center', color=fg)
 
-plt.tight_layout()
+    plt.tight_layout()
     plt.savefig(output_path, facecolor=bg, edgecolor='none')
     plt.close(fig)
 
