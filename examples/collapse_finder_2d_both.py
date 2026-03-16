@@ -32,7 +32,7 @@ from collapse_finder_2d_tvr import simulate_tvr_rounds, run_tvr_animation
 
 
 # Path to positions.npz from a previous run, or None to search for a new election.
-INPUT_POSITIONS = Path('Images/collapse_2d_both_20260308_141324_nc9_nv5000 great/positions.npz')
+INPUT_POSITIONS = Path('../elsim3k core collapse/collapse_2d_both_20260308_141324_nc9_nv5000 great/positions.npz')
 # INPUT_POSITIONS = None
 
 
