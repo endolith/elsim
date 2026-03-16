@@ -15,10 +15,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
-from elsim.methods._common import _inc_pointer, _tally_at_pointer
-from elsim.methods import ranked_election_to_matrix
-from elsim.strategies import honest_rankings
 from elsim.elections import normal_electorate, normed_dist_utilities
+from elsim.methods import ranked_election_to_matrix
+from elsim.methods._common import _inc_pointer, _tally_at_pointer
+from elsim.strategies import honest_rankings
 
 from collapse_2d_shared import (
     PALETTE_OPTIONS,
