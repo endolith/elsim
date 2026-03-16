@@ -40,6 +40,8 @@ PALETTE_OPTIONS = {
     'colorcet': ['glasbey_light', 'glasbey_dark'],
 }
 
+PALETTE_NAMES = [n for names in PALETTE_OPTIONS.values() for n in names]
+
 
 def transition_step_ms(n_transfer):
     """Per-frame ms for non-final transfer frames so they total TRANSITION_TOTAL_MS."""

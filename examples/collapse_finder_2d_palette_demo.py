@@ -20,7 +20,7 @@ from elsim.methods import ranked_election_to_matrix
 from elsim.strategies import honest_rankings
 
 from collapse_2d_shared import (
-    PALETTE_OPTIONS,
+    PALETTE_NAMES,
     get_palette_colors,
     get_theme,
     plot_wins,
@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
     print(f'Loaded election from {INPUT_POSITIONS} ({n_cands} candidates, {n_voters} voters).')
     print('Palette sizes (original -> after removing grays):')
-    for pname in PALETTE_OPTIONS:
+    for pname in PALETTE_NAMES:
         try:
             raw = get_palette_colors(pname)
             filtered, n = remove_grays(raw)
@@ -153,7 +153,7 @@ if __name__ == '__main__':
             print(f'  {pname}: failed ({e})')
     print()
 
-    for palette_name in PALETTE_OPTIONS:
+    for palette_name in PALETTE_NAMES:
         try:
             for dark in (True, False):
                 if not dark and palette_name == 'glasbey_light':
