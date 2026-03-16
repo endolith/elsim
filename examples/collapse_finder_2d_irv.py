@@ -21,7 +21,6 @@ from elsim.methods._common import _inc_pointer, _tally_at_pointer
 from elsim.strategies import honest_rankings
 
 from collapse_2d_shared import (
-    PALETTE_OPTIONS,
     KEY_FRAME_MS,
     transition_step_ms,
     candidate_name,
