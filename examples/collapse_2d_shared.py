@@ -19,11 +19,11 @@ n_cands = 9
 max_trials = 100_000
 frames_per_transfer = 60
 disp = 0.5
-# dark_background = True
-# palette_name = 'Bold_10'
-
-dark_background = False
+dark_background = True
 palette_name = 'Bold_10'
+
+# dark_background = False
+# palette_name = 'Bold_10'
 
 
 # GIF timing: key frames (start, eliminate, last of transition, winner) and transition total.
