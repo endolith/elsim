@@ -27,7 +27,6 @@ from elsim.methods import ranked_election_to_matrix
 from elsim.strategies import honest_rankings
 
 from collapse_2d_shared import (
-    PALETTE_OPTIONS,
     KEY_FRAME_MS,
     transition_step_ms,
     candidate_name,
