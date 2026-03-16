@@ -31,7 +31,7 @@ from collapse_2d_shared import (
 from collapse_utils import count_wins
 
 
-INPUT_POSITIONS = Path('Images/collapse_2d_both_20260308_141324_nc9_nv5000 great/positions.npz')
+INPUT_POSITIONS = Path('../elsim3k core collapse/collapse_2d_both_20260308_141324_nc9_nv5000 great/positions.npz')
 
 
 def render_first_frame(voters, candidates, ballots, tallies, approval_pct, wins,
