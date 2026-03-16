@@ -23,12 +23,12 @@ from collapse_2d_shared import (
     PALETTE_OPTIONS,
     get_palette_colors,
     get_theme,
+    plot_wins,
     remove_grays,
     setup_scatter_axis_sigma,
     voronoi_plot_2d_axes,
 )
 from collapse_utils import count_wins
-from collapse_finder_2d_irv import plot_wins
 
 
 INPUT_POSITIONS = Path('Images/collapse_2d_both_20260308_141324_nc9_nv5000 great/positions.npz')

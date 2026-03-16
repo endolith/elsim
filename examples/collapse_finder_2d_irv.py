@@ -24,7 +24,10 @@ from collapse_2d_shared import (
     PALETTE_OPTIONS,
     KEY_FRAME_MS,
     transition_step_ms,
-    get_palette_colors,
+    candidate_name,
+    ceildiv,
+    plot_wins,
+    prepare_palette_and_labels,
     get_theme,
     setup_scatter_axis_sigma,
     sort_candidates_bell_curve,
@@ -38,42 +41,6 @@ from collapse_2d_shared import (
     dark_background,
 )
 from collapse_utils import count_wins
-
-
-def candidate_name(candidate_index):
-    """Convert candidate index to name (A, B, C, etc.)."""
-    return chr(65 + candidate_index)
-
-
-def ceildiv(a, b):
-    """Ceiling division for positive integers."""
-    return -(-a // b)
-
-
-def plot_wins(ax, wins, colors, labels, edgecolor='black', gap=0.15):
-    """
-    Plot head-to-head wins as stacked square blocks per candidate.
-    Blocks are square, symmetrically spaced between integer y-ticks (gap above and below),
-    with similar horizontal spacing between columns. Title at top; no y-axis label.
-    """
-    n_cands = len(wins)
-    block = 1.0 - 2 * gap
-    max_w = max(wins) if wins else 0
-
-    for n in range(n_cands):
-        for i in range(int(wins[n])):
-            bottom = i + gap
-            ax.bar(n, block, bottom=bottom, width=block,
-                   color=colors[n],
-                   edgecolor=edgecolor, linewidth=1)
-
-    ax.set_xticks(range(n_cands))
-    ax.set_xticklabels(list(labels))
-    ax.set_xlim(-0.5, n_cands - 0.5)
-    ax.set_ylim(0, max_w if max_w > 0 else 1)
-    ax.set_aspect('equal')
-    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
-    ax.set_ylabel('')
 
 
 def simulate_irv_rounds(rankings, candidates):
@@ -276,7 +243,7 @@ def render_frame(
     plot_wins(ax_wins, wins, active_colors, labels, edgecolor=fg, gap=0.1)
     ax_wins.text(0.5, 1.04, 'Head-to-head wins', transform=ax_wins.transAxes, ha='center', va='center', color=fg)
 
-    plt.tight_layout()
+plt.tight_layout()
     plt.savefig(output_path, facecolor=bg, edgecolor='none')
     plt.close(fig)
 
@@ -304,16 +271,7 @@ def run_irv_animation(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    colors = get_palette_colors(palette_name)
-    if not dark_background and palette_name == 'Set1_9' and len(colors) > 5:
-        colors.pop(5)
-    if n_cands > len(colors):
-        raise ValueError(
-            f'n_cands={n_cands} exceeds palette "{palette_name}" size ({len(colors)}). '
-            'Use fewer candidates or a larger palette.'
-        )
-    colors = colors[:n_cands]
-    labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
+    colors, labels = prepare_palette_and_labels(palette_name, n_cands, dark_background)
 
     rounds = trace['rounds']
     final_two = trace['final_two']
