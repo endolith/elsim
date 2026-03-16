@@ -331,6 +331,12 @@ def run_tvr_animation(
     """Render TVR (Baldwin) animation and save frames + GIF to output_dir."""
     n_cands = len(candidates) if n_cands is None else n_cands
     n_voters = len(voters) if n_voters is None else n_voters
+    if len(candidates) != n_cands or len(voters) != n_voters:
+        raise ValueError(
+            f'Election shape does not match n_cands/n_voters: '
+            f'got {len(candidates)} candidates, {len(voters)} voters; '
+            f'expected n_cands={n_cands}, n_voters={n_voters}.'
+        )
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
