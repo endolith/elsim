@@ -32,10 +32,9 @@ def irv(election, tiebreaker=None):
     election : array_like
         A collection of ranked ballots.  See `borda` for election format.
         Currently, this must include full rankings for each voter.
-    tiebreaker : {'random', None}, optional
+    tiebreaker : {'random', 'order', None}, optional
         If there is a tie, and `tiebreaker` is ``'random'``, tied candidates
-        are eliminated or selected at random
-        is returned.
+        are eliminated or selected at random.
         If 'order', the lowest-ID tied candidate is preferred in each tie.
         By default, ``None`` is returned if there are any ties.
 

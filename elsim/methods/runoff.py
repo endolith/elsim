@@ -27,7 +27,7 @@ def runoff(election, tiebreaker=None):
     election : array_like
         A collection of ranked ballots.  See `borda` for election format.
         Currently, this must include full rankings for each voter.
-    tiebreaker : {'random', None}, optional
+    tiebreaker : {'random', 'order', None}, optional
         If there is a tie, and `tiebreaker` is ``'random'``, a random finalist
         is returned.
         If 'order', the lowest-ID tied candidate is returned.
