@@ -110,7 +110,7 @@ def condorcet_from_matrix(matrix):
 
     Returns
     -------
-    winner : int
+    winner : {int, None}
         The ID number of the winner, or ``None`` for a Condorcet cycle / tie.
 
     Examples
@@ -184,7 +184,7 @@ def condorcet(election):
 
     Returns
     -------
-    winner : int
+    winner : {int, None}
         The ID number of the winner, or ``None`` for a Condorcet cycle / tie.
 
     References

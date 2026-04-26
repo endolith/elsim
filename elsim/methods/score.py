@@ -31,7 +31,7 @@ def score(election, tiebreaker=None):
 
     Returns
     -------
-    winner : int
+    winner : {int, None}
         The ID number of the winner, or ``None`` for an unbroken tie.
 
     References

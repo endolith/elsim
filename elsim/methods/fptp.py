@@ -27,7 +27,7 @@ def fptp(election, tiebreaker=None):
 
     Returns
     -------
-    winner : int
+    winner : {int, None}
         The ID number of the winner, or ``None`` for an unbroken tie.
 
     References
@@ -110,7 +110,7 @@ def sntv(election, n=1, tiebreaker=None):
 
     Returns
     -------
-    winner : set
+    winners : {set, None}
         The ID numbers of the winners, or ``None`` for an unbroken tie.
 
     References

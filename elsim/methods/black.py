@@ -27,7 +27,7 @@ def black(election, tiebreaker=None):
 
     Returns
     -------
-    winner : int
+    winner : {int, None}
         The ID number of the winner, or ``None`` for a Borda count tie.
 
     References

@@ -127,7 +127,7 @@ def _all_condorcet_from_matrix(matrix):
 
     Returns
     -------
-    winner : ndarray
+    winners : ndarray
         Array of ID numbers of winners.
 
     Examples
@@ -182,7 +182,7 @@ def star(election, tiebreaker=None):
 
     Returns
     -------
-    winner : int
+    winner : {int, None}
         The ID number of the winner, or ``None`` for an unbroken tie.
 
     Notes
