@@ -80,7 +80,7 @@ def irv(election, tiebreaker=None):
     for round_ in range(n_cands):
         _tally_at_pointer(first_tallies, election, first_pointer)
 
-        # tolist makes things 2-4x faster
+        # (tolist makes things 2-4x faster)
         first_tallies_list = first_tallies.tolist()
 
         # Did anyone get a majority?
@@ -89,7 +89,8 @@ def irv(election, tiebreaker=None):
             return first_tallies_list.index(highest)
 
         # If not, eliminate lowest
-        lowest = min(x for x in first_tallies_list if x != 0)  # faster?
+        # (generator is faster than min(arr[np.nonzero(arr)]) for small lists)
+        lowest = min(x for x in first_tallies_list if x != 0)
         low_scorers = _all_indices(first_tallies_list, lowest)
         loser = tiebreak(low_scorers)[0]
 
