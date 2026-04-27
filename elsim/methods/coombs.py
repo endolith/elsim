@@ -85,8 +85,10 @@ def coombs(election, tiebreaker=None):
         # If not, eliminate candidate with the most last-place votes
         _tally_at_rank_idx(cand_bottom_tallies, election,
                            voter_bottom_rank_idx)
-        max_cand_bottom_tally = max(cand_bottom_tallies)
-        max_bottom_tally_cands = _all_indices(cand_bottom_tallies,
+        # (tolist makes things 2-4x faster)
+        cand_bottom_tallies_list = cand_bottom_tallies.tolist()
+        max_cand_bottom_tally = max(cand_bottom_tallies_list)
+        max_bottom_tally_cands = _all_indices(cand_bottom_tallies_list,
                                               max_cand_bottom_tally)
         cand_to_eliminate = tiebreak(max_bottom_tally_cands)[0]
 
