@@ -1,9 +1,9 @@
 import numpy as np
 
-from elsim.methods._common import (_all_indices, _dec_pointer, _get_tiebreak,
-                                   _inc_pointer, _no_tiebreak,
+from elsim.methods._common import (_all_indices, _dec_rank_idx, _get_tiebreak,
+                                   _inc_rank_idx, _no_tiebreak,
                                    _order_tiebreak_elim, _random_tiebreak,
-                                   _tally_at_pointer)
+                                   _tally_at_rank_idx)
 
 _tiebreak_map = {'order': _order_tiebreak_elim,
                  'random': _random_tiebreak,
@@ -65,40 +65,41 @@ def coombs(election, tiebreaker=None):
     """
     election = np.asarray(election)
     n_voters, n_cands = election.shape
-    eliminated = set()
+    eliminated_cands = set()
     tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
-    first_pointer = np.zeros(n_voters, dtype=np.uint8)
-    first_tallies = np.empty(n_cands, dtype=np.uint)
-    last_pointer = np.full(n_voters, n_cands - 1, dtype=np.uint8)
-    last_tallies = np.empty(n_cands, dtype=np.uint)
+    voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
+    cand_top_tallies = np.empty(n_cands, dtype=np.uint)
+    voter_bottom_rank_idx = np.full(n_voters, n_cands - 1, dtype=np.uint8)
+    cand_bottom_tallies = np.empty(n_cands, dtype=np.uint)
     for round_ in range(n_cands):
-        _tally_at_pointer(first_tallies, election, first_pointer)
+        _tally_at_rank_idx(cand_top_tallies, election, voter_top_rank_idx)
 
-        # tolist makes things 2-4x faster
-        first_tallies_list = first_tallies.tolist()
+        # (tolist makes things 2-4x faster)
+        cand_top_tallies_list = cand_top_tallies.tolist()
 
         # Did anyone get a majority?
-        highest = max(first_tallies_list)
-        if highest > n_voters / 2:
-            return first_tallies_list.index(highest)
+        max_cand_top_tally = max(cand_top_tallies_list)
+        if max_cand_top_tally > n_voters / 2:
+            return cand_top_tallies_list.index(max_cand_top_tally)
 
-        # If not, eliminate candidate with highest number of last-preferences
-        _tally_at_pointer(last_tallies, election, last_pointer)
-        highest = max(last_tallies)
-        highly_hated = _all_indices(last_tallies, highest)
-
-        loser = tiebreak(highly_hated)[0]
+        # If not, eliminate candidate with the most last-place votes
+        _tally_at_rank_idx(cand_bottom_tallies, election,
+                           voter_bottom_rank_idx)
+        max_cand_bottom_tally = max(cand_bottom_tallies)
+        max_bottom_tally_cands = _all_indices(cand_bottom_tallies,
+                                              max_cand_bottom_tally)
+        cand_to_eliminate = tiebreak(max_bottom_tally_cands)[0]
 
         # Handle no tiebreaker case
-        if loser is None:
+        if cand_to_eliminate is None:
             return None
 
-        # Add candidate with lowest score in this round
-        eliminated.add(loser)
+        # Eliminate candidate with highest last-preference tally
+        eliminated_cands.add(cand_to_eliminate)
 
-        # Increment pointers past all eliminated candidates
-        _inc_pointer(election, first_pointer, eliminated)
-        _dec_pointer(election, last_pointer, eliminated)
+        # Increment/decrement rank indices past all eliminated candidates
+        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
+        _dec_rank_idx(election, voter_bottom_rank_idx, eliminated_cands)
 
-        # low and high pointer need to increment opposite
+        # (top and bottom rank indices move in opposite directions)
     raise RuntimeError("Bug in Coombs' calculation")

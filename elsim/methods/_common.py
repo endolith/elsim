@@ -51,38 +51,39 @@ else:
 
 
 @njit(cache=True, nogil=True)
-def _tally_at_pointer(tallies, election, pointer):
+def _tally_at_rank_idx(tallies, election, rank_idx):
     """
-    Tally candidates at the location pointed to, re-using tallies array.
+    Tally the candidate each voter has at rank_idx on their ballot,
+    re-using the tallies array.
     """
     # Clear tally array
     tallies[:] = 0
     n_voters = election.shape[0]
     for voter in range(n_voters):
-        cand = election[voter, pointer[voter]]
+        cand = election[voter, rank_idx[voter]]
         tallies[cand] += 1
 
 
 @njit(cache=True, nogil=True)
-def _inc_pointer(election, pointer, eliminated):
+def _inc_rank_idx(election, rank_idx, eliminated):
     """
-    Update pointer to point at candidates that haven't been eliminated.
+    Increment each voter's (top) rank index past all eliminated candidates.
     """
     n_voters = election.shape[0]
     for voter in range(n_voters):
-        while election[voter, pointer[voter]] in eliminated:
-            pointer[voter] += 1
+        while election[voter, rank_idx[voter]] in eliminated:
+            rank_idx[voter] += 1
 
 
 @njit(cache=True, nogil=True)
-def _dec_pointer(election, pointer, eliminated):
+def _dec_rank_idx(election, rank_idx, eliminated):
     """
-    Update pointer to point at candidates that haven't been eliminated.
+    Decrement each voter's (bottom) rank index past all eliminated candidates.
     """
     n_voters = election.shape[0]
     for voter in range(n_voters):
-        while election[voter, pointer[voter]] in eliminated:
-            pointer[voter] -= 1
+        while election[voter, rank_idx[voter]] in eliminated:
+            rank_idx[voter] -= 1
 
 
 # https://stackoverflow.com/a/6294205/125507

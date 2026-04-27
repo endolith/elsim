@@ -1,8 +1,8 @@
 import numpy as np
 
-from elsim.methods._common import (_all_indices, _get_tiebreak, _inc_pointer,
+from elsim.methods._common import (_all_indices, _get_tiebreak, _inc_rank_idx,
                                    _no_tiebreak, _order_tiebreak_elim,
-                                   _random_tiebreak, _tally_at_pointer)
+                                   _random_tiebreak, _tally_at_rank_idx)
 
 _tiebreak_map = {'order': _order_tiebreak_elim,
                  'random': _random_tiebreak,
@@ -73,40 +73,40 @@ def irv(election, tiebreaker=None):
     """
     election = np.asarray(election)
     n_voters, n_cands = election.shape
-    eliminated = set()
+    eliminated_cands = set()
     tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
-    first_pointer = np.zeros(n_voters, dtype=np.uint8)
-    first_tallies = np.empty(n_cands, dtype=np.uint)
+    voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
+    cand_tallies = np.empty(n_cands, dtype=np.uint)
     for round_ in range(n_cands):
-        _tally_at_pointer(first_tallies, election, first_pointer)
+        _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
 
         # (tolist makes things 2-4x faster)
-        first_tallies_list = first_tallies.tolist()
+        cand_tallies_list = cand_tallies.tolist()
 
         # Did anyone get a majority?
-        highest = max(first_tallies_list)
-        if highest > n_voters / 2:
-            return first_tallies_list.index(highest)
+        max_cand_tally = max(cand_tallies_list)
+        if max_cand_tally > n_voters / 2:
+            return cand_tallies_list.index(max_cand_tally)
 
-        # If not, eliminate lowest
+        # If not, eliminate least-favorited candidate
         # (generator is faster than min(arr[np.nonzero(arr)]) for small lists)
-        lowest = min(x for x in first_tallies_list if x != 0)
-        low_scorers = _all_indices(first_tallies_list, lowest)
-        loser = tiebreak(low_scorers)[0]
+        last_place_tally = min(t for t in cand_tallies_list if t != 0)
+        last_place_cands = _all_indices(cand_tallies_list, last_place_tally)
+        cand_to_eliminate = tiebreak(last_place_cands)[0]
 
         # Handle no tiebreaker case
-        if loser is None:
+        if cand_to_eliminate is None:
             return None
 
-        # Add candidate with lowest score in this round
-        eliminated.add(loser)
+        # Eliminate candidate with lowest round tally
+        eliminated_cands.add(cand_to_eliminate)
 
         # Make sure candidates who never got votes are also eliminated
         # TODO: In the future when round tallies are also output, this should
         # be its own round
-        eliminated.update(_all_indices(first_tallies_list, 0))
+        eliminated_cands.update(_all_indices(cand_tallies_list, 0))
 
-        # Increment pointers until they point at non-eliminated candidates
-        _inc_pointer(election, first_pointer, eliminated)
+        # Increment rank indices past all eliminated candidates
+        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
 
     raise RuntimeError('Bug in IRV calculation')
