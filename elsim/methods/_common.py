@@ -1,8 +1,5 @@
 """
-The first solutions I tried, such as np.unique(return_counts=True), were very
-slow, so I made this numba solution, but then discovered np.add.at, which is
-faster than the previous solutions, but still slower than numba.  So I'm using
-numba as a "soft" dependency, falling back on numpy if not installed.
+Internal helpers for :mod:`elsim.methods`.
 """
 import random
 import warnings
@@ -30,6 +27,10 @@ except ImportError:
     numba_enabled = False
 
 
+# The first solutions I tried, such as np.unique(return_counts=True), were very
+# slow, so I made this numba solution, but then discovered np.add.at, which is
+# faster than the previous solutions, but still slower than numba.  So I'm
+# using numba as a "soft" dependency, falling back on numpy if not installed.
 if numba_enabled:
     @njit(cache=True, nogil=True)
     def _tally_pairs(pairs, tally):
@@ -135,6 +136,7 @@ def _no_tiebreak(winners, n=1):
 
 
 def _get_tiebreak(tiebreaker, tiebreak_map):
+    """Return the tiebreak callable for ``tiebreaker`` from ``tiebreak_map``."""
     try:
         return tiebreak_map[tiebreaker]
     except KeyError:
