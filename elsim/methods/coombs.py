@@ -65,12 +65,17 @@ def coombs(election, tiebreaker=None):
     """
     election = np.asarray(election)
     n_voters, n_cands = election.shape
-    eliminated_cands = set()
     tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
     voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
     cand_top_tallies = np.empty(n_cands, dtype=np.uint)
     voter_bottom_rank_idx = np.full(n_voters, n_cands - 1, dtype=np.uint8)
     cand_bottom_tallies = np.empty(n_cands, dtype=np.uint)
+
+    # No IRV-style eager elimination of zero top tallies here: Coombs'
+    # elimination criterion is last-place tallies, not lowest top tallies.
+
+    eliminated_cands = set()
+
     for round_ in range(n_cands):
         _tally_at_rank_idx(cand_top_tallies, election, voter_top_rank_idx)
 

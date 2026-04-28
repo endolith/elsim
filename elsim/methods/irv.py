@@ -73,10 +73,21 @@ def irv(election, tiebreaker=None):
     """
     election = np.asarray(election)
     n_voters, n_cands = election.shape
-    eliminated_cands = set()
     tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
     voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
     cand_tallies = np.empty(n_cands, dtype=np.uint)
+
+    # Eliminate candidates with no first-choice votes before rounds begin.
+    # TODO: In the future when round tallies are also output, this should be
+    # its own round.  Either eliminate one zero-voted candidate at a time, or
+    # do a batch elimination of all candidates who can't possibly win in each
+    # round.  (Probably have a batch_elimination=True flag to choose.)
+    # Currently this step is needed because eliminated candidates drop to zero
+    # votes and can't be distinguished from candidates who never received any.
+    _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
+    eliminated_cands = set(_all_indices(cand_tallies.tolist(), 0))
+    _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
+
     for round_ in range(n_cands):
         _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
 
@@ -100,11 +111,6 @@ def irv(election, tiebreaker=None):
 
         # Eliminate candidate with lowest round tally
         eliminated_cands.add(cand_to_eliminate)
-
-        # Make sure candidates who never got votes are also eliminated
-        # TODO: In the future when round tallies are also output, this should
-        # be its own round
-        eliminated_cands.update(_all_indices(cand_tallies_list, 0))
 
         # Increment rank indices past all eliminated candidates
         _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
