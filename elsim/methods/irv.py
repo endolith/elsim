@@ -85,7 +85,7 @@ def irv(election, tiebreaker=None):
     # Currently this step is needed because eliminated candidates drop to zero
     # votes and can't be distinguished from candidates who never received any.
     _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
-    eliminated_cands = set(_all_indices(cand_tallies.tolist(), 0))
+    eliminated_cands = set(_all_indices(cand_tallies, 0))
     _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
 
     for round_ in range(n_cands):
