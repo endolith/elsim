@@ -10,6 +10,7 @@ try:
     from numba import NumbaPendingDeprecationWarning, njit
 
     # Reflected set will be replaced in numba 0.46 and removed in 0.47.
+    # TODO: Update to support latest numba.
     warnings.simplefilter("ignore", category=NumbaPendingDeprecationWarning)
 
     numba_enabled = True
