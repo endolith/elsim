@@ -105,12 +105,11 @@ def irv(election, tiebreaker=None):
         last_place_cands = _all_indices(cand_tallies_list, last_place_tally)
         cand_to_eliminate = tiebreak(last_place_cands)[0]
 
-        # Handle no tiebreaker case
         if cand_to_eliminate is None:
+            # No tiebreaker case
             return None
-
-        # Eliminate candidate with lowest round tally
-        eliminated_cands.add(cand_to_eliminate)
+        else:
+            eliminated_cands.add(cand_to_eliminate)
 
         # Increment rank indices past all eliminated candidates
         _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)

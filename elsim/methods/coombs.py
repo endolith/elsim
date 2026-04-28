@@ -97,12 +97,11 @@ def coombs(election, tiebreaker=None):
                                               max_cand_bottom_tally)
         cand_to_eliminate = tiebreak(max_bottom_tally_cands)[0]
 
-        # Handle no tiebreaker case
         if cand_to_eliminate is None:
+            # No tiebreaker case
             return None
-
-        # Eliminate candidate with highest last-preference tally
-        eliminated_cands.add(cand_to_eliminate)
+        else:
+            eliminated_cands.add(cand_to_eliminate)
 
         # Increment/decrement rank indices past all eliminated candidates
         _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
