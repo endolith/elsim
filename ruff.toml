@@ -1,0 +1,23 @@
+target-version = "py38"
+line-length = 127
+
+[lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "N",
+    "UP",
+    "B",
+    "T20",
+    "PT",
+    "RUF100",
+    "RUF012",
+    "C901",
+]
+
+[lint.isort]
+known-first-party = ["elsim"]
+
+[lint.mccabe]
+max-complexity = 10

@@ -1,0 +1,23 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+        args: [--maxkb=2048]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.12
+    hooks:
+      # Quote --select=...: in YAML flow style, commas inside [...] split list items (E902 on Windows).
+      - id: ruff
+        alias: ruff-blocking
+        name: ruff (blocking; same gate as old flake8 E9/F63/F7/F82)
+        args: ["--select=E9,F63,F7,F82"]
+      - id: ruff
+        alias: ruff-full-report
+        name: ruff (full ruleset from ruff.toml; informational only)
+        args: ["--exit-zero"]

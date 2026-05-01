@@ -37,6 +37,7 @@ test = [
     "pytest-cov",
     "pytest-env",
     "hypothesis",
+    "ruff",
 ]
 examples = [
     "tabulate",
