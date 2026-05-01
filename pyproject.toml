@@ -44,7 +44,7 @@ examples = [
     "joblib",
 ]
 fast = [
-    "numba<0.47",
+    "numba<0.61",
 ]
 
 [project.urls]
