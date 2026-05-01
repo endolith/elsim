@@ -51,3 +51,10 @@ Homepage = "https://github.com/endolith/elsim"
 
 [tool.hatch.version]
 path = "elsim/__init__.py"
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules --ignore=examples --cov --cov-report html --tb=short"
+doctest_optionflags = ["ELLIPSIS"]
+
+[tool.pytest_env]
+NUMBA_DISABLE_JIT = { value = "1", skip_if_set = true }
