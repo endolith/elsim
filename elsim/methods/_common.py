@@ -9,8 +9,12 @@ import numpy as np
 try:
     from numba import NumbaPendingDeprecationWarning, njit
 
-    # Reflected set will be replaced in numba 0.46 and removed in 0.47.
-    # TODO: Update to support latest numba.
+    # ``irv`` / ``coombs`` pass a Python ``set`` of eliminated candidate IDs into
+    # ``@njit`` helpers; Numba compiles membership tests via reflected ``set`` and
+    # emits ``NumbaPendingDeprecationWarning``. Reflection for ``set`` is officially
+    # deprecated (replacement timeline is not the old 0.47 story—see Numba's
+    # "Deprecation of reflection for List and Set types"). Hide the noise for users;
+    # revisit if a Numba release stops compiling this pattern.
     warnings.simplefilter("ignore", category=NumbaPendingDeprecationWarning)
 
     numba_enabled = True

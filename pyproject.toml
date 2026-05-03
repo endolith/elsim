@@ -43,7 +43,9 @@ examples = [
     "joblib",
 ]
 fast = [
-    "numba<0.47",
+    # Reflected ``set`` in IRV/Coombs @njit still compiles through current Numba;
+    # cap bumped as new minors are smoke-tested via Dependabot. See ``elsim.methods._common``.
+    "numba>=0.52,<0.61",
 ]
 
 [project.urls]
