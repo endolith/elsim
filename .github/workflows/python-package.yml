@@ -47,8 +47,8 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        # Run once with only the test deps (JIT disabled) and once with Numba
-        # installed (JIT enabled)
+        # Run once without Numba (JIT path skipped via ImportError) and once
+        # with Numba installed (JIT path exercised, such as reflected-set usage).
         extras: ["test", "test,fast"]
 
     steps:
@@ -70,11 +70,6 @@ jobs:
           pip install -e ".[${{ matrix.extras }}]"
 
       - name: Test with pytest and generate coverage report
-        # pytest-env sets NUMBA_DISABLE_JIT=1 by default (skip_if_set=true in
-        # pyproject.toml). Set it explicitly here first so pytest-env leaves it alone.
-        # Use 0 when the fast (Numba) extra is installed so JIT is actually exercised.
-        env:
-          NUMBA_DISABLE_JIT: ${{ contains(matrix.extras, 'fast') && '0' || '1' }}
         run: |
           pytest --cov=./ --cov-report=xml
 
