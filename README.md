@@ -35,14 +35,20 @@ See [/examples](./examples) folder for more on what it can do, such as reproduct
 
 See [`pyproject.toml`](pyproject.toml).  As of this README, it includes  [`numpy`](https://numpy.org/) and [`scipy`](https://www.scipy.org/) for the simulations, [`tabulate`](https://github.com/astanin/python-tabulate) for printing example tables, [`joblib`](https://joblib.readthedocs.io/en/latest/) for parallelizing extreme examples, and  [`pytest`](https://docs.pytest.org/en/latest/), [`hypothesis`](https://hypothesis.readthedocs.io/en/latest/), and [`pytest-cov`](https://github.com/pytest-dev/pytest-cov) for running the tests.  All should be installable through `conda`.
 
-Optionally, `elsim` can use [`numba`](http://numba.pydata.org/) for speed.  If not available, the code will still run, just more slowly.
+Optionally, `elsim` can use [`numba`](http://numba.pydata.org/) for speed.  Use the `fast` extra when possible. If not available, the code will still run, just more slowly.  (Numba is optional because it does not support every CPU/OS/python combination, and pulls a large LLVM-based stack.)
 
 ## Installation
 
-One possibility is to install with pip:
+From PyPI (recommended — includes Numba):
 
 ```sh
-pip install git+https://github.com/endolith/elsim.git
+pip install elsim[fast]
+```
+
+Core only (no Numba — lighter install, pure Python paths):
+
+```sh
+pip install elsim
 ```
 
 ## Documentation
