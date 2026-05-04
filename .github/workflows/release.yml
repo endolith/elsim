@@ -1,0 +1,17 @@
+name: Create GitHub Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # matches v0.1.0, v1.2.3, etc.
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to create release
+    steps:
+      - uses: actions/checkout@v6
+      - run: gh release create ${{ github.ref_name }} --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
