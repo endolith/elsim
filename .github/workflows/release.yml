@@ -12,6 +12,19 @@ jobs:
       contents: write  # needed to create release
     steps:
       - uses: actions/checkout@v6
-      - run: gh release create ${{ github.ref_name }} --generate-notes
+        with:
+          fetch-depth: 0  # full history so git describe can find the previous tag
+
+      - name: Build release notes from commits
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            git log --oneline --no-merges
+          else
+            git log --oneline --no-merges "${PREV_TAG}..${{ github.ref_name }}"
+          fi > notes.txt
+
+      - name: Create GitHub release
+        run: gh release create "${{ github.ref_name }}" --notes-file notes.txt
         env:
           GH_TOKEN: ${{ github.token }}
