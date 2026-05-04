@@ -17,4 +17,4 @@ elections by combining their functions in the following order:
 """
 from . import elections, methods, strategies
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
