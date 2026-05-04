@@ -17,12 +17,19 @@ jobs:
 
       - name: Build release notes from commits
         run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          if [ -z "$PREV_TAG" ]; then
-            git log --oneline --no-merges
-          else
-            git log --oneline --no-merges "${PREV_TAG}..${{ github.ref_name }}"
-          fi > notes.txt
+          # Annotated tag message first (empty for lightweight tags).
+          TAG_BODY=$(git tag -l --format='%(contents)' "${{ github.ref_name }}")
+          {
+            if [ -n "$TAG_BODY" ]; then
+              printf '%s\n\n' "$TAG_BODY"
+            fi
+            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+            if [ -z "$PREV_TAG" ]; then
+              git log --oneline --no-merges
+            else
+              git log --oneline --no-merges "${PREV_TAG}..${{ github.ref_name }}"
+            fi
+          } > notes.txt
 
       - name: Create GitHub release
         run: gh release create "${{ github.ref_name }}" --notes-file notes.txt
