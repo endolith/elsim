@@ -69,6 +69,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[${{ matrix.extras }}]"
 
+      - name: Verify Numba installation (fast extra)
+        if: contains(matrix.extras, 'fast')
+        run: |
+          python -c "import numba; from elsim.methods import _common; assert _common.numba_enabled; print('numba', numba.__version__)"
+
       - name: Test with pytest and generate coverage report
         run: |
           pytest --cov=./ --cov-report=xml
