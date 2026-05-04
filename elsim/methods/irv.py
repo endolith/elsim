@@ -86,7 +86,11 @@ def irv(election, tiebreaker=None):
     # votes and can't be distinguished from candidates who never received any.
     _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
     eliminated_cands = set(_all_indices(cand_tallies, 0))
-    _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
+    # Guard required: Numba cannot compute the type fingerprint of an empty
+    # Python set (no elements → unknown dtype), so skip the call when there
+    # are no pre-round eliminations.  The call would be a no-op anyway.
+    if eliminated_cands:
+        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
 
     for round_ in range(n_cands):
         _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
