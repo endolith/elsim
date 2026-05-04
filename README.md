@@ -7,7 +7,7 @@ This is a library of functions for simulating thousands of elections held using 
 
 For example, it can be used to reproduce Figure 1 from [Merrill 1984](https://www.jstor.org/stable/2110786):
 
-![Graph of Condorcet Efficiencies for a Random Society for Plurality, Runoff, Hare, Approval, Borda, Coomsb, Black compared to Merrill's results](./examples/results/Merrill_1984_Figure_1._25_voters,_10000_elections.png)
+![Graph of Condorcet Efficiencies for a Random Society for Plurality, Runoff, Hare, Approval, Borda, Coomsb, Black compared to Merrill's results](https://raw.githubusercontent.com/endolith/elsim/master/examples/results/Merrill_1984_Figure_1._25_voters%2C_10000_elections.png)
 
 Or the table of Effectiveness from [Weber 1977](https://elischolar.library.yale.edu/cowles-discussion-paper-series/732/):
 
