@@ -50,6 +50,7 @@ fast = [
 
 [project.urls]
 Homepage = "https://github.com/endolith/elsim"
+Documentation = "https://endolith.github.io/elsim/"
 
 [tool.hatch.version]
 path = "elsim/__init__.py"
