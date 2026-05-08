@@ -47,6 +47,15 @@ fast = [
     # cap bumped as new minors are smoke-tested via Dependabot. See ``elsim.methods._common``.
     "numba>=0.52,<0.61",
 ]
+docs = [
+    "sphinx>=6",
+    "myst-parser",
+    "sphinxcontrib-mermaid",
+    "numpydoc",
+    "sphinx-rtd-theme",
+    "sphinxcontrib-apidoc",
+    "linkify-it-py",
+]
 
 [project.urls]
 Homepage = "https://github.com/endolith/elsim"

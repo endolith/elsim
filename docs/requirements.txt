@@ -1,7 +1,0 @@
-myst-parser
-sphinxcontrib.mermaid
--e .
-numpydoc
-sphinx_rtd_theme
-sphinxcontrib-apidoc
-linkify-it-py
