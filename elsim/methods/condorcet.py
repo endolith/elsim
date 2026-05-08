@@ -189,7 +189,7 @@ def condorcet(election):
 
     References
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Condorcet_method
+    .. [1] :wikipedia:`Condorcet method`
 
     Examples
     --------

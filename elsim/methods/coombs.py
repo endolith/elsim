@@ -38,7 +38,7 @@ def coombs(election, tiebreaker=None):
 
     References
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Coombs%27_method
+    .. [1] :wikipedia:`Coombs' method`
 
     Examples
     --------

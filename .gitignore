@@ -227,3 +227,7 @@ __marimo__/
 
 # sphinx
 _autosummary/
+
+# Build-time copy of examples into docs (see conf.py prepare_examples_doc)
+docs/examples/README.md
+docs/examples/results/

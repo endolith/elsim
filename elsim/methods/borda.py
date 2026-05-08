@@ -39,7 +39,7 @@ def borda(election, tiebreaker=None):
 
     References
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Borda_count
+    .. [1] :wikipedia:`Borda count`
 
     Examples
     --------

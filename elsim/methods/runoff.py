@@ -40,8 +40,8 @@ def runoff(election, tiebreaker=None):
 
     References
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Two-round_system
-    .. [2] https://en.wikipedia.org/wiki/Contingent_vote
+    .. [1] :wikipedia:`Two-round system`
+    .. [2] :wikipedia:`Contingent vote`
 
     Examples
     --------

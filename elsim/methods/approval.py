@@ -36,7 +36,7 @@ def approval(election, tiebreaker=None):
 
     References
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Approval_voting
+    .. [1] :wikipedia:`Approval voting`
 
     Examples
     --------
@@ -101,7 +101,7 @@ def combined_approval(election, tiebreaker=None):
 
     References
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Combined_approval_voting
+    .. [1] :wikipedia:`Combined approval voting`
 
     Examples
     --------
