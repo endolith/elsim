@@ -52,7 +52,6 @@ docs = [
     "myst-parser",
     "sphinxcontrib-mermaid",
     "numpydoc",
-    "sphinx-rtd-theme",
     "sphinxcontrib-apidoc",
     "linkify-it-py",
 ]
