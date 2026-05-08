@@ -14,10 +14,11 @@ authors = [
 ]
 keywords = [
     "elections",
-    "voting",
-    "social",
-    "choice",
-    "theory",
+    "voting-methods",
+    "ranked-choice-voting",
+    "approval-voting",
+    "social-choice",
+    "monte-carlo",
 ]
 classifiers = [
     "Programming Language :: Python :: 3.6",
