@@ -2,10 +2,10 @@
 
 name: Deploy Sphinx documentation to Pages
 
-# Runs on pushes targeting the default branch
+# Production deploy only when docs/source land on the default branch(es).
 on:
   push:
-    branches: [ '*' ]
+    branches: [main, master]
 
 jobs:
   pages:
