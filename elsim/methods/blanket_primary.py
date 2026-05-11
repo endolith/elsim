@@ -3,26 +3,22 @@ Two-round voting methods that combine a primary (narrowing the field) with a
 general election.
 
 These implement nonpartisan blanket primaries and related reforms: approval
-plus runoff (unified primary), pick-one top-four or top-five with a ranked
-general (Final Four / Final Five), IRV-style primaries that leave a fixed
-slate, and Condorcet in the general.
+plus runoff (unified primary), pick-one top-four or top-five with an IRV
+general (Final Four / Final Five), the same pick-one primary with a
+contingent general among finalists, a ranked sequential primary that leaves
+``n`` survivors (see ``irv(..., n_survivors=n)``) followed by that contingent
+general, and Condorcet in the general.
 """
 import numpy as np
 
-from elsim.methods._common import (_all_indices, _get_tiebreak, _inc_rank_idx,
-                                   _no_tiebreak, _order_tiebreak_elim,
-                                   _order_tiebreak_keep, _random_tiebreak,
-                                   _tally_at_rank_idx)
+from elsim.methods._common import (_get_tiebreak, _no_tiebreak,
+                                   _order_tiebreak_keep, _random_tiebreak)
 from elsim.methods.condorcet import condorcet
 from elsim.methods.fptp import sntv
 from elsim.methods.irv import irv
 from elsim.methods.runoff import runoff
 
 _tiebreak_map_keep = {'order': _order_tiebreak_keep,
-                      'random': _random_tiebreak,
-                      None: _no_tiebreak}
-
-_tiebreak_map_elim = {'order': _order_tiebreak_elim,
                       'random': _random_tiebreak,
                       None: _no_tiebreak}
 
@@ -102,82 +98,6 @@ def _head_to_head_two(finalist_0, finalist_1, election, tiebreaker):
     return finalist_1
 
 
-def irv_eliminate_to_n(election, n, tiebreaker=None):
-    """
-    Find the remaining candidates after an IRV-style sequential elimination
-    primary.
-
-    The candidate with the fewest first-preference votes among those still in
-    the race is eliminated (same rule as ``irv``), and the process repeats until
-    at most ``n`` candidates remain.  This models the ranked primary described
-    in reform proposals for top-four systems. [1]_  FairVote circulated model
-    policy language for top-four and related reforms. [2]_
-
-    Parameters
-    ----------
-    election : array_like
-        A collection of ranked ballots.  See `borda` for election format.
-        Currently, this must include full rankings for each voter.
-    n : int
-        Number of candidates that should remain when the primary ends.
-    tiebreaker : {'random', 'order', None}, optional
-        If there is a tie, and `tiebreaker` is ``'random'``, tied candidates
-        are eliminated or selected at random.
-        If 'order', the lowest-ID tied candidate is preferred in each tie.
-        By default, ``None`` is returned if there are any ties.
-
-    Returns
-    -------
-    finalists : {set of int, None}
-        The set of candidate IDs still in the race, or ``None`` for an
-        unbroken tie during elimination.
-
-    References
-    ----------
-    .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
-    .. [2] `FairVote, "Top Four" policy guide (PDF, 2013) <https://archive3.fairvote.org/assets/Top-Four-Policy-Guide.pdf>`__
-
-    Examples
-    --------
-    >>> election = [[0, 1, 2], [1, 2, 0], [2, 0, 1]]
-    >>> sorted(irv_eliminate_to_n(election, 2, tiebreaker='order'))
-    [0, 1]
-    """
-    election = np.asarray(election)
-    n_voters, n_cands = election.shape
-    if n < 1:
-        raise ValueError('n must be at least 1')
-    if n >= n_cands:
-        return set(range(n_cands))
-
-    tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map_elim)
-
-    voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
-    cand_tallies = np.empty(n_cands, dtype=np.uint)
-
-    _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
-    eliminated_cands = set(_all_indices(cand_tallies.tolist(), 0))
-    if eliminated_cands:
-        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
-
-    while n_cands - len(eliminated_cands) > n:
-        _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
-        cand_tallies_list = cand_tallies.tolist()
-        active_tallies = [cand_tallies_list[c] for c in range(n_cands)
-                          if c not in eliminated_cands]
-        last_place_tally = min(active_tallies)
-        last_place_cands = [c for c in range(n_cands)
-                            if c not in eliminated_cands
-                            and cand_tallies_list[c] == last_place_tally]
-        cand_to_eliminate = tiebreak(last_place_cands)[0]
-        if cand_to_eliminate is None:
-            return None
-        eliminated_cands.add(cand_to_eliminate)
-        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
-
-    return {c for c in range(n_cands) if c not in eliminated_cands}
-
-
 def approval_runoff(approval_election, ranked_election, tiebreaker=None):
     """
     Find the winner of an election using a top-two approval primary and a
@@ -188,9 +108,6 @@ def approval_runoff(approval_election, ranked_election, tiebreaker=None):
     ballots (the contingent vote, same ranked-ballot abstraction as ``runoff``
     uses between its finalists). [1]_ [2]_  Delemazure et al. define and study
     the approval-with-runoff family in the computational social choice literature. [3]_
-    St. Louis voters adopted this pattern for municipal offices in 2020; the
-    city's election materials illustrate the approve-many primary and two-candidate
-    runoff. [4]_
 
     Parameters
     ----------
@@ -215,7 +132,6 @@ def approval_runoff(approval_election, ranked_election, tiebreaker=None):
     .. [1] `Unified primary <https://en.wikipedia.org/wiki/Unified_primary>`__
     .. [2] `Contingent vote <https://en.wikipedia.org/wiki/Contingent_vote>`__
     .. [3] `Delemazure et al., "Approval with Runoff" (IJCAI 2022) <https://doi.org/10.24963/ijcai.2022/33>`__
-    .. [4] `City of St. Louis, sample general-election ballot (Nov. 2020, PDF) <https://www.stlouis-mo.gov/government/departments/board-election-commissioners/documents/upload/Nov20-Final-All-Races-Sample-Ballot-9-9-20-1.pdf>`__
 
     Examples
     --------
@@ -252,11 +168,9 @@ def top_n_irv(election, n, tiebreaker=None):
 
     The ``n`` candidates with the most first-preference votes advance (same
     rule as ``sntv``).  The winner is then chosen by ``irv`` on the same
-    rankings restricted to those finalists (as used in Alaska-style top-four
-    with an IRV general). [1]_  Alaska's Division of Elections describes the
-    nonpartisan top-four primary and ranked-choice general in official voter
-    materials. [2]_  FairVote published an early top-four policy guide with
-    model legislative language. [3]_
+    rankings restricted to those finalists.  ``top_n_irv(..., n=4)`` matches
+    Alaska's nonpartisan top-four primary with an IRV general; ``n`` = 5 is
+    the ranked general used in Final Five-style proposals. [1]_ [2]_ [3]_
 
     Parameters
     ----------
@@ -264,8 +178,9 @@ def top_n_irv(election, n, tiebreaker=None):
         A collection of ranked ballots.  See `borda` for election format.
         Currently, this must include full rankings for each voter.
     n : int
-        Number of candidates who advance from the primary (4 for Final Four,
-        5 for Final Five).
+        Number of candidates who advance from the primary (``n`` = 4 is Final
+        Four; ``n`` = 5 is the slate size in Final Five together with this IRV
+        general).
     tiebreaker : {'random', 'order', None}, optional
         If there is a tie, and `tiebreaker` is ``'random'``, a random finalist
         is returned or tied candidates are eliminated at random, according to
@@ -304,16 +219,15 @@ def top_n_irv(election, n, tiebreaker=None):
 def top_n_runoff(election, n, tiebreaker=None):
     """
     Find the winner of an election using a pick-one top-``n`` primary and a
-    top-two contingent general.
+    contingent general among those finalists.
 
-    After the top ``n`` candidates by plurality advance, the general election
-    uses the same two-candidate contingent logic as ``runoff`` on the
-    restricted set of finalists (first round among finalists only, then
-    pairwise between the top two by first preference among finalists). [1]_
-    Alaska's Division of Elections documents the combined top-four primary and
-    ranked general election. [2]_  The Electoral Reform Society describes the
-    contingent / supplementary vote as the two-stage reduction to a pairwise
-    majority choice. [3]_
+    The primary is ``sntv``: the ``n`` candidates with the most first-preference
+    votes in the full field advance.  The general is ``runoff`` applied to the
+    sub-election that keeps only those finalists on each ballot.  That is not
+    the same as calling ``runoff`` on the original ballots, because ``runoff``
+    here first ranks first preferences **among the finalists only** to pick
+    two of them, then breaks a deadlock with a pairwise vote on the same
+    restricted rankings (the contingent vote, as in ``runoff``). [1]_ [2]_
 
     Parameters
     ----------
@@ -336,8 +250,7 @@ def top_n_runoff(election, n, tiebreaker=None):
     References
     ----------
     .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
-    .. [2] `Alaska Division of Elections, "Ranked Choice Voting" (top-four primary and RCV general) <https://www.elections.alaska.gov/Core/RCV.php>`__
-    .. [3] `Electoral Reform Society, "What is the Supplementary Vote?" <https://www.electoral-reform.org.uk/voting-systems/types-of-voting-systems/supplementary-vote-sv/>`__
+    .. [2] `Electoral Reform Society, "What is the Supplementary Vote?" <https://www.electoral-reform.org.uk/voting-systems/types-of-voting-systems/supplementary-vote-sv/>`__
 
     Examples
     --------
@@ -363,8 +276,9 @@ def top_n_condorcet(election, n, tiebreaker=None):
 
     The primary uses the same top-``n`` rule as ``sntv``.  The general election
     applies ``condorcet`` to the restricted rankings (no tiebreaker in the
-    general, matching ``condorcet`` itself). [1]_      Condorcet's 1785 essay defines pairwise majority comparisons among
-    candidates. [2]_  A modern overview is in [3]_.
+    general, matching ``condorcet`` itself). [1]_  Condorcet's 1785 essay
+    defines pairwise majority comparisons among candidates. [2]_  A modern
+    overview is in [3]_.
 
     Parameters
     ----------
@@ -408,65 +322,16 @@ def top_n_condorcet(election, n, tiebreaker=None):
     return int(new_to_old[w])
 
 
-def irv_primary_top_n_irv(election, n, tiebreaker=None):
-    """
-    Find the winner of an election using an IRV-style primary to a slate of
-    ``n``, then an IRV general.
-
-    The primary is ``irv_eliminate_to_n``; the general is ``irv`` on ballots
-    restricted to the surviving finalists. [1]_  Hare's treatise is a
-    foundational English-language source for transferable-vote elimination
-    rules of the kind ``irv`` implements. [2]_
-
-    Parameters
-    ----------
-    election : array_like
-        A collection of ranked ballots.  See `borda` for election format.
-        Currently, this must include full rankings for each voter.
-    n : int
-        Target number of finalists after the primary.
-    tiebreaker : {'random', 'order', None}, optional
-        If there is a tie, and `tiebreaker` is ``'random'``, tied candidates
-        are eliminated or selected at random in the primary or general.
-        If 'order', the lowest-ID tied candidate is preferred in each tie.
-        By default, ``None`` is returned if there are any ties.
-
-    Returns
-    -------
-    winner : {int, None}
-        The ID number of the winner, or ``None`` for an unbroken tie.
-
-    References
-    ----------
-    .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
-    .. [2] `Hare (1859), *A Treatise on the Election of Representatives, Parliamentary and Municipal* (Internet Archive) <https://archive.org/details/atreatiseonelec01haregoog>`__
-
-    Examples
-    --------
-    >>> A, B, C = 0, 1, 2
-    >>> election = [*6*[[A, B, C]], *3*[[B, A, C]], *1*[[C, B, A]]]
-    >>> irv_primary_top_n_irv(election, 2, tiebreaker='order')
-    0
-    """
-    finalists = irv_eliminate_to_n(election, n, tiebreaker)
-    if finalists is None:
-        return None
-    sub, new_to_old = _restrict_ballots(election, finalists)
-    w = irv(sub, tiebreaker)
-    if w is None:
-        return None
-    return int(new_to_old[w])
-
-
 def irv_primary_top_n_runoff(election, n, tiebreaker=None):
     """
-    Find the winner of an election using an IRV-style primary to a slate of
-    ``n``, then a top-two contingent general.
+    Find the winner of an election using a ranked sequential primary to a
+    slate of ``n``, then a contingent general among those finalists.
 
-    The primary is ``irv_eliminate_to_n``; the general is ``runoff`` on
-    ballots restricted to the surviving finalists. [1]_  Alaska's Division of
-    Elections describes the top-four primary with a ranked general election,
-    which matches the same two-stage structure at ``n`` = 4. [2]_
+    The primary is ``irv(..., n_survivors=n)``: the same last-place elimination
+    and transfers as ``irv``, but without stopping when someone reaches an
+    overall majority, until ``n`` candidates remain.  The general is ``runoff``
+    on ballots restricted to that slate (first preferences among finalists
+    only to pick two of them, then the pairwise stage as in ``runoff``). [1]_ [2]_
 
     Parameters
     ----------
@@ -489,7 +354,7 @@ def irv_primary_top_n_runoff(election, n, tiebreaker=None):
     References
     ----------
     .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
-    .. [2] `Alaska Division of Elections, "Ranked Choice Voting" (top-four primary and RCV general) <https://www.elections.alaska.gov/Core/RCV.php>`__
+    .. [2] `FairVote, "Top Four" policy guide (PDF, 2013) <https://archive3.fairvote.org/assets/Top-Four-Policy-Guide.pdf>`__
 
     Examples
     --------
@@ -498,7 +363,7 @@ def irv_primary_top_n_runoff(election, n, tiebreaker=None):
     >>> irv_primary_top_n_runoff(election, 2, tiebreaker='order')
     0
     """
-    finalists = irv_eliminate_to_n(election, n, tiebreaker)
+    finalists = irv(election, tiebreaker, n_survivors=n)
     if finalists is None:
         return None
     sub, new_to_old = _restrict_ballots(election, finalists)
@@ -568,9 +433,9 @@ def top_five_irv(election, tiebreaker=None):
 def top_four_runoff(election, tiebreaker=None):
     """
     Find the winner of an election using a pick-one top-four primary and a
-    top-two contingent general.
+    contingent general among finalists.
 
-    Same as ``top_n_runoff(election, 4, tiebreaker)``. [1]_ [2]_ [3]_
+    Same as ``top_n_runoff(election, 4, tiebreaker)``. [1]_ [2]_
 
     Parameters
     ----------
@@ -587,8 +452,7 @@ def top_four_runoff(election, tiebreaker=None):
     References
     ----------
     .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
-    .. [2] `Alaska Division of Elections, "Ranked Choice Voting" (top-four primary and RCV general) <https://www.elections.alaska.gov/Core/RCV.php>`__
-    .. [3] `Electoral Reform Society, "What is the Supplementary Vote?" <https://www.electoral-reform.org.uk/voting-systems/types-of-voting-systems/supplementary-vote-sv/>`__
+    .. [2] `Electoral Reform Society, "What is the Supplementary Vote?" <https://www.electoral-reform.org.uk/voting-systems/types-of-voting-systems/supplementary-vote-sv/>`__
     """
     return top_n_runoff(election, 4, tiebreaker)
 
@@ -596,9 +460,9 @@ def top_four_runoff(election, tiebreaker=None):
 def top_five_runoff(election, tiebreaker=None):
     """
     Find the winner of an election using a pick-one top-five primary and a
-    top-two contingent general.
+    contingent general among finalists.
 
-    Same as ``top_n_runoff(election, 5, tiebreaker)``. [1]_ [2]_ [3]_ [4]_ [5]_
+    Same as ``top_n_runoff(election, 5, tiebreaker)``. [1]_ [2]_ [3]_ [4]_
 
     Parameters
     ----------
@@ -616,9 +480,8 @@ def top_five_runoff(election, tiebreaker=None):
     ----------
     .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
     .. [2] `Final Five Voting <https://en.wikipedia.org/wiki/Top-four_primary#Final_Five_Voting>`__
-    .. [3] `Alaska Division of Elections, "Ranked Choice Voting" (top-four primary and RCV general) <https://www.elections.alaska.gov/Core/RCV.php>`__
-    .. [4] `Electoral Reform Society, "What is the Supplementary Vote?" <https://www.electoral-reform.org.uk/voting-systems/types-of-voting-systems/supplementary-vote-sv/>`__
-    .. [5] `Gehl & Porter (2017), "Why Competition in the Politics Industry is Failing America" (PDF) <https://www.hbs.edu/competitiveness/Documents/why-competition-in-the-politics-industry-is-failing-america.pdf>`__
+    .. [3] `Electoral Reform Society, "What is the Supplementary Vote?" <https://www.electoral-reform.org.uk/voting-systems/types-of-voting-systems/supplementary-vote-sv/>`__
+    .. [4] `Gehl & Porter (2017), "Why Competition in the Politics Industry is Failing America" (PDF) <https://www.hbs.edu/competitiveness/Documents/why-competition-in-the-politics-industry-is-failing-america.pdf>`__
     """
     return top_n_runoff(election, 5, tiebreaker)
 
