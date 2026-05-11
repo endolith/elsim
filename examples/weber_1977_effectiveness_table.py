@@ -7,20 +7,24 @@ Weber, Robert J. (1978). "Comparison of Public Choice Systems".
 Cowles Foundation Discussion Papers. Cowles Foundation for Research in
 Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 
-Typical result with n_elections = 100_000:
+Typical Monte Carlo Social Utility Efficiency (``n_elections`` = 100_000)
+for the first three methods and Borda; the **Best Vote-for-or-against-k**
+column is **not** from that simulation (ballots in Weber's impartial-type
+model are not the same as Merrill-style SUE with ``combined_approval``), so
+it is filled from the closed form in ``weber_1977_expressions`` (infinite
+voters, page 19).
 
-|     |   Standard |   Vote-for-half |   Borda |
-|----:|-----------:|----------------:|--------:|
-|   2 |      81.37 |           81.71 |   81.41 |
-|   3 |      75.10 |           75.00 |   86.53 |
-|   4 |      69.90 |           79.92 |   89.47 |
-|   5 |      65.02 |           79.09 |   91.34 |
-|   6 |      61.08 |           81.20 |   92.61 |
-|  10 |      50.78 |           82.94 |   95.35 |
-| 255 |      12.78 |           86.37 |   99.80 |
+|     |   Standard |   Vote-for-half |   Best Vote-for-or-against-k |   Borda |
+|----:|-----------:|----------------:|-----------------------------:|--------:|
+|   2 |      81.37 |           81.71 |                        81.65 |   81.41 |
+|   3 |      75.10 |           75.00 |                        87.50 |   86.53 |
+|   4 |      69.90 |           79.92 |                        80.83 |   89.47 |
+|   5 |      65.02 |           79.09 |                        86.96 |   91.34 |
+|   6 |      61.08 |           81.20 |                        86.25 |   92.61 |
+|  10 |      50.78 |           82.94 |                        88.09 |   95.35 |
+| 255 |      12.78 |           86.37 |                        92.07 |   99.80 |
 """
 # TODO: Standard is consistently ~1% high, while Borda is very accurate
-# TODO: Best Vote-for-or-against-k is not implemented yet
 import time
 from collections import Counter
 
@@ -31,7 +35,8 @@ from tabulate import tabulate
 from elsim.elections import random_utilities
 from elsim.methods import approval, borda, fptp, utility_winner
 from elsim.strategies import honest_rankings, vote_for_k
-from weber_1977_expressions import eff_borda, eff_standard, eff_vote_for_half
+from weber_1977_expressions import (eff_best_vote_for_or_against_k, eff_borda,
+                                    eff_standard, eff_vote_for_half)
 
 n_elections = 2_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 1_000
@@ -71,6 +76,8 @@ plt.figure(f'Effectiveness, {n_voters} voters, {n_elections} elections')
 plt.title('The Effectiveness of Several Voting Systems')
 for name, method in (('Standard', eff_standard),
                      ('Vote-for-half', eff_vote_for_half),
+                     ('Best Vote-for-or-against-k',
+                      eff_best_vote_for_or_against_k),
                      ('Borda', eff_borda)):
     plt.plot(n_cands_list, method(np.array(n_cands_list))*100, ':', lw=0.8)
 
@@ -88,8 +95,13 @@ for method in ('Standard', 'Vote-for-half', 'Borda'):
     plt.plot(x, SUE*100, '-', label=method)
     table.update({method: SUE*100})
 
+table['Best Vote-for-or-against-k'] = (
+    eff_best_vote_for_or_against_k(np.array(n_cands_list)) * 100)
+
 print(tabulate(table, 'keys', showindex=n_cands_list,
                tablefmt="pipe", floatfmt='.2f'))
+print('Best Vote-for-or-against-k: Weber infinite-voter theory '
+      '(weber_1977_expressions); other columns are Monte Carlo SUE.')
 
 plt.plot([], [], 'k:', lw=0.8, label='Weber')  # Dummy plot for label
 plt.legend()
