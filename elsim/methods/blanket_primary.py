@@ -61,8 +61,6 @@ def _top_n_from_plurality_tallies(tallies, n, tiebreaker):
 
 def _primary_top_n_approval(approval_election, n, tiebreaker):
     approval_election = np.asarray(approval_election, dtype=np.uint8)
-    if approval_election.min() < 0 or approval_election.max() > 1:
-        raise ValueError('Approval ballots must contain only 0 and 1')
     tallies = approval_election.sum(axis=0)
     n_cands = approval_election.shape[1]
     if n >= n_cands:
@@ -154,8 +152,6 @@ def irv_eliminate_to_n(election, n, tiebreaker=None):
 
     while n_cands - len(eliminated_cands) > n:
         _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
-        if n_cands - len(eliminated_cands) <= n:
-            break
         cand_tallies_list = cand_tallies.tolist()
         active_tallies = [cand_tallies_list[c] for c in range(n_cands)
                           if c not in eliminated_cands]
@@ -212,7 +208,7 @@ def approval_runoff(approval_election, ranked_election, tiebreaker=None):
     if approval_election.shape[0] != ranked_election.shape[0]:
         raise ValueError('approval_election and ranked_election must have the '
                          'same number of rows (voters)')
-    if approval_election.min() < 0 or approval_election.max() > 1:
+    if approval_election.max() > 1:
         raise ValueError('Approval ballots must contain only 0 and 1')
 
     finalists = _primary_top_n_approval(approval_election, 2, tiebreaker)
