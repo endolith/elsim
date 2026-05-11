@@ -48,14 +48,15 @@ def simulate_batch(n_cands):
     winners = defaultdict(list)
     for iteration in range(batch_size):
 
-        # "voters and candidates come from the uniform distribution on [0, 1]"
-        v = np.random.uniform(0, 1, n_voters)
-        # But remove any run-to-run random bias, because we want to match ideal
-        # points of the actual set of voters, not their expected value.
-        v = (v - v.mean() + 0.5)[:, np.newaxis]
+        # Uniform on [0, 1]. Same translation for voters and candidates so
+        # pairwise distances are unchanged; anchor the draw to the voter median
+        # at 0.5 (issue #22, consistent with tomlinson_2023_figure_3_updated.py).
+        v_flat = np.random.uniform(0, 1, n_voters)
+        ref = np.median(v_flat)
+        v = (v_flat - ref + 0.5)[:, np.newaxis]
 
-        c = np.random.uniform(0, 1, n_cands)
-        c = (c - v.mean() + 0.5)[:, np.newaxis]
+        c_flat = np.random.uniform(0, 1, n_cands)
+        c = (c_flat - ref + 0.5)[:, np.newaxis]
 
         # FPTP voting method
         utilities = normed_dist_utilities(v, c)
