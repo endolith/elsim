@@ -1,7 +1,22 @@
 import pytest
 
-from elsim.methods import (approval, black, borda, combined_approval, coombs,
-                           fptp, irv, runoff, score, utility_winner)
+from elsim.methods import (approval, approval_runoff, black, borda,
+                           combined_approval, coombs, fptp, irv,
+                           irv_primary_top_n_irv, irv_primary_top_n_runoff,
+                           runoff, score, top_four_condorcet, top_four_irv,
+                           top_five_irv, top_four_runoff, top_five_runoff,
+                           top_n_condorcet, top_n_irv, top_n_runoff,
+                           utility_winner)
+
+_blanket_ranked = [
+    top_four_irv, top_five_irv, top_four_runoff, top_five_runoff,
+    lambda e, tb=None: irv_primary_top_n_irv(e, 4, tb),
+    lambda e, tb=None: irv_primary_top_n_runoff(e, 4, tb),
+    lambda e, tb=None: top_n_irv(e, 3, tb),
+    lambda e, tb=None: top_n_runoff(e, 3, tb),
+    lambda e, tb=None: top_n_condorcet(e, 3, tb),
+    top_four_condorcet,
+]
 
 
 @pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs,
@@ -14,7 +29,13 @@ def test_invalid_tiebreaker(method):
         method(election, tiebreaker='duel')
 
 
-@pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs])
+def test_invalid_tiebreaker_approval_runoff():
+    with pytest.raises(ValueError):
+        approval_runoff([[1, 0]], [[0, 1]], tiebreaker='duel')
+
+
+@pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs,
+                                    *_blanket_ranked])
 def test_ranked_method_degenerate_case(method):
     election = [[0]]
     assert method(election) == 0
@@ -27,7 +48,8 @@ def test_ranked_method_degenerate_case(method):
     assert method(election, 'order') == 0
 
 
-@pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs])
+@pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs,
+                                    *_blanket_ranked])
 def test_ranked_method_unanimity(method):
     election = [[3, 0, 1, 2], [3, 0, 2, 1], [3, 2, 1, 0]]
     assert method(election) == 3
