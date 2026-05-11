@@ -18,3 +18,4 @@ Subpackages
    elsim.elections
    elsim.strategies
    elsim.methods
+   elsim.studies
