@@ -1,11 +1,13 @@
 """Tests for elsim.studies (Monte Carlo helpers, parameter expansion)."""
 
+import builtins
 from collections import Counter
 
 import numpy as np
 import pytest
 
-from elsim.methods import condorcet, fptp
+from elsim.methods import approval, condorcet, fptp
+from elsim.strategies import approval_optimal
 from elsim.studies import (
     JoblibBackend,
     SerialBackend,
@@ -14,6 +16,7 @@ from elsim.studies import (
     expand_zip,
     merge_counters,
     merrill_1984_comparison_methods,
+    random_society_utility_updates,
     ranked_rated_utility_updates,
     run_batched,
     spatial_random_reference_utility_updates,
@@ -26,8 +29,17 @@ def test_expand_product_scalar_and_list():
     assert got == [{"n_voters": 10, "n_cands": 3}, {"n_voters": 20, "n_cands": 3}]
 
 
-def test_expand_product_empty():
-    assert expand_product() == [{}]
+def test_expand_product_bytes_scalar():
+    assert expand_product(blob=b"ab") == [{"blob": b"ab"}]
+
+
+def test_expand_rows_empty():
+    assert expand_rows((), ("a",)) == []
+
+
+def test_run_batched_uses_implicit_serial_backend():
+    out = run_batched(lambda k: k, n_trials=5, batch_size=2)
+    assert out == [2, 2, 1]
 
 
 def test_expand_zip_basic():
@@ -131,7 +143,6 @@ def test_joblib_backend_map_repeat():
 def test_ranked_rated_utility_updates():
     utilities = np.array([[1.0, 0.0], [1.0, 0.0], [1.0, 0.0]])
     rankings = np.array([[0, 1], [0, 1], [0, 1]], dtype=np.uint8)
-    from elsim.methods import fptp
 
     delta = ranked_rated_utility_updates(
         utilities, rankings, {'Plurality': fptp}, {}, tiebreaker='random',
@@ -144,7 +155,6 @@ def test_spatial_random_reference_includes_rw():
     np.random.seed(0)
     utilities = np.array([[1.0, 0.0, 0.5], [0.0, 1.0, 0.5]])
     rankings = np.array([[0, 1, 2], [1, 0, 2]], dtype=np.uint8)
-    from elsim.methods import fptp
 
     delta = spatial_random_reference_utility_updates(
         utilities, rankings, {'Plurality': fptp}, {}, tiebreaker='random',
@@ -165,3 +175,152 @@ def test_joblib_backend_map_each():
 
     out = backend.map_each([partial(f, 1), partial(f, 2)])
     assert out == [1, 2]
+
+
+def test_expand_zip_empty():
+    assert expand_zip() == []
+
+
+def test_expand_product_mapping_value_raises():
+    with pytest.raises(TypeError, match="Mappings"):
+        expand_product(x={"a": 1})
+
+
+def test_run_batched_zero_trials():
+    assert run_batched(lambda k: k, n_trials=0, batch_size=10) == []
+
+
+def test_run_batched_negative_trials_raises():
+    with pytest.raises(ValueError, match="non-negative"):
+        run_batched(lambda k: k, n_trials=-1, batch_size=10)
+
+
+def test_run_batched_invalid_batch_size_raises():
+    with pytest.raises(ValueError, match="positive"):
+        run_batched(lambda k: k, n_trials=10, batch_size=0)
+
+
+def test_serial_backend_map_repeat_negative_raises():
+    with pytest.raises(ValueError, match="non-negative"):
+        SerialBackend().map_repeat(lambda: 1, n=-1)
+
+
+def test_merge_counters_empty():
+    assert merge_counters([]) == Counter()
+
+
+def test_random_society_utility_updates_tiebreaker_none():
+    utilities = np.array([[0.9, 0.1], [0.8, 0.2]])
+    rankings = np.array([[0, 1], [0, 1]], dtype=np.uint8)
+    delta = random_society_utility_updates(
+        utilities,
+        rankings,
+        {"Plurality": fptp},
+        {},
+        tiebreaker="random",
+        uw_key="UW",
+        utility_winner_tiebreaker=None,
+    )
+    assert "UW" in delta
+    assert "Plurality" in delta
+
+
+def test_random_society_utility_updates_custom_uw_key_and_rated():
+    utilities = np.array([[1.0, 0.0], [1.0, 0.0]])
+    rankings = np.array([[0, 1], [0, 1]], dtype=np.uint8)
+
+    rated = {
+        "Approval": lambda u, tiebreaker: approval(
+            approval_optimal(u), tiebreaker,
+        ),
+    }
+    delta = random_society_utility_updates(
+        utilities,
+        rankings,
+        {"Plurality": fptp},
+        rated,
+        tiebreaker="random",
+        uw_key="XX",
+        utility_winner_tiebreaker="random",
+    )
+    assert "XX" in delta
+    assert "Approval" in delta
+    assert "Plurality" in delta
+
+
+def test_spatial_random_reference_with_rated():
+    utilities = np.array([[1.0, 0.0], [1.0, 0.0]])
+    rankings = np.array([[0, 1], [0, 1]], dtype=np.uint8)
+
+    rated = {
+        "Approval": lambda u, tiebreaker: approval(
+            approval_optimal(u), tiebreaker,
+        ),
+    }
+    delta = spatial_random_reference_utility_updates(
+        utilities, rankings, {"Plurality": fptp}, rated, tiebreaker="random",
+    )
+    assert set(delta) >= {"RW", "Plurality", "Approval"}
+
+
+def test_ranked_rated_with_both_method_kinds():
+    utilities = np.array([[1.0, 0.0], [1.0, 0.0]])
+    rankings = np.array([[0, 1], [0, 1]], dtype=np.uint8)
+
+    rated = {
+        "Approval": lambda u, tiebreaker: approval(
+            approval_optimal(u), tiebreaker,
+        ),
+    }
+    delta = ranked_rated_utility_updates(
+        utilities, rankings, {"Plurality": fptp}, rated, tiebreaker="random",
+    )
+    assert "Plurality" in delta
+    assert "Approval" in delta
+
+
+def test_merrill_1984_comparison_methods_keys():
+    ranked, rated = merrill_1984_comparison_methods()
+    assert set(ranked) == {"Plurality", "Runoff", "Hare", "Borda", "Coombs", "Black"}
+    assert set(rated) == {"SU max", "Approval"}
+
+
+def test_tally_condorcet_agreement_rated_branch():
+    rankings = np.array([[0, 1], [0, 1], [0, 1]], dtype=np.uint8)
+    utilities = np.array(
+        [
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+        ],
+    )
+    assert condorcet(rankings) == 0
+    ranked, rated = merrill_1984_comparison_methods()
+    c = tally_condorcet_agreement(rankings, utilities, ranked, rated, tiebreaker="random")
+    assert c["CW"] == 1
+    assert c["SU max"] == 1
+    assert c["Plurality"] == 1
+
+
+def test_joblib_backend_requires_joblib(monkeypatch):
+    pytest.importorskip("joblib")
+
+    real_import = builtins.__import__
+
+    def block_joblib(name, globals=None, locals=None, fromlist=(), level=0):
+        if name == "joblib" and fromlist and "Parallel" in fromlist:
+            raise ImportError("blocked joblib for test")
+        return real_import(name, globals, locals, fromlist, level)
+
+    monkeypatch.setattr(builtins, "__import__", block_joblib)
+    backend = JoblibBackend(n_jobs=1, verbose=0)
+    with pytest.raises(ImportError, match="joblib"):
+        backend.map_repeat(lambda: 1, n=1)
+    with pytest.raises(ImportError, match="joblib"):
+        backend.map_each([lambda: 1])
+
+
+def test_joblib_backend_map_repeat_negative_raises():
+    pytest.importorskip("joblib")
+    with pytest.raises(ValueError, match="non-negative"):
+        JoblibBackend().map_repeat(lambda: 1, n=-1)

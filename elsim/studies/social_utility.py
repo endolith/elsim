@@ -57,7 +57,7 @@ def random_society_utility_updates(
     *,
     tiebreaker: str = "random",
     uw_key: str = "UW",
-    utility_winner_tiebreaker: str | None = "random",
+    utility_winner_tiebreaker: Optional[str] = "random",
 ) -> dict[str, float]:
     """
     Utility totals for Merrill-style random societies (Table 3 / Fig 3).
