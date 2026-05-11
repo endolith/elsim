@@ -16,6 +16,11 @@ from .backends import JoblibBackend, SerialBackend
 from .condorcet_metrics import merrill_1984_comparison_methods, tally_condorcet_agreement
 from .parameters import expand_product, expand_rows, expand_zip
 from .runner import merge_counters, run_batched
+from .social_utility import (
+    random_society_utility_updates,
+    ranked_rated_utility_updates,
+    spatial_random_reference_utility_updates,
+)
 
 __all__ = [
     "JoblibBackend",
@@ -27,4 +32,7 @@ __all__ = [
     "run_batched",
     "merrill_1984_comparison_methods",
     "tally_condorcet_agreement",
+    "spatial_random_reference_utility_updates",
+    "random_society_utility_updates",
+    "ranked_rated_utility_updates",
 ]

@@ -34,6 +34,7 @@ from tabulate import tabulate
 from elsim.elections import random_utilities
 from elsim.methods import approval, borda, fptp
 from elsim.strategies import approval_optimal, honest_rankings
+from elsim.studies import ranked_rated_utility_updates
 
 n_elections = 30_000  # Roughly 30 seconds on a 2019 6-core i7-9750H
 n_voters_list = (2, 3, 4, 5, 10, 15, 20, 25, 30)
@@ -48,18 +49,18 @@ utility_sums = {key: Counter() for key in (ranked_methods.keys() |
 
 start_time = time.monotonic()
 
-for iteration in range(n_elections):
+for _ in range(n_elections):
     for n_voters in n_voters_list:
         utilities = random_utilities(n_voters, n_cands)
 
-        for name, method in rated_methods.items():
-            winner = method(utilities, tiebreaker='random')
-            utility_sums[name][n_voters] += utilities.sum(axis=0)[winner]
-
         rankings = honest_rankings(utilities)
-        for name, method in ranked_methods.items():
-            winner = method(rankings, tiebreaker='random')
-            utility_sums[name][n_voters] += utilities.sum(axis=0)[winner]
+
+        delta = ranked_rated_utility_updates(
+            utilities, rankings, ranked_methods, rated_methods,
+            tiebreaker='random',
+        )
+        for name, value in delta.items():
+            utility_sums[name][n_voters] += value
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')

@@ -46,17 +46,15 @@ simulations.
 """
 import time
 from collections import Counter
-from random import randint
 
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
-                           score, star, utility_winner)
-from elsim.strategies import (approval_optimal, honest_normed_scores,
-                              honest_rankings)
+from elsim.methods import approval, black, borda, coombs, fptp, irv, runoff, score, star, utility_winner
+from elsim.strategies import approval_optimal, honest_normed_scores, honest_rankings
+from elsim.studies import spatial_random_reference_utility_updates
 
 n_elections = 5_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
 n_voters = 201
@@ -78,32 +76,27 @@ rated_methods = {'SU max': utility_winner,
                           tiebreaker),
                  }
 
-for fig, disp, ymin in (('4.a', 1.0, 55),
-                        ('4.b', 0.5, 0)):
+for fig, disp in (('4.a', 1.0),
+                  ('4.b', 0.5)):
 
     utility_sums = {key: Counter() for key in (ranked_methods.keys() |
                                                rated_methods.keys() |
                                                {'SU max', 'RW'})}
     start_time = time.monotonic()
 
-    for iteration in range(n_elections):
+    for _ in range(n_elections):
         for n_cands in n_cands_list:
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp)
             utilities = normed_dist_utilities(v, c)
             rankings = honest_rankings(utilities)
 
-            # Pick a random winner and accumulate utilities
-            RW = randint(0, n_cands - 1)
-            utility_sums['RW'][n_cands] += utilities.sum(axis=0)[RW]
-
-            for name, method in rated_methods.items():
-                winner = method(utilities, tiebreaker='random')
-                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
-
-            for name, method in ranked_methods.items():
-                winner = method(rankings, tiebreaker='random')
-                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+            delta = spatial_random_reference_utility_updates(
+                utilities, rankings, ranked_methods, rated_methods,
+                tiebreaker='random',
+            )
+            for name, value in delta.items():
+                utility_sums[name][n_cands] += value
 
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
@@ -132,6 +125,6 @@ for fig, disp, ymin in (('4.a', 1.0, 55),
     plt.legend()
     plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
     plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
-    plt.ylim(85, 100.5)  # or ymin
+    plt.ylim(85, 100.5)
     plt.xlim(1.8, 7.2)
     plt.show()

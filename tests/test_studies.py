@@ -14,7 +14,9 @@ from elsim.studies import (
     expand_zip,
     merge_counters,
     merrill_1984_comparison_methods,
+    ranked_rated_utility_updates,
     run_batched,
+    spatial_random_reference_utility_updates,
     tally_condorcet_agreement,
 )
 
@@ -124,6 +126,31 @@ def test_joblib_backend_map_repeat():
     backend = JoblibBackend(n_jobs=2, verbose=0)
     out = backend.map_repeat(lambda: 1, n=4)
     assert out == [1, 1, 1, 1]
+
+
+def test_ranked_rated_utility_updates():
+    utilities = np.array([[1.0, 0.0], [1.0, 0.0], [1.0, 0.0]])
+    rankings = np.array([[0, 1], [0, 1], [0, 1]], dtype=np.uint8)
+    from elsim.methods import fptp
+
+    delta = ranked_rated_utility_updates(
+        utilities, rankings, {'Plurality': fptp}, {}, tiebreaker='random',
+    )
+    assert set(delta) == {'Plurality'}
+    assert delta['Plurality'] == float(utilities.sum(axis=0)[0])
+
+
+def test_spatial_random_reference_includes_rw():
+    np.random.seed(0)
+    utilities = np.array([[1.0, 0.0, 0.5], [0.0, 1.0, 0.5]])
+    rankings = np.array([[0, 1, 2], [1, 0, 2]], dtype=np.uint8)
+    from elsim.methods import fptp
+
+    delta = spatial_random_reference_utility_updates(
+        utilities, rankings, {'Plurality': fptp}, {}, tiebreaker='random',
+    )
+    assert 'RW' in delta
+    assert 'Plurality' in delta
 
 
 def test_joblib_backend_map_each():
