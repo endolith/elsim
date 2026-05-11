@@ -25,11 +25,12 @@ from collections import Counter
 from functools import partial
 
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import impartial_culture
 from elsim.methods import condorcet
-from elsim.studies import JoblibBackend, merge_counters
+from elsim.studies import merge_counters
 
 # It needs many simulations to get similar accuracy as the analytical results
 n_elections = 100_000  # Roughly 30 seconds on a 2019 6-core i7-9750H
@@ -54,7 +55,6 @@ def simulate_batch(n_voters, n_cands, batch_size):
     return condorcet_paradox_count
 
 
-backend = JoblibBackend(n_jobs=-3, verbose=5)
 fns = [
     partial(simulate_batch, n_voters, n_cands, batch_size)
     for n_voters in n_voters_list
@@ -62,7 +62,7 @@ fns = [
     for _ in range(n_batches)
 ]
 print(f'{len(fns)} tasks total:')
-results = backend.map_each(fns)
+results = Parallel(n_jobs=-3, verbose=5)(delayed(fn)() for fn in fns)
 condorcet_paradox_counts = merge_counters(results)
 
 table = []

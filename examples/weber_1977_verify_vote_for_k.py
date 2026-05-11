@@ -44,13 +44,13 @@ from collections import Counter, defaultdict
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
+from weber_1977_expressions import eff_standard, eff_vote_for_half, eff_vote_for_k
 
 from elsim.elections import random_utilities
 from elsim.methods import approval, fptp, utility_winner
 from elsim.strategies import honest_rankings, vote_for_k
-from elsim.studies import JoblibBackend
-from weber_1977_expressions import eff_standard, eff_vote_for_half, eff_vote_for_k
 
 n_elections = 10_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 1_000
@@ -101,8 +101,9 @@ def simulate_election():
     return utility_sums
 
 
-backend = JoblibBackend(n_jobs=-3, verbose=5)
-results = backend.map_repeat(simulate_election, n_elections)
+results = Parallel(n_jobs=-3, verbose=5)(
+    delayed(simulate_election)() for _ in range(n_elections)
+)
 
 for result in results:
     for method, d in result.items():

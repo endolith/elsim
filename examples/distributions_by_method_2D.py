@@ -30,10 +30,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # from colorcet import fire
+from joblib import Parallel, delayed
+
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods import approval, black, borda, coombs, fptp, irv, runoff, star
 from elsim.strategies import approval_optimal, honest_normed_scores, honest_rankings, vote_for_k
-from elsim.studies import JoblibBackend
 
 try:
     pass  # Creates afmhot_u colormap
@@ -164,10 +165,9 @@ if os.path.exists(pkl_filename):
         aggregated_histograms, standard_deviations = pickle.load(file)
 else:
     print('Running simulations')
-    backend = JoblibBackend(n_jobs=-3, verbose=5)
     worker = partial(simulate_batch, n_cands)
     print(f'{n_batches} tasks total:')
-    results = backend.map_repeat(worker, n_batches)
+    results = Parallel(n_jobs=-3, verbose=5)(delayed(worker)() for _ in range(n_batches))
 
     # Get keys from the histograms of the first result
     keys = results[0][0].keys()

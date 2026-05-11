@@ -16,12 +16,12 @@ from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from seaborn import histplot
 
 from elsim.elections import normed_dist_utilities
 from elsim.methods import fptp, irv
 from elsim.strategies import honest_rankings
-from elsim.studies import JoblibBackend
 
 n_elections = 200_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
 n_voters = 1_000
@@ -81,10 +81,9 @@ fig, ax = plt.subplots(nrows=2, ncols=3, num=title,
 fig.suptitle(title)
 
 for n_cands in n_cands_list:
-    backend = JoblibBackend(n_jobs=-3, verbose=5)
     worker = partial(simulate_batch, n_cands)
     print(f'{n_batches} tasks total:')
-    results = backend.map_repeat(worker, n_batches)
+    results = Parallel(n_jobs=-3, verbose=5)(delayed(worker)() for _ in range(n_batches))
 
     winners = {k: [v for d in results for v in d[k]] for k in results[0]}
 

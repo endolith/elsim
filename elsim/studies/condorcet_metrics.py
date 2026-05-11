@@ -12,41 +12,22 @@ from typing import Callable, Mapping, Optional
 
 import numpy as np
 
-from elsim.methods import approval, black, borda, condorcet, coombs, fptp, irv, runoff, utility_winner
+from elsim.methods import approval, condorcet
 from elsim.strategies import approval_optimal
 
 RankedMethod = Callable[..., Optional[int]]
 RatedMethod = Callable[..., Optional[int]]
 
 
-def _approval_at_optimal(utilities: np.ndarray, tiebreaker: str) -> Optional[int]:  # noqa: UP045
+def approval_at_optimal(utilities: np.ndarray, tiebreaker: str = "random") -> Optional[int]:  # noqa: UP045
+    """
+    Rated-method helper: build an optimal approval ballot, then apply :func:`elsim.methods.approval`.
+
+    Intended for use in a ``rated_methods`` mapping passed to
+    :func:`tally_condorcet_agreement` or the spatial sweep helpers, so scripts
+    stay declarative without repeating lambdas.
+    """
     return approval(approval_optimal(utilities), tiebreaker)
-
-
-def merrill_1984_comparison_methods() -> tuple[dict[str, RankedMethod], dict[str, RatedMethod]]:
-    """
-    Voting methods compared in Merrill (1984) Condorcet-efficiency tables.
-
-    Returns
-    -------
-    ranked_methods, rated_methods
-        Callables match the ``elsim.methods`` signatures: ranked methods take
-        ``(rankings, tiebreaker=...)``; rated methods take
-        ``(utilities, tiebreaker=...)``.
-    """
-    ranked_methods: dict[str, RankedMethod] = {
-        "Plurality": fptp,
-        "Runoff": runoff,
-        "Hare": irv,
-        "Borda": borda,
-        "Coombs": coombs,
-        "Black": black,
-    }
-    rated_methods: dict[str, RatedMethod] = {
-        "SU max": utility_winner,
-        "Approval": _approval_at_optimal,
-    }
-    return ranked_methods, rated_methods
 
 
 def tally_condorcet_agreement(
@@ -69,7 +50,8 @@ def tally_condorcet_agreement(
     utilities : array_like
         Utilities aligned with ``rankings``, shape ``(n_voters, n_cands)``.
     ranked_methods, rated_methods
-        Name to callable maps, same shapes as :func:`merrill_1984_comparison_methods`.
+        Name to callable maps; ranked methods take ``(rankings, tiebreaker=...)``;
+        rated methods take ``(utilities, tiebreaker=...)``.
     tiebreaker : str, optional
         Passed through to each method callable.
 

@@ -36,18 +36,26 @@ import numpy as np
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
+from elsim.methods import black, borda, coombs, fptp, irv, runoff, utility_winner
 from elsim.strategies import honest_rankings
-from elsim.studies import (
-    expand_rows,
-    merrill_1984_comparison_methods,
-    spatial_random_reference_utility_updates,
-)
+from elsim.studies import approval_at_optimal, expand_rows, spatial_random_reference_utility_updates
 
 n_elections = 10_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 201
 n_cands = 5
 
-ranked_methods, rated_methods = merrill_1984_comparison_methods()
+ranked_methods = {
+    "Plurality": fptp,
+    "Runoff": runoff,
+    "Hare": irv,
+    "Borda": borda,
+    "Coombs": coombs,
+    "Black": black,
+}
+rated_methods = {
+    "SU max": utility_winner,
+    "Approval": approval_at_optimal,
+}
 
 #             disp, corr, D
 condition_rows = ((1.0, 0.5, 2),
