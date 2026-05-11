@@ -98,6 +98,13 @@ source_suffix = {
 import os
 import shutil
 
+# ASV HTML is optional locally; CI writes docs/_benchmark_site/benchmarks before build.
+_docs_dir = os.path.dirname(os.path.abspath(__file__))
+_benchmark_site = os.path.join(_docs_dir, '_benchmark_site')
+html_extra_path = []
+if os.path.isdir(_benchmark_site):
+    html_extra_path.append('_benchmark_site')
+
 
 def prepare_examples_doc(app, config):
     srcdir = app.srcdir

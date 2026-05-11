@@ -1,0 +1,19 @@
+{
+    "version": 1,
+    "project": "elsim",
+    "project_url": "https://endolith.github.io/elsim/",
+    "repo": "..",
+    "branches": ["master"],
+    "show_commit_url": "https://github.com/endolith/elsim/commit/",
+    "pythons": ["3.12"],
+    "environment_type": "virtualenv",
+    "install_command": [
+        "in-dir={build_dir} python -m pip install -e \".[fast]\""
+    ],
+    "benchmark_dir": "benchmarks",
+    "env_dir": "env",
+    "results_dir": "results",
+    "html_dir": "html",
+    "default_benchmark_timeout": 300,
+    "build_cache_size": 8
+}
