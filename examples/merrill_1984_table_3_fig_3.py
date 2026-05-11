@@ -30,9 +30,9 @@ import numpy as np
 from tabulate import tabulate
 
 from elsim.elections import random_utilities
-from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
-                           utility_winner)
+from elsim.methods import approval, black, borda, coombs, fptp, irv, runoff
 from elsim.strategies import approval_optimal, honest_rankings
+from elsim.studies import random_society_utility_updates
 
 n_elections = 10_000  # Roughly 30 seconds on a 2019 6-core i7-9750H
 n_voters = 25
@@ -49,7 +49,7 @@ utility_sums = {key: Counter() for key in (ranked_methods.keys() |
 
 start_time = time.monotonic()
 
-for iteration in range(n_elections):
+for _ in range(n_elections):
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
 
@@ -62,18 +62,16 @@ for iteration in range(n_elections):
         utilities -= utilities.min(1)[:, np.newaxis]
         utilities /= utilities.max(1)[:, np.newaxis]
 
-        # Find the social utility winner and accumulate utilities
-        UW = utility_winner(utilities)
-        utility_sums['UW'][n_cands] += utilities.sum(axis=0)[UW]
-
-        for name, method in rated_methods.items():
-            winner = method(utilities, tiebreaker='random')
-            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
-
         rankings = honest_rankings(utilities)
-        for name, method in ranked_methods.items():
-            winner = method(rankings, tiebreaker='random')
-            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+
+        delta = random_society_utility_updates(
+            utilities, rankings, ranked_methods, rated_methods,
+            tiebreaker='random',
+            uw_key='UW',
+            utility_winner_tiebreaker=None,
+        )
+        for name, value in delta.items():
+            utility_sums[name][n_cands] += value
 
 
 elapsed_time = time.monotonic() - start_time
