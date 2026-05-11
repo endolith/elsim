@@ -3,6 +3,7 @@ import numbers
 import numpy as np
 from scipy.spatial.distance import cdist as _cdist
 
+from elsim._docstrings import docstrings
 from elsim.strategies import honest_rankings as _honest_rankings
 
 elections_rng = np.random.default_rng()
@@ -30,16 +31,11 @@ def _check_random_state(seed):
                      'numpy.random.Generator instance')
 
 
-def random_utilities(n_voters, n_cands, random_state=None):
+@docstrings.get_sections(base='election_common', sections=['Parameters'])
+@docstrings.dedent
+def _election_common_param_doc():
     """
-    Generate utilities using the impartial culture / random society model.
-
-    The random society [1]_ or random uniform utilities [2]_ model selects
-    independent candidate utilities for each voter from a uniform distribution
-    in the interval [0, 1).
-
-    This model is unrealistic, but is commonly used because it has some
-    worst-case properties and is comparable between researchers. [3]_
+    Shared parameter documentation for election generators.
 
     Parameters
     ----------
@@ -54,6 +50,29 @@ def random_utilities(n_voters, n_cands, random_state=None):
         If None (default), an existing Generator is used.
         If `random_state` is already a Generator instance, then
         that object is used.
+    """
+    pass
+
+
+docstrings.keep_params('election_common.parameters', 'n_voters', 'n_cands')
+docstrings.keep_params('election_common.parameters', 'random_state')
+
+
+@docstrings.dedent
+def random_utilities(n_voters, n_cands, random_state=None):
+    """
+    Generate utilities using the impartial culture / random society model.
+
+    The random society [1]_ or random uniform utilities [2]_ model selects
+    independent candidate utilities for each voter from a uniform distribution
+    in the interval [0, 1).
+
+    This model is unrealistic, but is commonly used because it has some
+    worst-case properties and is comparable between researchers. [3]_
+
+    Parameters
+    ----------
+    %(election_common.parameters)s
 
     Returns
     -------
@@ -92,6 +111,7 @@ def random_utilities(n_voters, n_cands, random_state=None):
     return rng.random((n_voters, n_cands))
 
 
+@docstrings.dedent
 def impartial_culture(n_voters, n_cands, random_state=None):
     """
     Generate ranked ballots using the impartial culture / random society model.
@@ -104,17 +124,7 @@ def impartial_culture(n_voters, n_cands, random_state=None):
 
     Parameters
     ----------
-    n_voters : int
-        Number of voters
-    n_cands : int
-        Number of candidates
-    random_state : {None, int, np.random.Generator}, optional
-        Initializes the random number generator.  If `random_state` is int, a
-        new Generator instance is used, seeded with its value.  (If the same
-        int is given twice, the function will return the same values.)
-        If None (default), an existing Generator is used.
-        If `random_state` is already a Generator instance, then
-        that object is used.
+    %(election_common.parameters)s
 
     Returns
     -------
@@ -164,6 +174,7 @@ def impartial_culture(n_voters, n_cands, random_state=None):
     return rankings
 
 
+@docstrings.dedent
 def normal_electorate(n_voters, n_cands, dims=2, corr=0.0, disp=1.0,
                       random_state=None):
     """
@@ -171,10 +182,7 @@ def normal_electorate(n_voters, n_cands, dims=2, corr=0.0, disp=1.0,
 
     Parameters
     ----------
-    n_voters : int
-        Number of voters
-    n_cands : int
-        Number of candidates
+    %(election_common.parameters.n_voters|n_cands)s
     dims : int
          Number of dimensions
     corr : float
@@ -184,13 +192,7 @@ def normal_electorate(n_voters, n_cands, dims=2, corr=0.0, disp=1.0,
         standard deviations.  For example, 1.0 means they are distributed by
         the same amount, while 0.5 means that candidates are more tightly
         concentrated than voters.
-    random_state : {None, int, np.random.Generator}, optional
-        Initializes the random number generator.  If `random_state` is int, a
-        new Generator instance is used, seeded with its value.  (If the same
-        int is given twice, the function will return the same values.)
-        If None (default), an existing Generator is used.
-        If `random_state` is already a Generator instance, then
-        that object is used.
+    %(election_common.parameters.random_state)s
 
     Returns
     -------

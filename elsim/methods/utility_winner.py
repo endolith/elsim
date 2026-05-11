@@ -1,13 +1,14 @@
 import numpy as np
 
-from elsim.methods._common import (_all_indices, _get_tiebreak, _no_tiebreak,
-                                   _order_tiebreak_keep, _random_tiebreak)
+from elsim._docstrings import docstrings
+from elsim.methods._common import _all_indices, _get_tiebreak, _no_tiebreak, _order_tiebreak_keep, _random_tiebreak
 
 _tiebreak_map = {'order': _order_tiebreak_keep,
                  'random': _random_tiebreak,
                  None: _no_tiebreak}
 
 
+@docstrings.dedent
 def utility_winner(utilities, tiebreaker=None):
     """
     Find the utilitarian winner of an election. (Dummy "election method").
@@ -17,12 +18,7 @@ def utility_winner(utilities, tiebreaker=None):
 
     Parameters
     ----------
-    utilities : array_like
-        A 2D collection of utilities.
-
-        Rows represent voters, and columns represent candidate IDs.
-        Higher utility numbers mean greater approval of that candidate by that
-        voter.
+    %(utilities_2d.parameters.utilities)s
 
     tiebreaker : {'random', 'order', None}, optional
         If there is a tie, and `tiebreaker` is ``'random'``, a random finalist

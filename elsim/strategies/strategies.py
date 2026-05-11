@@ -1,18 +1,16 @@
 import numpy as np
 
+from elsim._docstrings import docstrings
 
+
+@docstrings.dedent
 def honest_rankings(utilities):
     """
     Convert utilities into rankings using honest strategy.
 
     Parameters
     ----------
-    utilities : array_like
-        A 2D collection of utilities.
-
-        Rows represent voters, and columns represent candidate IDs.
-        Higher utility numbers mean greater approval of that candidate by that
-        voter.
+    %(utilities_2d.parameters.utilities)s
 
     Returns
     -------
@@ -57,6 +55,7 @@ def honest_rankings(utilities):
     return np.argsort(utilities)[:, ::-1].astype(np.uint8)
 
 
+@docstrings.dedent
 def honest_normed_scores(utilities, max_score=5):
     """
     Convert utilities into scores using honest (but normalized) strategy.
@@ -67,12 +66,7 @@ def honest_normed_scores(utilities, max_score=5):
 
     Parameters
     ----------
-    utilities : array_like
-        A 2D collection of utilities.
-
-        Rows represent voters, and columns represent candidate IDs.
-        Higher utility numbers mean greater approval of that candidate by that
-        voter.
+    %(utilities_2d.parameters.utilities)s
 
     max_score : int, optional
         The highest score on the ballot. If `max_score` = 3, the possible
@@ -125,6 +119,7 @@ def honest_normed_scores(utilities, max_score=5):
     return scores
 
 
+@docstrings.dedent
 def approval_optimal(utilities):
     """
     Convert utilities to optimal approval voting ballots.
@@ -135,12 +130,7 @@ def approval_optimal(utilities):
 
     Parameters
     ----------
-    utilities : array_like
-        A 2D collection of utilities.
-
-        Rows represent voters, and columns represent candidate IDs.
-        Higher utility numbers mean greater approval of that candidate by that
-        voter.
+    %(utilities_2d.parameters.utilities)s
 
     Returns
     -------
@@ -185,6 +175,7 @@ def approval_optimal(utilities):
     return approvals
 
 
+@docstrings.dedent
 def vote_for_k(utilities, k):
     """
     Convert utilities to approval voting ballots, approving top k candidates.
@@ -194,12 +185,7 @@ def vote_for_k(utilities, k):
 
     Parameters
     ----------
-    utilities : array_like
-        A 2D collection of utilities.
-
-        Rows represent voters, and columns represent candidate IDs.
-        Higher utility numbers mean greater approval of that candidate by that
-        voter.
+    %(utilities_2d.parameters.utilities)s
     k : int or 'half'
         The number of candidates approved of by each voter, or 'half' to make
         the number dependent on the number of candidates.  If a negative int,
