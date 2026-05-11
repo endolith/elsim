@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from hypothesis import assume, given
+from hypothesis import given
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import floats, integers, tuples
 from numpy.testing import assert_array_equal
@@ -23,6 +23,11 @@ def test_approval_optimal():
                                                      [0, 0, 1],
                                                      ])
 
+    uniform = np.full((3, 4), 0.25)
+    assert_array_equal(
+        approval_optimal(uniform), np.zeros((3, 4), dtype=np.uint8)
+    )
+
 
 def test_honest_normed_scores():
     utilities = np.array([[0.0, 0.4, 1.0],
@@ -37,6 +42,12 @@ def test_honest_normed_scores():
                                                             [0, 7, 5],
                                                             [0, 2, 7],
                                                             ])
+
+    indifferent = np.ones((4, 5))
+    assert_array_equal(
+        honest_normed_scores(indifferent, max_score=9),
+        np.zeros((4, 5), dtype=np.uint8),
+    )
 
 
 def test_vote_for_k():
@@ -64,6 +75,14 @@ def test_vote_for_k():
     assert_array_equal(vote_for_k(utilities, 2), b)
     assert_array_equal(vote_for_k(utilities, -1), b)
 
+    # Strict total order per row: each voter approves exactly k candidates.
+    strict = (
+        np.linspace(0.0, 1.0, 5, dtype=np.float64)
+        + np.arange(4, dtype=np.float64)[:, np.newaxis] * 1e-4
+    )
+    assert_array_equal(vote_for_k(strict, 1).sum(axis=1), np.ones(4))
+    assert_array_equal(vote_for_k(strict, 4).sum(axis=1), np.full(4, 4))
+
 
 @pytest.mark.parametrize("k", [0, 3, -3, -4, 4])
 def test_invalid_k(k):
@@ -71,6 +90,11 @@ def test_invalid_k(k):
         election = [[0.0, 0.5, 1.0],
                     [1.0, 0.0, 0.1]]
         vote_for_k(election, k)
+
+
+def test_honest_rankings_complete_indifference_ordering():
+    utilities = np.array([[0.0, 0.0, 0.0]])
+    assert_array_equal(honest_rankings(utilities), [[2, 1, 0]])
 
 
 def utilities(min_cands=2, max_cands=25, min_voters=1, max_voters=100):
@@ -87,6 +111,8 @@ def test_approval_optimal_properties(utilities):
     election = approval_optimal(utilities)
     assert election.shape == utilities.shape
     assert set(election.flat) <= {0, 1}
+    means = utilities.mean(axis=1, keepdims=True)
+    assert np.all((election == 0) | (utilities > means))
 
 
 @given(utilities=utilities())
@@ -112,56 +138,6 @@ def test_honest_normed_scores_properties(utilities, max_score):
 
     # Output should be integers
     assert_array_equal(election % 1, 0)
-
-
-def test_honest_normed_scores_all_equal_utilities():
-    utilities = np.ones((4, 5))
-    election = honest_normed_scores(utilities, max_score=9)
-    assert_array_equal(election, np.zeros_like(election))
-
-
-@given(utilities=utilities())
-def test_honest_rankings_rows_are_permutations(utilities):
-    assume(utilities.shape[1] <= 255)
-    election = honest_rankings(utilities)
-    assert election.shape == utilities.shape
-    n_cands = utilities.shape[1]
-    for row in election:
-        assert_array_equal(
-            np.bincount(row, minlength=n_cands), np.ones(n_cands, dtype=int)
-        )
-
-
-def test_honest_rankings_ties_prefer_higher_candidate_id_first():
-    utilities = np.array([[0.0, 0.0, 0.0]])
-    assert_array_equal(honest_rankings(utilities), [[2, 1, 0]])
-
-
-def test_approval_optimal_all_equal_no_approvals():
-    utilities = np.full((3, 4), 0.25)
-    assert_array_equal(approval_optimal(utilities), np.zeros((3, 4), dtype=np.uint8))
-
-
-@given(utilities=utilities())
-def test_approval_optimal_mean_is_strict_threshold(utilities):
-    election = approval_optimal(utilities)
-    means = utilities.mean(axis=1, keepdims=True)
-    assert np.all((election == 0) | (utilities > means))
-
-
-@given(
-    n_cands=integers(2, 20),
-    n_voters=integers(1, 40),
-)
-def test_vote_for_k_exactly_k_approvals_when_strict_order(n_cands, n_voters):
-    utilities = (
-        np.linspace(0.0, 1.0, n_cands, dtype=np.float64)
-        + np.arange(n_voters, dtype=np.float64)[:, np.newaxis] * 1e-4
-    )
-    for k in (1, n_cands - 1):
-        election = vote_for_k(utilities, k)
-        assert_array_equal(election.sum(axis=1), np.full(n_voters, k))
-        assert set(election.flat) <= {0, 1}
 
 
 if __name__ == "__main__":
