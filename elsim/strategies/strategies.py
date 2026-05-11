@@ -57,7 +57,7 @@ def honest_rankings(utilities):
     return np.argsort(utilities)[:, ::-1].astype(np.uint8)
 
 
-def honest_normed_scores(utilities, max_score=5):
+def honest_normed_scores(utilities, max_score=5, *, min_score=0):
     """
     Convert utilities into scores using honest (but normalized) strategy.
 
@@ -75,8 +75,10 @@ def honest_normed_scores(utilities, max_score=5):
         voter.
 
     max_score : int, optional
-        The highest score on the ballot. If `max_score` = 3, the possible
-        scores are 0, 1, 2, 3.
+        The highest score on the ballot (inclusive).
+    min_score : int, optional
+        The lowest score on the ballot (inclusive). Use keyword syntax;
+        the second positional argument is always ``max_score``.
 
     Returns
     -------
@@ -107,22 +109,84 @@ def honest_normed_scores(utilities, max_score=5):
            [0, 5, 5]], dtype=uint8)
 
     """
+    if min_score > max_score:
+        raise ValueError('min_score cannot exceed max_score')
+
     # Slide every voter's minimum utility to 0
     normed = utilities - np.amin(utilities, axis=1)[:, np.newaxis]
 
     # If a ballot is all 0, suppress 0/0 warning.
     # astype(np.uint8) will convert NaN back to 0.
+    span = max_score - min_score
     with np.errstate(invalid='ignore'):
         # Normalize every voter's maximum utility to 1
         normed /= np.amax(normed, axis=1)[:, np.newaxis]
 
-        # Normalize every voter's maximum score to max_score
-        normed *= max_score
+        # Map [0, 1] to [min_score, max_score]
+        normed *= span
+        normed += min_score
 
         scores = np.around(normed).astype(np.uint8)
 
+    scores = np.clip(scores, min_score, max_score)
+
+    no_pref = np.ptp(utilities, axis=1) == 0
+    scores[no_pref] = np.uint8(min_score)
+
     # Quantize to discrete scale
     return scores
+
+
+def honest_321_ratings(utilities):
+    """
+    Convert utilities to Good / OK / Bad ratings for 3-2-1 voting.
+
+    For each voter, candidates in the lowest third of utility (for that voter)
+    are rated Bad (0), the highest third Good (2), and the remainder OK (1).
+
+    Parameters
+    ----------
+    utilities : array_like
+        Same shape as for :func:`honest_rankings`.
+
+    Returns
+    -------
+    ratings : ndarray
+        Shape matching ``utilities``, dtype uint8, values 0 (Bad), 1 (OK),
+        2 (Good).
+
+    Examples
+    --------
+    >>> utilities = [[1.0, 0.5, 0.0],
+    ...              [0.0, 0.3, 1.0]]
+    >>> honest_321_ratings(utilities)
+    array([[2, 1, 0],
+           [0, 1, 2]], dtype=uint8)
+    """
+    utilities = np.asarray(utilities)
+    n_voters, n_cands = utilities.shape
+    if n_cands > 255:
+        raise ValueError('Maximum number of candidates is 255')
+
+    ratings = np.ones((n_voters, n_cands), dtype=np.uint8)
+    order = np.argsort(utilities, axis=1)
+
+    if n_cands == 1:
+        ratings[:] = 2
+        return ratings
+
+    if n_cands == 2:
+        for i in range(n_voters):
+            ratings[i, order[i, 0]] = 0
+            ratings[i, order[i, 1]] = 2
+        return ratings
+
+    n_bad = n_cands // 3
+    n_good = n_cands // 3
+    for i in range(n_voters):
+        ratings[i, order[i, :n_bad]] = 0
+        ratings[i, order[i, n_cands - n_good:]] = 2
+    return ratings
 
 
 def approval_optimal(utilities):
