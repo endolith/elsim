@@ -1,21 +1,22 @@
 """Tests for elsim.studies (Monte Carlo helpers, parameter expansion)."""
 
-import builtins
 from collections import Counter
+from functools import partial
 
 import numpy as np
 import pytest
 
-from elsim.methods import approval, condorcet, fptp
+from elsim.methods import approval, black, borda, condorcet, coombs, fptp, irv, runoff, utility_winner
 from elsim.strategies import approval_optimal
 from elsim.studies import (
-    JoblibBackend,
     SerialBackend,
+    accumulate_spatial_condorcet_by_ncands,
+    accumulate_spatial_sue_by_ncands,
+    approval_at_optimal,
     expand_product,
     expand_rows,
     expand_zip,
     merge_counters,
-    merrill_1984_comparison_methods,
     random_society_utility_updates,
     ranked_rated_utility_updates,
     run_batched,
@@ -96,7 +97,8 @@ def test_tally_condorcet_agreement_no_cw():
         dtype=np.uint8,
     )
     utilities = np.zeros_like(rankings, dtype=float)
-    ranked, rated = merrill_1984_comparison_methods()
+    ranked = {"Plurality": fptp}
+    rated: dict = {}
     assert tally_condorcet_agreement(rankings, utilities, ranked, rated) == Counter()
 
 
@@ -132,12 +134,15 @@ def test_serial_backend_map_each():
     assert out == [1, 2]
 
 
-def test_joblib_backend_map_repeat():
+def test_parallel_delayed_map_each():
     pytest.importorskip("joblib")
+    from joblib import Parallel, delayed
 
-    backend = JoblibBackend(n_jobs=2, verbose=0)
-    out = backend.map_repeat(lambda: 1, n=4)
-    assert out == [1, 1, 1, 1]
+    def f(x):
+        return x
+
+    out = list(Parallel(n_jobs=2, verbose=0)(delayed(fn)() for fn in [partial(f, 1), partial(f, 2)]))
+    assert out == [1, 2]
 
 
 def test_ranked_rated_utility_updates():
@@ -161,20 +166,6 @@ def test_spatial_random_reference_includes_rw():
     )
     assert 'RW' in delta
     assert 'Plurality' in delta
-
-
-def test_joblib_backend_map_each():
-    from functools import partial
-
-    pytest.importorskip("joblib")
-
-    backend = JoblibBackend(n_jobs=2, verbose=0)
-
-    def f(x):
-        return x
-
-    out = backend.map_each([partial(f, 1), partial(f, 2)])
-    assert out == [1, 2]
 
 
 def test_expand_zip_empty():
@@ -279,10 +270,10 @@ def test_ranked_rated_with_both_method_kinds():
     assert "Approval" in delta
 
 
-def test_merrill_1984_comparison_methods_keys():
-    ranked, rated = merrill_1984_comparison_methods()
-    assert set(ranked) == {"Plurality", "Runoff", "Hare", "Borda", "Coombs", "Black"}
-    assert set(rated) == {"SU max", "Approval"}
+def test_approval_at_optimal_matches_explicit():
+    utilities = np.array([[0.2, 0.8], [0.1, 0.9]])
+    tb = "random"
+    assert approval_at_optimal(utilities, tb) == approval(approval_optimal(utilities), tb)
 
 
 def test_tally_condorcet_agreement_rated_branch():
@@ -295,32 +286,54 @@ def test_tally_condorcet_agreement_rated_branch():
         ],
     )
     assert condorcet(rankings) == 0
-    ranked, rated = merrill_1984_comparison_methods()
+    ranked = {
+        "Plurality": fptp,
+        "Runoff": runoff,
+        "Hare": irv,
+        "Borda": borda,
+        "Coombs": coombs,
+        "Black": black,
+    }
+    rated = {"SU max": utility_winner, "Approval": approval_at_optimal}
     c = tally_condorcet_agreement(rankings, utilities, ranked, rated, tiebreaker="random")
     assert c["CW"] == 1
     assert c["SU max"] == 1
     assert c["Plurality"] == 1
 
 
-def test_joblib_backend_requires_joblib(monkeypatch):
-    pytest.importorskip("joblib")
+def test_accumulate_spatial_condorcet_by_ncands_keys():
+    np.random.seed(0)
+    ranked = {"Plurality": fptp, "Hare": irv}
+    rated = {"SU max": utility_winner, "Approval": approval_at_optimal}
+    out = accumulate_spatial_condorcet_by_ncands(
+        4,
+        n_voters=15,
+        n_cands_list=(3, 4),
+        dims=2,
+        corr=0.5,
+        disp=1.0,
+        ranked_methods=ranked,
+        rated_methods=rated,
+        tiebreaker="random",
+    )
+    assert set(out.keys()) == {"CW", "Plurality", "Hare", "SU max", "Approval"}
+    assert sum(out["CW"].values()) <= 4 * 2
 
-    real_import = builtins.__import__
 
-    def block_joblib(name, globals=None, locals=None, fromlist=(), level=0):
-        if name == "joblib" and fromlist and "Parallel" in fromlist:
-            raise ImportError("blocked joblib for test")
-        return real_import(name, globals, locals, fromlist, level)
-
-    monkeypatch.setattr(builtins, "__import__", block_joblib)
-    backend = JoblibBackend(n_jobs=1, verbose=0)
-    with pytest.raises(ImportError, match="joblib"):
-        backend.map_repeat(lambda: 1, n=1)
-    with pytest.raises(ImportError, match="joblib"):
-        backend.map_each([lambda: 1])
-
-
-def test_joblib_backend_map_repeat_negative_raises():
-    pytest.importorskip("joblib")
-    with pytest.raises(ValueError, match="non-negative"):
-        JoblibBackend().map_repeat(lambda: 1, n=-1)
+def test_accumulate_spatial_sue_by_ncands_keys():
+    np.random.seed(1)
+    ranked = {"Plurality": fptp}
+    rated = {"SU max": utility_winner, "Approval": approval_at_optimal}
+    out = accumulate_spatial_sue_by_ncands(
+        3,
+        n_voters=12,
+        n_cands_list=(3,),
+        dims=2,
+        corr=0.5,
+        disp=1.0,
+        ranked_methods=ranked,
+        rated_methods=rated,
+        tiebreaker="random",
+    )
+    assert set(out.keys()) == {"SU max", "RW", "Plurality", "Approval"}
+    assert out["RW"][3] > 0

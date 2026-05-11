@@ -40,11 +40,12 @@ from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import impartial_culture
 from elsim.methods import condorcet
-from elsim.studies import JoblibBackend, merge_counters
+from elsim.studies import merge_counters
 
 # Probability That There Is No Majority Winner
 niemi_table = [.0000, .0000, .0877, .1755, .2513, .3152, .3692, .4151, .4545,
@@ -78,14 +79,13 @@ def simulate_batch(n_voters, n_cands, batch_size):
     return condorcet_paradox_count
 
 
-backend = JoblibBackend(n_jobs=-3, verbose=5)
 fns = [
     partial(simulate_batch, n_voters, n_cands, batch_size)
     for n_cands in n_cands_list
     for _ in range(n_batches)
 ]
 print(f'{len(fns)} tasks total:')
-results = backend.map_each(fns)
+results = Parallel(n_jobs=-3, verbose=5)(delayed(fn)() for fn in fns)
 condorcet_paradox_counts = merge_counters(results)
 
 x, y = zip(*niemi_table.items())

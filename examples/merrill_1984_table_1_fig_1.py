@@ -33,13 +33,25 @@ from tabulate import tabulate
 
 from elsim.elections import random_utilities
 from elsim.strategies import honest_rankings
-from elsim.studies import merrill_1984_comparison_methods, tally_condorcet_agreement
+from elsim.methods import black, borda, coombs, fptp, irv, runoff, utility_winner
+from elsim.studies import approval_at_optimal, tally_condorcet_agreement
 
 n_elections = 10_000  # Roughly 15 seconds on a 2019 6-core i7-9750H
 n_voters = 25
 n_cands_list = (2, 3, 4, 5, 7, 10)
 
-ranked_methods, rated_methods = merrill_1984_comparison_methods()
+ranked_methods = {
+    "Plurality": fptp,
+    "Runoff": runoff,
+    "Hare": irv,
+    "Borda": borda,
+    "Coombs": coombs,
+    "Black": black,
+}
+rated_methods = {
+    "SU max": utility_winner,
+    "Approval": approval_at_optimal,
+}
 
 condorcet_winner_count = {key: Counter() for key in (
     ranked_methods.keys() | rated_methods.keys() | {'CW'})}

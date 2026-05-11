@@ -45,16 +45,14 @@ discrepancies.  It is smoother, so maybe the original just had lower number of
 simulations.
 """
 import time
-from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
 
-from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods import approval, black, borda, coombs, fptp, irv, runoff, score, star, utility_winner
-from elsim.strategies import approval_optimal, honest_normed_scores, honest_rankings
-from elsim.studies import spatial_random_reference_utility_updates
+from elsim.strategies import approval_optimal, honest_normed_scores
+from elsim.studies import accumulate_spatial_sue_by_ncands
 
 n_elections = 5_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
 n_voters = 201
@@ -79,25 +77,18 @@ rated_methods = {'SU max': utility_winner,
 for fig, disp in (('4.a', 1.0),
                   ('4.b', 0.5)):
 
-    utility_sums = {key: Counter() for key in (ranked_methods.keys() |
-                                               rated_methods.keys() |
-                                               {'SU max', 'RW'})}
     start_time = time.monotonic()
-
-    for _ in range(n_elections):
-        for n_cands in n_cands_list:
-            v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
-                                     disp=disp)
-            utilities = normed_dist_utilities(v, c)
-            rankings = honest_rankings(utilities)
-
-            delta = spatial_random_reference_utility_updates(
-                utilities, rankings, ranked_methods, rated_methods,
-                tiebreaker='random',
-            )
-            for name, value in delta.items():
-                utility_sums[name][n_cands] += value
-
+    utility_sums = accumulate_spatial_sue_by_ncands(
+        n_elections,
+        n_voters=n_voters,
+        n_cands_list=n_cands_list,
+        dims=D,
+        corr=corr,
+        disp=disp,
+        ranked_methods=ranked_methods,
+        rated_methods=rated_methods,
+        tiebreaker='random',
+    )
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
           '\n')

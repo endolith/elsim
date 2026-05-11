@@ -14,45 +14,40 @@ Results with 500_000 elections:
 
 4.a
 
-| Method    |     2 |     3 |     4 |     5 |     6 |     7 |
-|:----------|------:|------:|------:|------:|------:|------:|
-| Black     | 100.0 |  97.2 |  97.1 |  97.3 |  97.6 |  97.8 |
-| Coombs    | 100.0 |  97.1 |  96.8 |  97.0 |  97.2 |  97.4 |
-| Borda     | 100.0 |  98.7 |  98.2 |  97.9 |  97.7 |  97.6 |
-| Approval  | 100.0 |  98.7 |  97.3 |  96.2 |  95.6 |  95.2 |
-| Hare      | 100.0 |  94.2 |  92.6 |  91.7 |  91.0 |  90.3 |
-| Runoff    | 100.0 |  94.2 |  92.0 |  90.4 |  88.9 |  87.4 |
-| Plurality | 100.0 |  84.7 |  77.1 |  72.1 |  68.1 |  64.8 |
+| Method    |     2 |    3 |    4 |    5 |    6 |    7 |
+|:----------|------:|-----:|-----:|-----:|-----:|-----:|
+| Black     | 100.0 | 97.2 | 97.1 | 97.3 | 97.6 | 97.8 |
+| Coombs    | 100.0 | 97.1 | 96.8 | 97.0 | 97.2 | 97.4 |
+| Borda     | 100.0 | 98.7 | 98.2 | 97.9 | 97.7 | 97.6 |
+| Approval  | 100.0 | 98.7 | 97.3 | 96.2 | 95.6 | 95.2 |
+| Hare      | 100.0 | 94.2 | 92.6 | 91.7 | 91.0 | 90.3 |
+| Runoff    | 100.0 | 94.2 | 92.0 | 90.4 | 88.9 | 87.4 |
+| Plurality | 100.0 | 84.7 | 77.1 | 72.1 | 68.1 | 64.8 |
 
 4.b
 
-| Method    |     2 |     3 |     4 |     5 |     6 |     7 |
-|:----------|------:|------:|------:|------:|------:|------:|
-| Black     | 100.0 |  95.5 |  95.2 |  95.5 |  95.8 |  96.2 |
-| Coombs    | 100.0 |  94.9 |  94.1 |  94.0 |  94.0 |  94.1 |
-| Borda     | 100.0 |  97.9 |  97.1 |  96.6 |  96.4 |  96.3 |
-| Approval  | 100.0 |  98.6 |  96.7 |  95.6 |  94.9 |  94.5 |
-| Hare      | 100.0 |  70.2 |  55.9 |  46.7 |  39.7 |  34.6 |
-| Runoff    | 100.0 |  70.2 |  51.7 |  36.9 |  24.3 |  13.5 |
-| Plurality | 100.0 |  50.1 |  23.7 |   4.3 | -11.8 | -25.1 |
+| Method    |     2 |    3 |    4 |    5 |     6 |     7 |
+|:----------|------:|-----:|-----:|-----:|------:|------:|
+| Black     | 100.0 | 95.5 | 95.2 | 95.5 |  95.8 |  96.2 |
+| Coombs    | 100.0 | 94.9 | 94.1 | 94.0 |  94.0 |  94.1 |
+| Borda     | 100.0 | 97.9 | 97.1 | 96.6 |  96.4 |  96.3 |
+| Approval  | 100.0 | 98.6 | 96.7 | 95.6 |  94.9 |  94.5 |
+| Hare      | 100.0 | 70.2 | 55.9 | 46.7 |  39.7 |  34.6 |
+| Runoff    | 100.0 | 70.2 | 51.7 | 36.9 |  24.3 |  13.5 |
+| Plurality | 100.0 | 50.1 | 23.7 |  4.3 | -11.8 | -25.1 |
 
 The general trend is similar to Merrill's, but there are significant
 discrepancies.  It is smoother, so maybe the original just had lower number of
 simulations.
 """
 import time
-from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
 
-from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.strategies import honest_rankings
-from elsim.studies import (
-    merrill_1984_comparison_methods,
-    spatial_random_reference_utility_updates,
-)
+from elsim.methods import black, borda, coombs, fptp, irv, runoff, utility_winner
+from elsim.studies import accumulate_spatial_sue_by_ncands, approval_at_optimal
 
 n_elections = 10_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
 n_voters = 201
@@ -60,7 +55,18 @@ n_cands_list = (2, 3, 4, 5, 6, 7)
 corr = 0.5
 D = 2
 
-ranked_methods, rated_methods = merrill_1984_comparison_methods()
+ranked_methods = {
+    "Plurality": fptp,
+    "Runoff": runoff,
+    "Hare": irv,
+    "Borda": borda,
+    "Coombs": coombs,
+    "Black": black,
+}
+rated_methods = {
+    "SU max": utility_winner,
+    "Approval": approval_at_optimal,
+}
 
 # Plot Merrill's results as dotted lines for comparison (traced from plots)
 merrill_fig_4a = {
@@ -86,25 +92,18 @@ merrill_fig_4b = {
 for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
                               ('4.b', 0.5, 0, merrill_fig_4b)):
 
-    utility_sums = {key: Counter() for key in (ranked_methods.keys() |
-                                               rated_methods.keys() |
-                                               {'SU max', 'RW'})}
     start_time = time.monotonic()
-
-    for _ in range(n_elections):
-        for n_cands in n_cands_list:
-            v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
-                                     disp=disp)
-            utilities = normed_dist_utilities(v, c)
-            rankings = honest_rankings(utilities)
-
-            delta = spatial_random_reference_utility_updates(
-                utilities, rankings, ranked_methods, rated_methods,
-                tiebreaker='random',
-            )
-            for name, value in delta.items():
-                utility_sums[name][n_cands] += value
-
+    utility_sums = accumulate_spatial_sue_by_ncands(
+        n_elections,
+        n_voters=n_voters,
+        n_cands_list=n_cands_list,
+        dims=D,
+        corr=corr,
+        disp=disp,
+        ranked_methods=ranked_methods,
+        rated_methods=rated_methods,
+        tiebreaker='random',
+    )
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
           '\n')

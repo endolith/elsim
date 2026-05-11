@@ -6,12 +6,12 @@ from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from seaborn import histplot, kdeplot
 
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods import black, fptp, irv, runoff, star
 from elsim.strategies import honest_normed_scores, honest_rankings
-from elsim.studies import JoblibBackend
 
 n_elections = 100_000  # Roughly 1 minute on a 2019 6-core i7-9750H
 n_voters = 1_000
@@ -87,9 +87,9 @@ def simulate_batch():
     return winners
 
 
-backend = JoblibBackend(n_jobs=-3, verbose=5)
+jobs = [delayed(simulate_batch)() for _ in range(n_batches)]
 print(f'{n_batches} tasks total:')
-results = backend.map_repeat(simulate_batch, n_batches)
+results = Parallel(n_jobs=-3, verbose=5)(jobs)
 
 winners = {k: [v for d in results for v in d[k]] for k in results[0]}
 

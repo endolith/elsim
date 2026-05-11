@@ -25,11 +25,12 @@ from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import impartial_culture
 from elsim.methods import condorcet
-from elsim.studies import JoblibBackend, merge_counters
+from elsim.studies import merge_counters
 
 # Number of voters vs percent of elections with Condorcet paradox.
 WP_table = {3:   5.556,
@@ -62,14 +63,13 @@ def simulate_batch(n_voters, n_cands, batch_size):
     return condorcet_paradox_count
 
 
-backend = JoblibBackend(n_jobs=-3, verbose=5)
 fns = [
     partial(simulate_batch, n_voters, n_cands, batch_size)
     for n_voters in WP_table
     for _ in range(n_batches)
 ]
 print(f'{len(fns)} tasks total:')
-results = backend.map_each(fns)
+results = Parallel(n_jobs=-3, verbose=5)(delayed(fn)() for fn in fns)
 condorcet_paradox_counts = merge_counters(results)
 
 x, y = zip(*WP_table.items())
