@@ -43,9 +43,14 @@ def simulate_batch():
             c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
             c = np.atleast_2d(c).T
 
+        # Winner positions are plotted relative to the electorate center for this
+        # run (not the RNG origin), so Condorcet-style rules align with the
+        # "ideal" benchmark; see issue #22.
+        ref = np.median(v[:, 0])
+
         # Random winner method.  Votes don't matter at all.
         winner = random.sample(range(n_cands), 1)[0]
-        winners['Random winner (candidate distribution)'].append(c[winner][0])
+        winners['Random winner (candidate distribution)'].append(c[winner][0] - ref)
 
         # # Random ballot method.  Pick one voter and go with their choice.
         # winning_voter = random.sample(range(n_voters), 1)[0]
@@ -57,32 +62,32 @@ def simulate_batch():
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
         winner = fptp(rankings, tiebreaker='random')
-        winners['First Past The Post / Plurality'].append(c[winner][0])
+        winners['First Past The Post / Plurality'].append(c[winner][0] - ref)
 
         # Top-two runoff
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
         winner = runoff(rankings, tiebreaker='random')
         winners['Top-Two Runoff / Top-Two Primary / Two-Round System / '
-                'Contingent Vote'].append(c[winner][0])
+                'Contingent Vote'].append(c[winner][0] - ref)
 
         # Instant-runoff
         winner = irv(rankings, tiebreaker='random')
         winners['Ranked-Choice Voting (Hare) / '
-                'Alternative Vote / Instant-Runoff'].append(c[winner][0])
+                'Alternative Vote / Instant-Runoff'].append(c[winner][0] - ref)
 
         # STAR voting
         ballots = honest_normed_scores(utilities)
         winner = star(ballots, tiebreaker='random')
-        winners['STAR Voting'].append(c[winner][0])
+        winners['STAR Voting'].append(c[winner][0] - ref)
 
         # Condorcet RCV
         winner = black(rankings, tiebreaker='random')
-        winners['Condorcet Ranked-Choice Voting (Black)'].append(c[winner][0])
+        winners['Condorcet Ranked-Choice Voting (Black)'].append(c[winner][0] - ref)
 
-        # Ideal winner method.  Votes don't matter at all; pick the center.
-        winner = np.argmin(abs(c))
-        winners['Best possible winner (nearest center)'].append(c[winner][0])
+        # Ideal: candidate closest to the voter median (majoritarian center in 1D).
+        winner = int(np.argmin(np.abs(c[:, 0] - ref)))
+        winners['Best possible winner (nearest voter median)'].append(c[winner][0] - ref)
 
     return winners
 
