@@ -1,7 +1,14 @@
 import numpy as np
 
-from elsim.methods._common import (_all_indices, _get_tiebreak, _no_tiebreak,
-                                   _order_tiebreak_keep, _random_tiebreak)
+from elsim.methods._common import (
+    _all_indices,
+    _get_tiebreak,
+    _inc_rank_idx,
+    _no_tiebreak,
+    _order_tiebreak_keep,
+    _random_tiebreak,
+    _tally_at_rank_idx,
+)
 
 _tiebreak_map = {'order': _order_tiebreak_keep,
                  'random': _random_tiebreak,
@@ -93,19 +100,18 @@ def runoff(election, tiebreaker=None):
     if None in finalists:
         return None
 
-    # TODO: Can this be vectorized or numbafied?
     finalist_0 = finalists[0]
     finalist_1 = finalists[1]
 
-    finalist_0_tally = 0
-    finalist_1_tally = 0
-
-    for ballot in election:
-        ballot_list = ballot.tolist()
-        if ballot_list.index(finalist_0) < ballot_list.index(finalist_1):
-            finalist_0_tally += 1
-        else:
-            finalist_1_tally += 1
+    n_cands = election.shape[1]
+    cand_tallies = np.empty(n_cands, dtype=np.uint)
+    voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
+    eliminated_cands = set(range(n_cands)) - {finalist_0, finalist_1}
+    if eliminated_cands:
+        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
+    _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
+    finalist_0_tally = cand_tallies[finalist_0]
+    finalist_1_tally = cand_tallies[finalist_1]
 
     assert finalist_0_tally + finalist_1_tally == n_voters
 
