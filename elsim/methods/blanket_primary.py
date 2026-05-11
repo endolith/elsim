@@ -5,8 +5,10 @@ general election.
 These implement nonpartisan blanket primaries and related reforms: approval
 plus runoff (unified primary), pick-one top-four or top-five with a ranked
 general (Final Four / Final Five), IRV-style primaries that leave a fixed
-slate, and Condorcet in the general; see the ``References`` sections of the
-individual functions for sources.
+slate, and Condorcet in the general.  Each public function's docstring cites
+encyclopedia summaries where helpful and, where available, primary sources
+(peer-reviewed definitions, founding monographs, official election-administration
+pages, or reform white papers).
 """
 import numpy as np
 
@@ -111,7 +113,8 @@ def irv_eliminate_to_n(election, n, tiebreaker=None):
     The candidate with the fewest first-preference votes among those still in
     the race is eliminated (same rule as ``irv``), and the process repeats until
     at most ``n`` candidates remain.  This models the ranked primary described
-    in reform proposals for top-four systems. [1]_
+    in reform proposals for top-four systems. [1]_  FairVote circulated model
+    policy language for top-four and related reforms. [2]_
 
     Parameters
     ----------
@@ -135,6 +138,7 @@ def irv_eliminate_to_n(election, n, tiebreaker=None):
     References
     ----------
     .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
+    .. [2] `FairVote, "Top Four" policy guide (PDF, 2013) <https://archive3.fairvote.org/assets/Top-Four-Policy-Guide.pdf>`__
 
     Examples
     --------
@@ -185,7 +189,11 @@ def approval_runoff(approval_election, ranked_election, tiebreaker=None):
     The two candidates with the most approvals advance.  The general election
     is modeled as a pairwise majority vote between those two on the ranked
     ballots (the contingent vote, same ranked-ballot abstraction as ``runoff``
-    uses between its finalists). [1]_ [2]_
+    uses between its finalists). [1]_ [2]_  Delemazure et al. define and study
+    the approval-with-runoff family in the computational social choice literature. [3]_
+    St. Louis voters adopted this pattern for municipal offices in 2020; the
+    city's election materials illustrate the approve-many primary and two-candidate
+    runoff. [4]_
 
     Parameters
     ----------
@@ -209,6 +217,8 @@ def approval_runoff(approval_election, ranked_election, tiebreaker=None):
     ----------
     .. [1] `Unified primary <https://en.wikipedia.org/wiki/Unified_primary>`__
     .. [2] `Contingent vote <https://en.wikipedia.org/wiki/Contingent_vote>`__
+    .. [3] `Delemazure et al., "Approval with Runoff" (IJCAI 2022) <https://doi.org/10.24963/ijcai.2022/33>`__
+    .. [4] `City of St. Louis, sample general-election ballot (Nov. 2020, PDF) <https://www.stlouis-mo.gov/government/departments/board-election-commissioners/documents/upload/Nov20-Final-All-Races-Sample-Ballot-9-9-20-1.pdf>`__
 
     Examples
     --------
@@ -246,7 +256,10 @@ def top_n_irv(election, n, tiebreaker=None):
     The ``n`` candidates with the most first-preference votes advance (same
     rule as ``sntv``).  The winner is then chosen by ``irv`` on the same
     rankings restricted to those finalists (as used in Alaska-style top-four
-    with an IRV general). [1]_
+    with an IRV general). [1]_  Alaska's Division of Elections describes the
+    nonpartisan top-four primary and ranked-choice general in official voter
+    materials. [2]_  FairVote published an early top-four policy guide with
+    model legislative language. [3]_
 
     Parameters
     ----------
@@ -271,6 +284,8 @@ def top_n_irv(election, n, tiebreaker=None):
     References
     ----------
     .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
+    .. [2] `Alaska Division of Elections, "Ranked Choice Voting" (top-four primary and RCV general) <https://www.elections.alaska.gov/Core/RCV.php>`__
+    .. [3] `FairVote, "Top Four" policy guide (PDF, 2013) <https://archive3.fairvote.org/assets/Top-Four-Policy-Guide.pdf>`__
 
     Examples
     --------
@@ -298,6 +313,10 @@ def top_n_runoff(election, n, tiebreaker=None):
     uses the same two-candidate contingent logic as ``runoff`` on the
     restricted set of finalists (first round among finalists only, then
     pairwise between the top two by first preference among finalists). [1]_
+    Alaska's Division of Elections documents the combined top-four primary and
+    ranked general election. [2]_  The Electoral Reform Society describes the
+    contingent / supplementary vote as the two-stage reduction to a pairwise
+    majority choice. [3]_
 
     Parameters
     ----------
@@ -320,6 +339,8 @@ def top_n_runoff(election, n, tiebreaker=None):
     References
     ----------
     .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
+    .. [2] `Alaska Division of Elections, "Ranked Choice Voting" (top-four primary and RCV general) <https://www.elections.alaska.gov/Core/RCV.php>`__
+    .. [3] `Electoral Reform Society, "What is the Supplementary Vote?" <https://www.electoral-reform.org.uk/voting-systems/types-of-voting-systems/supplementary-vote-sv/>`__
 
     Examples
     --------
@@ -345,7 +366,9 @@ def top_n_condorcet(election, n, tiebreaker=None):
 
     The primary uses the same top-``n`` rule as ``sntv``.  The general election
     applies ``condorcet`` to the restricted rankings (no tiebreaker in the
-    general, matching ``condorcet`` itself). [1]_ [2]_
+    general, matching ``condorcet`` itself). [1]_  Condorcet's 1785 essay is the
+    classical source for pairwise majority comparisons. [2]_  See also the
+    encyclopedia overview of Condorcet methods. [3]_
 
     Parameters
     ----------
@@ -369,7 +392,8 @@ def top_n_condorcet(election, n, tiebreaker=None):
     References
     ----------
     .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
-    .. [2] `Condorcet method <https://en.wikipedia.org/wiki/Condorcet_method>`__
+    .. [2] `Condorcet (1785), *Essai sur l'application de l'analyse à la probabilité des décisions rendues à la pluralité des voix* (BnF Gallica) <https://gallica.bnf.fr/ark:/12148/bpt6k417181>`__
+    .. [3] `Condorcet method <https://en.wikipedia.org/wiki/Condorcet_method>`__
 
     Examples
     --------
@@ -394,7 +418,9 @@ def irv_primary_top_n_irv(election, n, tiebreaker=None):
     ``n``, then an IRV general.
 
     The primary is ``irv_eliminate_to_n``; the general is ``irv`` on ballots
-    restricted to the surviving finalists. [1]_
+    restricted to the surviving finalists. [1]_  Hare's treatise is a
+    foundational English-language source for transferable-vote elimination
+    rules of the kind ``irv`` implements. [2]_
 
     Parameters
     ----------
@@ -417,6 +443,7 @@ def irv_primary_top_n_irv(election, n, tiebreaker=None):
     References
     ----------
     .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
+    .. [2] `Hare (1859), *A Treatise on the Election of Representatives, Parliamentary and Municipal* (Internet Archive) <https://archive.org/details/atreatiseonelec01haregoog>`__
 
     Examples
     --------
@@ -441,7 +468,9 @@ def irv_primary_top_n_runoff(election, n, tiebreaker=None):
     ``n``, then a top-two contingent general.
 
     The primary is ``irv_eliminate_to_n``; the general is ``runoff`` on
-    ballots restricted to the surviving finalists. [1]_
+    ballots restricted to the surviving finalists. [1]_  Alaska's Division of
+    Elections describes the top-four primary with a ranked general election,
+    which matches the same two-stage structure at ``n`` = 4. [2]_
 
     Parameters
     ----------
@@ -464,6 +493,7 @@ def irv_primary_top_n_runoff(election, n, tiebreaker=None):
     References
     ----------
     .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
+    .. [2] `Alaska Division of Elections, "Ranked Choice Voting" (top-four primary and RCV general) <https://www.elections.alaska.gov/Core/RCV.php>`__
 
     Examples
     --------
@@ -487,7 +517,7 @@ def top_four_irv(election, tiebreaker=None):
     Find the winner of an election using a pick-one top-four primary and an
     IRV general.
 
-    Same as ``top_n_irv(election, 4, tiebreaker)``. [1]_
+    Same as ``top_n_irv(election, 4, tiebreaker)``. [1]_ [2]_ [3]_
 
     Parameters
     ----------
@@ -504,6 +534,8 @@ def top_four_irv(election, tiebreaker=None):
     References
     ----------
     .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
+    .. [2] `Alaska Division of Elections, "Ranked Choice Voting" (top-four primary and RCV general) <https://www.elections.alaska.gov/Core/RCV.php>`__
+    .. [3] `FairVote, "Top Four" policy guide (PDF, 2013) <https://archive3.fairvote.org/assets/Top-Four-Policy-Guide.pdf>`__
     """
     return top_n_irv(election, 4, tiebreaker)
 
@@ -513,7 +545,9 @@ def top_five_irv(election, tiebreaker=None):
     Find the winner of an election using a pick-one top-five primary and an
     IRV general.
 
-    Same as ``top_n_irv(election, 5, tiebreaker)``. [1]_ [2]_
+    Same as ``top_n_irv(election, 5, tiebreaker)``. [1]_ [2]_  Gehl and
+    Porter's report is a widely cited business-school source for the "Final
+    Five" reform packaging. [3]_
 
     Parameters
     ----------
@@ -531,6 +565,7 @@ def top_five_irv(election, tiebreaker=None):
     ----------
     .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
     .. [2] `Final Five Voting <https://en.wikipedia.org/wiki/Top-four_primary#Final_Five_Voting>`__
+    .. [3] `Gehl & Porter (2017), "Why Competition in the Politics Industry is Failing America" (PDF) <https://www.hbs.edu/competitiveness/Documents/why-competition-in-the-politics-industry-is-failing-america.pdf>`__
     """
     return top_n_irv(election, 5, tiebreaker)
 
@@ -540,7 +575,7 @@ def top_four_runoff(election, tiebreaker=None):
     Find the winner of an election using a pick-one top-four primary and a
     top-two contingent general.
 
-    Same as ``top_n_runoff(election, 4, tiebreaker)``. [1]_
+    Same as ``top_n_runoff(election, 4, tiebreaker)``. [1]_ [2]_ [3]_
 
     Parameters
     ----------
@@ -556,7 +591,9 @@ def top_four_runoff(election, tiebreaker=None):
 
     References
     ----------
-    .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
+    .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
+    .. [2] `Alaska Division of Elections, "Ranked Choice Voting" (top-four primary and RCV general) <https://www.elections.alaska.gov/Core/RCV.php>`__
+    .. [3] `Electoral Reform Society, "What is the Supplementary Vote?" <https://www.electoral-reform.org.uk/voting-systems/types-of-voting-systems/supplementary-vote-sv/>`__
     """
     return top_n_runoff(election, 4, tiebreaker)
 
@@ -566,7 +603,7 @@ def top_five_runoff(election, tiebreaker=None):
     Find the winner of an election using a pick-one top-five primary and a
     top-two contingent general.
 
-    Same as ``top_n_runoff(election, 5, tiebreaker)``. [1]_ [2]_
+    Same as ``top_n_runoff(election, 5, tiebreaker)``. [1]_ [2]_ [3]_ [4]_ [5]_
 
     Parameters
     ----------
@@ -582,8 +619,11 @@ def top_five_runoff(election, tiebreaker=None):
 
     References
     ----------
-    .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
+    .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
     .. [2] `Final Five Voting <https://en.wikipedia.org/wiki/Top-four_primary#Final_Five_Voting>`__
+    .. [3] `Alaska Division of Elections, "Ranked Choice Voting" (top-four primary and RCV general) <https://www.elections.alaska.gov/Core/RCV.php>`__
+    .. [4] `Electoral Reform Society, "What is the Supplementary Vote?" <https://www.electoral-reform.org.uk/voting-systems/types-of-voting-systems/supplementary-vote-sv/>`__
+    .. [5] `Gehl & Porter (2017), "Why Competition in the Politics Industry is Failing America" (PDF) <https://www.hbs.edu/competitiveness/Documents/why-competition-in-the-politics-industry-is-failing-america.pdf>`__
     """
     return top_n_runoff(election, 5, tiebreaker)
 
@@ -593,7 +633,7 @@ def top_four_condorcet(election, tiebreaker=None):
     Find the winner of an election using a pick-one top-four primary and a
     Condorcet pairwise general.
 
-    Same as ``top_n_condorcet(election, 4, tiebreaker)``. [1]_
+    Same as ``top_n_condorcet(election, 4, tiebreaker)``. [1]_ [2]_ [3]_
 
     Parameters
     ----------
@@ -609,7 +649,9 @@ def top_four_condorcet(election, tiebreaker=None):
 
     References
     ----------
-    .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
+    .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
+    .. [2] `Condorcet (1785), *Essai sur l'application de l'analyse à la probabilité des décisions rendues à la pluralité des voix* (BnF Gallica) <https://gallica.bnf.fr/ark:/12148/bpt6k417181>`__
+    .. [3] `Condorcet method <https://en.wikipedia.org/wiki/Condorcet_method>`__
     """
     return top_n_condorcet(election, 4, tiebreaker)
 
@@ -619,7 +661,7 @@ def top_five_condorcet(election, tiebreaker=None):
     Find the winner of an election using a pick-one top-five primary and a
     Condorcet pairwise general.
 
-    Same as ``top_n_condorcet(election, 5, tiebreaker)``. [1]_ [2]_
+    Same as ``top_n_condorcet(election, 5, tiebreaker)``. [1]_ [2]_ [3]_ [4]_ [5]_
 
     Parameters
     ----------
@@ -635,7 +677,10 @@ def top_five_condorcet(election, tiebreaker=None):
 
     References
     ----------
-    .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
+    .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
     .. [2] `Final Five Voting <https://en.wikipedia.org/wiki/Top-four_primary#Final_Five_Voting>`__
+    .. [3] `Condorcet (1785), *Essai sur l'application de l'analyse à la probabilité des décisions rendues à la pluralité des voix* (BnF Gallica) <https://gallica.bnf.fr/ark:/12148/bpt6k417181>`__
+    .. [4] `Condorcet method <https://en.wikipedia.org/wiki/Condorcet_method>`__
+    .. [5] `Gehl & Porter (2017), "Why Competition in the Politics Industry is Failing America" (PDF) <https://www.hbs.edu/competitiveness/Documents/why-competition-in-the-politics-industry-is-failing-america.pdf>`__
     """
     return top_n_condorcet(election, 5, tiebreaker)
