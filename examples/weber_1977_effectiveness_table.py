@@ -8,21 +8,21 @@ Cowles Foundation Discussion Papers. Cowles Foundation for Research in
 Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 
 Typical Monte Carlo Social Utility Efficiency (``n_elections`` = 100_000)
-for the first three methods and Borda; the **Best Vote-for-or-against-k**
-column is **not** from that simulation (ballots in Weber's impartial-type
-model are not the same as Merrill-style SUE with ``combined_approval``), so
-it is filled from the closed form in ``weber_1977_expressions`` (infinite
-voters, page 19).
+with ``combined_approval`` on the ballots from each strategy.  Best
+Vote-for-or-against-k uses ``best_vote_for_or_against_k(m)`` from
+``weber_1977_expressions`` to pick ``k`` for each ``m``, then
+``vote_for_or_against_k`` (Weber reproducing CAV: ``+1`` on each voter's top
+``k`` utilities and ``-1`` on their bottom ``k``).
 
 |     |   Standard |   Vote-for-half |   Best Vote-for-or-against-k |   Borda |
 |----:|-----------:|----------------:|-----------------------------:|--------:|
-|   2 |      81.37 |           81.71 |                        81.65 |   81.41 |
-|   3 |      75.10 |           75.00 |                        87.50 |   86.53 |
-|   4 |      69.90 |           79.92 |                        80.83 |   89.47 |
-|   5 |      65.02 |           79.09 |                        86.96 |   91.34 |
-|   6 |      61.08 |           81.20 |                        86.25 |   92.61 |
-|  10 |      50.78 |           82.94 |                        88.09 |   95.35 |
-| 255 |      12.78 |           86.37 |                        92.07 |   99.80 |
+|   2 |      81.37 |           81.71 |                        ~82.8 |   81.41 |
+|   3 |      75.10 |           75.00 |                        ~86.4 |   86.53 |
+|   4 |      69.90 |           79.92 |                        ~80.8 |   89.47 |
+|   5 |      65.02 |           79.09 |                        ~87.0 |   91.34 |
+|   6 |      61.08 |           81.20 |                        ~81.6 |   92.61 |
+|  10 |      50.78 |           82.94 |                        ~89.3 |   95.35 |
+| 255 |      12.78 |           86.37 |                        ~92.1 |   99.80 |
 """
 # TODO: Standard is consistently ~1% high, while Borda is very accurate
 import time
@@ -33,10 +33,12 @@ import numpy as np
 from tabulate import tabulate
 
 from elsim.elections import random_utilities
-from elsim.methods import approval, borda, fptp, utility_winner
-from elsim.strategies import honest_rankings, vote_for_k
+from elsim.methods import approval, borda, combined_approval, fptp, utility_winner
+from elsim.strategies import (honest_rankings, vote_for_k,
+                              vote_for_or_against_k)
 from weber_1977_expressions import (eff_best_vote_for_or_against_k, eff_borda,
-                                    eff_standard, eff_vote_for_half)
+                                    eff_standard, eff_vote_for_half,
+                                    best_vote_for_or_against_k)
 
 n_elections = 2_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 1_000
@@ -48,7 +50,8 @@ rated_methods = {'Vote-for-half': lambda utilities, tiebreaker:
                  approval(vote_for_k(utilities, 'half'), tiebreaker)}
 
 utility_sums = {key: Counter() for key in (ranked_methods.keys() |
-                                           rated_methods.keys() | {'UW'})}
+                                           rated_methods.keys() |
+                                           {'Best Vote-for-or-against-k', 'UW'})}
 
 start_time = time.monotonic()
 
@@ -63,6 +66,12 @@ for iteration in range(n_elections):
         for name, method in rated_methods.items():
             winner = method(utilities, tiebreaker='random')
             utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+
+        k_voa = best_vote_for_or_against_k(n_cands)
+        winner = combined_approval(
+            vote_for_or_against_k(utilities, k_voa), tiebreaker='random')
+        utility_sums['Best Vote-for-or-against-k'][n_cands] += (
+            utilities.sum(axis=0)[winner])
 
         rankings = honest_rankings(utilities)
         for name, method in ranked_methods.items():
@@ -89,19 +98,15 @@ table = {}
 # Calculate Social Utility Efficiency from summed utilities
 x_uw, y_uw = zip(*sorted(utility_sums['UW'].items()))
 average_utility = n_voters * n_elections / 2
-for method in ('Standard', 'Vote-for-half', 'Borda'):
+for method in ('Standard', 'Vote-for-half', 'Best Vote-for-or-against-k',
+               'Borda'):
     x, y = zip(*sorted(utility_sums[method].items()))
     SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
     plt.plot(x, SUE*100, '-', label=method)
     table.update({method: SUE*100})
 
-table['Best Vote-for-or-against-k'] = (
-    eff_best_vote_for_or_against_k(np.array(n_cands_list)) * 100)
-
 print(tabulate(table, 'keys', showindex=n_cands_list,
                tablefmt="pipe", floatfmt='.2f'))
-print('Best Vote-for-or-against-k: Weber infinite-voter theory '
-      '(weber_1977_expressions); other columns are Monte Carlo SUE.')
 
 plt.plot([], [], 'k:', lw=0.8, label='Weber')  # Dummy plot for label
 plt.legend()

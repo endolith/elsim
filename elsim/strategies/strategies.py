@@ -267,3 +267,64 @@ def vote_for_k(utilities, k):
     # TODO: Not sure if this is the most efficient way
     approvals[np.arange(len(approvals))[:, np.newaxis], top_k] = 1
     return approvals
+
+
+def vote_for_or_against_k(utilities, k, rng=None):
+    """
+    Convert utilities to combined-approval ballots (vote-for-or-against-k).
+
+    Each voter assigns ``+1`` to each of their ``k`` highest-utility candidates
+    and ``-1`` to each of their ``k`` lowest-utility candidates on the same
+    ballot (zeros elsewhere).  When ``k <= n_cands // 2`` the two blocks are
+    disjoint, so each cell stays in ``{-1, 0, +1}``.  This is the Weber
+    impartial-culture / random-society model used to derive the effectiveness
+    formulas in *Comparison of Public Choice Systems* (Cowles Foundation
+    Discussion Paper 498). [1]_
+
+    Parameters
+    ----------
+    utilities : array_like
+        A 2D collection of utilities.
+
+        Rows represent voters, and columns represent candidate IDs.
+        Higher utility numbers mean greater approval of that candidate by that
+        voter.
+    k : int
+        Number of candidates to vote for at the top of the ballot and
+        simultaneously against at the bottom.
+    rng : numpy.random.Generator, optional
+        Used only to break ties in ``argpartition`` via a tiny jitter on
+        utilities.  If omitted, ``numpy.random.default_rng()`` is used.
+
+    Returns
+    -------
+    election : ndarray
+        A 2D collection of combined approval ballots (``int8``).
+
+    References
+    ----------
+    .. [1] Weber, Robert J. (1978). "Comparison of Public Choice Systems".
+       Cowles Foundation Discussion Papers. Cowles Foundation for Research in
+       Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
+
+    """
+    utilities = np.asarray(utilities)
+    n_voters, n_cands = utilities.shape
+    if not 0 < k <= n_cands // 2:
+        raise ValueError(
+            f'k of {k} not possible for vote-for-or-against-k with '
+            f'{n_cands} candidates (require 0 < k <= n_cands // 2)'
+        )
+
+    rng = np.random.default_rng(rng)
+    u = utilities.astype(np.float64, copy=False)
+    u_j = u + rng.random(u.shape) * (np.finfo(np.float64).eps * 64)
+
+    top_k = np.argpartition(u_j, -k, axis=1)[:, -k:]
+    bot_k = np.argpartition(u_j, k - 1, axis=1)[:, :k]
+
+    ballots = np.zeros((n_voters, n_cands), dtype=np.int8)
+    rows = np.arange(n_voters)[:, np.newaxis]
+    ballots[rows, top_k] = 1
+    ballots[rows, bot_k] = -1
+    return ballots
