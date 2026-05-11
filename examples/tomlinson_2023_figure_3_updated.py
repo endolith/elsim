@@ -64,8 +64,9 @@ def simulate_batch(n_cands):
             c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
             c = np.atleast_2d(c).T
 
-        # Plot winner positions relative to the electorate center for this run;
-        # see issue #22.
+        # Center each election on the voter median so Condorcet-style winners
+        # match the "nearest median" benchmark (issue #22); Merrill spatial
+        # examples use raw coordinates instead.
         ref = np.median(v[:, 0])
 
         # FPTP voting method

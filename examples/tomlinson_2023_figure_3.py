@@ -48,15 +48,14 @@ def simulate_batch(n_cands):
     winners = defaultdict(list)
     for iteration in range(batch_size):
 
-        # Remove run-to-run bias of the voter sample relative to [0, 1] by
-        # anchoring to the voter median (Condorcet-relevant center in 1D;
-        # see issue #22).
+        # "voters and candidates come from the uniform distribution on [0, 1]"
         v = np.random.uniform(0, 1, n_voters)
-        v_center = np.median(v)
-        v = (v - v_center + 0.5)[:, np.newaxis]
+        # But remove any run-to-run random bias, because we want to match ideal
+        # points of the actual set of voters, not their expected value.
+        v = (v - v.mean() + 0.5)[:, np.newaxis]
 
         c = np.random.uniform(0, 1, n_cands)
-        c = (c - v_center + 0.5)[:, np.newaxis]
+        c = (c - v.mean() + 0.5)[:, np.newaxis]
 
         # FPTP voting method
         utilities = normed_dist_utilities(v, c)

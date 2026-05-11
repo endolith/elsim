@@ -48,9 +48,6 @@ def simulate_batch():
                 c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
                 c = np.atleast_2d(c).T
 
-            # Winner positions relative to electorate center; see issue #22.
-            ref = np.median(v[:, 0])
-
             if 'Random' not in method:
                 utilities = normed_dist_utilities(v, c)
 
@@ -83,7 +80,7 @@ def simulate_batch():
             if method == 'Utility Winner':
                 winner = utility_winner(utilities, tiebreaker='random')
 
-            winners[n_cands].append(c[winner][0] - ref)
+            winners[n_cands].append(c[winner][0])
 
     return winners
 
