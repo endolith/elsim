@@ -5,7 +5,8 @@ from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import floats, integers, tuples
 from numpy.testing import assert_array_equal
 
-from elsim.strategies import approval_optimal, honest_normed_scores, vote_for_k
+from elsim.strategies import (approval_optimal, honest_321_ratings,
+                              honest_normed_scores, vote_for_k)
 
 
 def test_approval_optimal():
@@ -36,6 +37,28 @@ def test_honest_normed_scores():
                                                             [0, 7, 5],
                                                             [0, 2, 7],
                                                             ])
+
+
+def test_honest_normed_scores_invalid_range():
+    with pytest.raises(ValueError):
+        honest_normed_scores([[0.0, 1.0]], max_score=1, min_score=5)
+
+
+def test_honest_321_ratings_shapes():
+    assert_array_equal(honest_321_ratings([[1.0]]), [[2]])
+    assert_array_equal(
+        honest_321_ratings([[0.0, 1.0], [1.0, 0.0]]),
+        [[0, 2], [2, 0]])
+    u = np.ones((1, 9))
+    r = honest_321_ratings(u)
+    assert r.shape == (1, 9)
+    assert set(np.unique(r)) <= {0, 1, 2}
+
+
+def test_honest_321_ratings_too_many_candidates():
+    utilities = np.ones((1, 256))
+    with pytest.raises(ValueError):
+        honest_321_ratings(utilities)
 
 
 def test_vote_for_k():
