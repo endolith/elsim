@@ -5,10 +5,7 @@ general election.
 These implement nonpartisan blanket primaries and related reforms: approval
 plus runoff (unified primary), pick-one top-four or top-five with a ranked
 general (Final Four / Final Five), IRV-style primaries that leave a fixed
-slate, and Condorcet in the general.  Each public function's docstring cites
-encyclopedia summaries where helpful and, where available, primary sources
-(peer-reviewed definitions, founding monographs, official election-administration
-pages, or reform white papers).
+slate, and Condorcet in the general.
 """
 import numpy as np
 
@@ -366,9 +363,8 @@ def top_n_condorcet(election, n, tiebreaker=None):
 
     The primary uses the same top-``n`` rule as ``sntv``.  The general election
     applies ``condorcet`` to the restricted rankings (no tiebreaker in the
-    general, matching ``condorcet`` itself). [1]_  Condorcet's 1785 essay is the
-    classical source for pairwise majority comparisons. [2]_  See also the
-    encyclopedia overview of Condorcet methods. [3]_
+    general, matching ``condorcet`` itself). [1]_      Condorcet's 1785 essay defines pairwise majority comparisons among
+    candidates. [2]_  A modern overview is in [3]_.
 
     Parameters
     ----------
@@ -545,9 +541,8 @@ def top_five_irv(election, tiebreaker=None):
     Find the winner of an election using a pick-one top-five primary and an
     IRV general.
 
-    Same as ``top_n_irv(election, 5, tiebreaker)``. [1]_ [2]_  Gehl and
-    Porter's report is a widely cited business-school source for the "Final
-    Five" reform packaging. [3]_
+    Same as ``top_n_irv(election, 5, tiebreaker)``. [1]_ [2]_  Gehl & Porter
+    (2017) introduce the Final Five reform framing. [3]_
 
     Parameters
     ----------
