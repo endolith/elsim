@@ -1,12 +1,14 @@
 import pytest
 
 from elsim.methods import (approval, black, borda, combined_approval, coombs,
-                           fptp, irv, runoff, score, utility_winner)
+                           fptp, irv, runoff, score, star, three_two_one,
+                           utility_winner)
 
 
 @pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs,
                                     approval, combined_approval,
-                                    utility_winner, score])
+                                    utility_winner, score, star,
+                                    three_two_one])
 def test_invalid_tiebreaker(method):
     with pytest.raises(ValueError):
         election = [[0, 1],
