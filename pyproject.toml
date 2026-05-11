@@ -38,6 +38,7 @@ test = [
     "pytest-cov",
     "hypothesis",
     "ruff",
+    "joblib",
 ]
 examples = [
     "tabulate",
