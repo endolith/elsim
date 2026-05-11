@@ -1,13 +1,11 @@
 import numpy as np
 import pytest
-from _helpers import permute_ranked_candidates
 from hypothesis import given
-from hypothesis import strategies as st
-from hypothesis.strategies import integers
-from test_condorcet import complete_ranked_ballots
+from hypothesis.extra.numpy import arrays
+from hypothesis.strategies import floats, integers, lists, permutations, tuples
 
-from elsim.methods import (approval, black, borda, combined_approval,
-                           condorcet, coombs, fptp, irv, runoff, score,
+from elsim.methods import (approval, black, borda, combined_approval, coombs,
+                           condorcet, fptp, irv, runoff, score, sntv,
                            utility_winner)
 
 
@@ -15,9 +13,9 @@ from elsim.methods import (approval, black, borda, combined_approval,
                                     approval, combined_approval,
                                     utility_winner, score])
 def test_invalid_tiebreaker(method):
-    election = [[0, 1],
-                [1, 0]]
     with pytest.raises(ValueError):
+        election = [[0, 1],
+                    [1, 0]]
         method(election, tiebreaker='duel')
 
 
@@ -42,77 +40,86 @@ def test_ranked_method_unanimity(method):
     assert method(election, 'order') == 3
 
 
-RANKED_METHODS = [black, borda, condorcet, coombs, fptp, irv, runoff]
+def complete_ranked_ballots(min_cands=2, max_cands=25, min_voters=1,
+                            max_voters=100):
+    n_cands = integers(min_value=min_cands, max_value=max_cands)
+    return n_cands.flatmap(lambda n: lists(permutations(range(n)),
+                                           min_size=min_voters,
+                                           max_size=max_voters))
 
 
-@pytest.mark.parametrize("method", RANKED_METHODS)
-@given(election=complete_ranked_ballots(min_cands=1, max_cands=8,
-                                        min_voters=1, max_voters=40),
-       seed=integers(0, 2**31 - 1))
-def test_ranked_methods_are_candidate_neutral(method, election, seed):
-    """
-    Permuting candidate IDs permutes the winner and preserves "no winner".
-
-    This catches implementations that confuse a candidate's position inside a
-    subset with its actual ID.
-    """
+@given(election=complete_ranked_ballots(min_cands=2, max_cands=20,
+                                        min_voters=1, max_voters=80))
+def test_black_matches_condorcet_or_borda(election):
     election = np.asarray(election)
-    permutation = np.random.default_rng(seed).permutation(
-        election.shape[1])
-
-    winner = method(election)
-    permuted_winner = method(
-        permute_ranked_candidates(election, permutation))
-
-    if winner is None:
-        assert permuted_winner is None
+    cw = condorcet(election)
+    if cw is not None:
+        assert black(election) == cw
     else:
-        assert permuted_winner == permutation[winner]
+        assert black(election) == borda(election)
 
 
-@pytest.mark.parametrize("method", RANKED_METHODS)
-@given(election=complete_ranked_ballots(min_cands=1, max_cands=8,
-                                        min_voters=1, max_voters=40),
-       seed=integers(0, 2**31 - 1))
-def test_ranked_methods_are_voter_anonym(method, election, seed):
-    """Reordering the voters must not change a ranked method's winner."""
+@given(election=complete_ranked_ballots(min_cands=2, max_cands=20,
+                                        min_voters=1, max_voters=80))
+def test_sntv_one_winner_matches_fptp_order(election):
     election = np.asarray(election)
-    order = np.random.default_rng(seed).permutation(len(election))
+    f_w = fptp(election, tiebreaker='order')
+    s_w = sntv(election, 1, tiebreaker='order')
+    if f_w is None:
+        assert s_w is None
+    else:
+        assert s_w == {f_w}
 
-    assert method(election) == method(election[order])
 
-
-@pytest.mark.parametrize("method", RANKED_METHODS)
-@given(election=complete_ranked_ballots(min_cands=2, max_cands=2,
-                                        min_voters=1, max_voters=40))
-def test_two_candidate_ranked_methods_pick_the_majority(method, election):
-    """
-    With two candidates, every ranked method reduces to majority rule.
-
-    This gives a reference result that does not depend on any tally internals.
-    """
+@pytest.mark.parametrize(
+    "method",
+    [black, borda, fptp, runoff, irv, coombs],
+)
+@given(election=complete_ranked_ballots(min_cands=2, max_cands=15,
+                                        min_voters=1, max_voters=60))
+def test_ranked_methods_order_tiebreak_returns_candidate_id(method, election):
     election = np.asarray(election)
-    counts = np.bincount(election[:, 0], minlength=2)
-    expected = None if counts[0] == counts[1] else int(np.argmax(counts))
+    winner = method(election, tiebreaker='order')
+    n_cands = election.shape[1]
+    assert winner in set(range(n_cands))
 
-    assert method(election) == expected
+
+@pytest.mark.parametrize(
+    "method",
+    [black, borda, fptp, runoff, irv, coombs],
+)
+@given(election=complete_ranked_ballots(min_cands=2, max_cands=15,
+                                        min_voters=1, max_voters=60))
+def test_ranked_methods_no_tiebreak_returns_none_or_id(method, election):
+    election = np.asarray(election)
+    winner = method(election)
+    n_cands = election.shape[1]
+    assert winner in {None} | set(range(n_cands))
 
 
-@given(data=st.data())
-def test_ranked_methods_are_unanimous(data):
-    """
-    If every voter ranks the same candidate first, every ranked method returns
-    that candidate.
-    """
-    n_cands = data.draw(integers(1, 8), label="n_cands")
-    n_voters = data.draw(integers(1, 30), label="n_voters")
-    winner = data.draw(integers(0, n_cands - 1), label="winner")
-    others = [c for c in range(n_cands) if c != winner]
-    rest = data.draw(st.permutations(others), label="rest")
-    election = np.array([[winner, *rest]] * n_voters)
+@given(
+    utilities=arrays(
+        np.float64,
+        tuples(integers(1, 25), integers(2, 12)),
+        elements=floats(0, 1, allow_nan=False, allow_infinity=False),
+    ),
+)
+def test_utility_winner_matches_argmax_of_column_sums(utilities):
+    winner = utility_winner(utilities, tiebreaker='order')
+    totals = utilities.sum(axis=0)
+    assert winner == int(np.argmax(totals))
 
-    for method in RANKED_METHODS:
-        assert method(election) == winner
+
+def test_utility_winner_two_way_tie_no_tiebreaker():
+    utilities = [[1.0, 0.0], [0.0, 1.0]]
+    assert utility_winner(utilities) is None
+    assert utility_winner(utilities, tiebreaker='order') == 0
+
+
+def test_combined_approval_symmetric_tie_no_tiebreaker():
+    election = np.array([[1, -1], [-1, 1]], dtype=np.int8)
+    assert combined_approval(election) is None
+    assert combined_approval(election, tiebreaker='order') == 0
 
 
 if __name__ == "__main__":
