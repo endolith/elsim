@@ -2,15 +2,13 @@ import pytest
 
 from elsim.methods import (approval, approval_runoff, black, borda,
                            combined_approval, coombs, fptp, irv,
-                           irv_primary_top_n_irv, irv_primary_top_n_runoff,
-                           runoff, score, top_four_condorcet, top_four_irv,
-                           top_five_irv, top_four_runoff, top_five_runoff,
-                           top_n_condorcet, top_n_irv, top_n_runoff,
-                           utility_winner)
+                           irv_primary_top_n_runoff, runoff, score,
+                           top_four_condorcet, top_four_irv, top_five_irv,
+                           top_four_runoff, top_five_runoff, top_n_condorcet,
+                           top_n_irv, top_n_runoff, utility_winner)
 
 _blanket_ranked = [
     top_four_irv, top_five_irv, top_four_runoff, top_five_runoff,
-    lambda e, tb=None: irv_primary_top_n_irv(e, 4, tb),
     lambda e, tb=None: irv_primary_top_n_runoff(e, 4, tb),
     lambda e, tb=None: top_n_irv(e, 3, tb),
     lambda e, tb=None: top_n_runoff(e, 3, tb),

@@ -3,8 +3,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
 
-from elsim.methods import (approval_runoff, irv, irv_eliminate_to_n,
-                           irv_primary_top_n_irv, irv_primary_top_n_runoff,
+from elsim.methods import (approval_runoff, irv, irv_primary_top_n_runoff,
                            runoff, top_five_condorcet, top_four_irv,
                            top_four_runoff, top_five_irv, top_n_condorcet,
                            top_n_irv, top_n_runoff)
@@ -46,39 +45,39 @@ def test_top_four_runoff_tennessee(tiebreaker):
 
 
 @pytest.mark.parametrize('tiebreaker', [None, 'random', 'order'])
-def test_irv_primary_variants_tennessee(tiebreaker):
+def test_irv_primary_runoff_tennessee(tiebreaker):
     Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
     election = [*42 * [[Memphis, Nashville, Chattanooga, Knoxville]],
                 *26 * [[Nashville, Chattanooga, Knoxville, Memphis]],
                 *15 * [[Chattanooga, Knoxville, Nashville, Memphis]],
                 *17 * [[Knoxville, Chattanooga, Nashville, Memphis]],
                 ]
-    assert irv_primary_top_n_irv(election, 4, tiebreaker) == Knoxville
     assert irv_primary_top_n_runoff(election, 4, tiebreaker) == runoff(
         election, tiebreaker)
 
 
-def test_irv_eliminate_to_n_three_cycle():
+def test_irv_n_survivors_three_cycle():
     election = np.array([[0, 1, 2], [1, 2, 0], [2, 0, 1]])
-    assert irv_eliminate_to_n(election, 2) is None
-    assert sorted(irv_eliminate_to_n(election, 2, tiebreaker='order')) == [0, 1]
+    assert irv(election, n_survivors=2) is None
+    assert sorted(irv(election, n_survivors=2, tiebreaker='order')) == [0, 1]
 
 
-def test_irv_eliminate_to_n_invalid_n():
-    with pytest.raises(ValueError, match='n must be at least 1'):
-        irv_eliminate_to_n([[0, 1]], 0)
+def test_irv_n_survivors_invalid_n():
+    with pytest.raises(ValueError, match='n_survivors must be at least 1'):
+        irv([[0, 1]], n_survivors=0)
 
 
-def test_irv_eliminate_to_n_all_survive_when_n_ge_total():
-    assert irv_eliminate_to_n(np.array([[0, 1], [1, 0]]), 2, 'order') == {0, 1}
+def test_irv_n_survivors_all_survive_when_n_ge_total():
+    assert irv(np.array([[0, 1], [1, 0]]), n_survivors=2,
+                tiebreaker='order') == {0, 1}
 
 
-def test_irv_eliminate_to_n_pre_elimination_zero_first_place():
+def test_irv_n_survivors_pre_elimination_zero_first_place():
     election = np.array([[0, 1, 2, 3],
                          [0, 1, 2, 3],
                          [1, 0, 2, 3],
                          [1, 0, 2, 3]])
-    assert irv_eliminate_to_n(election, 2, tiebreaker='order') == {0, 1}
+    assert irv(election, n_survivors=2, tiebreaker='order') == {0, 1}
 
 
 def test__top_n_from_plurality_tallies():
@@ -170,13 +169,9 @@ def test_top_five_condorcet_smoke():
     assert top_five_condorcet([[0, 1], [0, 1], [1, 0]], tiebreaker='order') == 0
 
 
-def test_irv_primary_top_n_returns_none():
-    assert irv_primary_top_n_irv([[0, 1, 2], [1, 2, 0], [2, 0, 1]], 2,
-                                 tiebreaker=None) is None
-    assert irv_primary_top_n_irv([[0, 1, 2], [1, 2, 0], [2, 0, 1]], 3,
-                                 tiebreaker=None) is None
+def test_irv_primary_top_n_runoff_returns_none():
     assert irv_primary_top_n_runoff([[0, 1, 2], [1, 2, 0], [2, 0, 1]], 2,
-                                      tiebreaker=None) is None
+                                    tiebreaker=None) is None
 
     election = np.array([[2, 0, 1],
                          [0, 1, 2],
@@ -212,7 +207,7 @@ def test_blanket_methods_reject_invalid_tiebreaker():
     with pytest.raises(ValueError):
         top_n_condorcet(election, 2, tiebreaker='duel')
     with pytest.raises(ValueError):
-        irv_eliminate_to_n(election, 2, tiebreaker='duel')
+        irv(election, tiebreaker='duel', n_survivors=2)
 
 
 @pytest.mark.parametrize('tiebreaker', ['random', 'order'])

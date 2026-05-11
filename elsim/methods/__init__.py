@@ -6,8 +6,7 @@ according to the rules of that method.
 """
 from elsim.methods.approval import approval, combined_approval
 from elsim.methods.black import black
-from elsim.methods.blanket_primary import (approval_runoff, irv_eliminate_to_n,
-                                           irv_primary_top_n_irv,
+from elsim.methods.blanket_primary import (approval_runoff,
                                            irv_primary_top_n_runoff,
                                            top_five_condorcet, top_five_irv,
                                            top_five_runoff, top_four_condorcet,
@@ -36,8 +35,6 @@ __all__ = [
     'coombs',
     'fptp',
     'irv',
-    'irv_eliminate_to_n',
-    'irv_primary_top_n_irv',
     'irv_primary_top_n_runoff',
     'matrix_from_scores',
     'ranked_election_to_matrix',
