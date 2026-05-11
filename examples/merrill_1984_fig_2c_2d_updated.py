@@ -58,6 +58,8 @@ from elsim.methods import (approval, black, borda, condorcet, coombs, fptp,
 from elsim.strategies import (approval_optimal, honest_normed_scores,
                               honest_rankings)
 
+from plot_uncertainty import binomial_proportion_ci_errors_percent
+
 n_elections = 5_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
 n_voters = 201
 n_cands_list = (2, 3, 4, 5, 6, 7)
@@ -117,17 +119,30 @@ for fig, disp, ymin in (('2.c', 1.0, 50),
 
     # Of those elections with CW, likelihood that method chooses CW
     x_cw, y_cw = zip(*sorted(condorcet_winner_count['CW'].items()))
+    y_cw_a = np.asarray(y_cw)
     for method in ('Condorcet RCV', 'Coombs', 'STAR', 'Borda', 'Score',
                    'Approval (opt.)', 'Hare RCV', 'Top-2 Runoff', 'Plurality'):
         x, y = zip(*sorted(condorcet_winner_count[method].items()))
-        CE = np.array(y)/y_cw
-        plt.plot(x, CE*100, '-', label=method)
-        table.append([method, *CE*100])
+        k = np.asarray(y)
+        CE = k / y_cw_a
+        el, eh = binomial_proportion_ci_errors_percent(k, y_cw_a)
+        plt.errorbar(x, CE * 100, yerr=[el, eh], fmt='-', label=method,
+                     capsize=2, elinewidth=0.8)
+        table.append([method, *CE * 100])
 
     print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
     print()
 
     plt.legend()
+    plt.figtext(
+        0.99,
+        0.01,
+        'Simulation error bars: 95% exact (Clopper–Pearson) CI for binomial '
+        'proportion',
+        fontsize=7,
+        ha='right',
+        va='bottom',
+    )
     plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
     plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
     plt.ylim(ymin, 102)
