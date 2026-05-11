@@ -4,6 +4,9 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import os
+import shutil
+
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -95,8 +98,6 @@ source_suffix = {
 # Paths in that file (./results/) are then relative to the document and resolve
 # correctly. Copy repo examples/README.md and examples/results/ into docs/examples/
 # at build start so the doc and Sphinx can find them.
-import os
-import shutil
 
 # ASV HTML is optional locally; CI writes docs/_benchmark_site/benchmarks before build.
 _docs_dir = os.path.dirname(os.path.abspath(__file__))

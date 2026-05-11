@@ -39,7 +39,7 @@ jobs:
           asv publish -o ../docs/_benchmark_site/benchmarks
 
       - name: Build HTML documentation
-        run: sphinx-build -b html docs /tmp/sphinx-html
+        run: python -m sphinx.cmd.build -b html docs /tmp/sphinx-html
 
       - uses: actions/configure-pages@v6
 

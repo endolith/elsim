@@ -70,7 +70,7 @@ jobs:
           pip install -e ".[${{ matrix.extras }}]"
 
       - name: Verify ASV benchmark suite (Python 3.12, bench extra)
-        if: matrix.python-version == '3.12' && matrix.extras == 'test,fast'
+        if: matrix.python-version == '3.12' && matrix.extras != 'test'
         run: |
           pip install -e ".[bench]"
           cd benchmarks && asv check --python=same
