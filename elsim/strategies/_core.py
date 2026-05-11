@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 
 
 def honest_rankings(utilities):
@@ -54,7 +54,7 @@ def honest_rankings(utilities):
         raise ValueError('Maximum number of candidates is 255')
 
     # Higher utilities for a voter are ranked first (earlier in row)
-    return np.argsort(utilities)[:, ::-1].astype(np.uint8)
+    return _np.argsort(utilities)[:, ::-1].astype(_np.uint8)
 
 
 def honest_normed_scores(utilities, max_score=5):
@@ -108,18 +108,18 @@ def honest_normed_scores(utilities, max_score=5):
 
     """
     # Slide every voter's minimum utility to 0
-    normed = utilities - np.amin(utilities, axis=1)[:, np.newaxis]
+    normed = utilities - _np.amin(utilities, axis=1)[:, _np.newaxis]
 
     # If a ballot is all 0, suppress 0/0 warning.
-    # astype(np.uint8) will convert NaN back to 0.
-    with np.errstate(invalid='ignore'):
+    # astype(_np.uint8) will convert NaN back to 0.
+    with _np.errstate(invalid='ignore'):
         # Normalize every voter's maximum utility to 1
-        normed /= np.amax(normed, axis=1)[:, np.newaxis]
+        normed /= _np.amax(normed, axis=1)[:, _np.newaxis]
 
         # Normalize every voter's maximum score to max_score
         normed *= max_score
 
-        scores = np.around(normed).astype(np.uint8)
+        scores = _np.around(normed).astype(_np.uint8)
 
     # Quantize to discrete scale
     return scores
@@ -180,8 +180,8 @@ def approval_optimal(utilities):
            [0, 1, 1]], dtype=uint8)
 
     """
-    means = np.mean(utilities, 1)
-    approvals = (utilities > means[:, np.newaxis]).astype(np.uint8)
+    means = _np.mean(utilities, 1)
+    approvals = (utilities > means[:, _np.newaxis]).astype(_np.uint8)
     return approvals
 
 
@@ -242,7 +242,7 @@ def vote_for_k(utilities, k):
            [0, 1, 1]], dtype=uint8)
 
     """
-    utilities = np.asarray(utilities)
+    utilities = _np.asarray(utilities)
     n_cands = utilities.shape[1]
     if k == 'half':
         # "It is interesting to observe that the vote-for-k and vote-for-(n-k)
@@ -258,12 +258,20 @@ def vote_for_k(utilities, k):
     # Efficiently get indices of top k candidates for each voter
     # https://stackoverflow.com/a/23734295/125507
     # TODO: How are tied utilities handled, such as top 2 with 3 tied? Random?
-    top_k = np.argpartition(utilities, -k, axis=1)[:, -k:]
+    top_k = _np.argpartition(utilities, -k, axis=1)[:, -k:]
 
     # Create blank ballots
-    approvals = np.zeros(utilities.shape, np.uint8)
+    approvals = _np.zeros(utilities.shape, _np.uint8)
 
     # Fill in approvals
     # TODO: Not sure if this is the most efficient way
-    approvals[np.arange(len(approvals))[:, np.newaxis], top_k] = 1
+    approvals[_np.arange(len(approvals))[:, _np.newaxis], top_k] = 1
     return approvals
+
+
+__all__ = [
+    'approval_optimal',
+    'honest_normed_scores',
+    'honest_rankings',
+    'vote_for_k',
+]
