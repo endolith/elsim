@@ -176,6 +176,16 @@ File issues on the [GitHub issue tracker](https://github.com/endolith/elsim/issu
 - ND:
   - [Voter Satisfaction Efficiency](https://github.com/electology/vse-sim) by Jameson Quinn
 
+### Libraries and research code
+
+- [VMES](https://github.com/ragconsumer/VMES) (Voting Method Evaluation Suite) - Julia package by Marcus Ogren; see the [project documentation](https://docs.google.com/document/d/1eqsBthp3fF55CyqFB7ve9Mu_sVpj4loYrf0yq-NpJ_o/edit?usp=sharing). Compared to `elsim`, it is a different language and stack (Julia with JuMP/optimization-oriented tooling rather than NumPy/SciPy), and it follows that suite's own evaluation workflow instead of `elsim`'s small composable building blocks for elections, strategies, and metrics.
+
+- [IEVS](https://rangevoting.org/IEVS/) (Infinitely Extendible Voting Simulator) - Warren D. Smith's classic simulator/diagnostic tool distributed as C source (for example [`IEVS.c`](https://rangevoting.org/IEVS/IEVS.c)); it compares many voting systems and strategies (often framed around Bayesian regret). `elsim` is a Python library focused on fast Monte Carlo batches, optional Numba, and reproducing specific published figures; IEVS is an older, monolithic C codebase with a different interface and extension style.
+
+- [pref_voting](https://github.com/voting-tools/pref_voting) - Python library for computational social choice: very broad coverage of voting rules, rich `Profile` APIs, generators such as impartial culture, and analysis helpers (see the [JOSS paper](https://doi.org/10.21105/joss.07020) and [documentation](https://pref-voting.readthedocs.io/)). It emphasizes defining or sampling a preference profile and then running or studying many rules on it. `elsim` instead emphasizes repeatedly drawing utilities under spatial or other models, turning them into ballots with explicit strategy steps, and aggregating simulation-level metrics such as VSE or Condorcet efficiency.
+
+- [exp_soc_util_perf](https://github.com/epacuit/exp_soc_util_perf) - Repository for Holliday and Pacuit's paper *The Social Utility of Voting Revisited*: Jupyter notebooks, data, a Streamlit web app ([online demo](https://exp-soc-util-perf.pacuit.org/)), and scripts tied to that project's experiments. It is primarily reproducibility material for one research line, whereas `elsim` is packaged as a reusable general-purpose library on PyPI.
+
 ### Voting system implementations
 
 - [See the list on Electowiki](https://electowiki.org/wiki/Voting_links#Election_calculators)
