@@ -293,6 +293,17 @@ def test_legit_winner(election):
 
 @given(election=complete_ranked_ballots(min_cands=2, max_cands=25,
                                         min_voters=1, max_voters=100))
+def test_ranked_election_to_matrix(election):
+    election = np.asarray(election)
+    matrix = ranked_election_to_matrix(election)
+    assert matrix.shape == (election.shape[1],)*2
+    assert matrix.min() == 0
+    assert matrix.max() <= len(election)
+    assert_array_equal(np.diagonal(matrix), 0)
+
+
+@given(election=complete_ranked_ballots(min_cands=2, max_cands=25,
+                                        min_voters=1, max_voters=100))
 def test_pairwise_counts_partition_voters(election):
     election = np.asarray(election)
     matrix = ranked_election_to_matrix(election)
