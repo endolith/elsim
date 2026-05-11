@@ -23,7 +23,6 @@ Typical result:
 | Black     | 100.0 | 92.9 | 92.0 | 92.1 | 93.2 | 94.6 |
 """
 import time
-from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,6 +32,8 @@ from elsim.elections import random_utilities
 from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
                            utility_winner)
 from elsim.strategies import approval_optimal, honest_rankings
+
+from plot_uncertainty import sue_ratio_curve_points_and_errors
 
 n_elections = 10_000  # Roughly 30 seconds on a 2019 6-core i7-9750H
 n_voters = 25
@@ -44,13 +45,17 @@ ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
 rated_methods = {'Approval': lambda utilities, tiebreaker:
                  approval(approval_optimal(utilities), tiebreaker)}
 
-utility_sums = {key: Counter() for key in (ranked_methods.keys() |
-                                           rated_methods.keys() | {'UW'})}
+idx = {nc: i for i, nc in enumerate(n_cands_list)}
+nc_ct = len(n_cands_list)
+method_keys = list(ranked_methods.keys()) + list(rated_methods.keys())
+W_elec = {m: np.zeros((nc_ct, n_elections)) for m in method_keys}
+Z_uw = np.zeros((nc_ct, n_elections))
 
 start_time = time.monotonic()
 
 for iteration in range(n_elections):
     for n_cands in n_cands_list:
+        j = idx[n_cands]
         utilities = random_utilities(n_voters, n_cands)
 
         """
@@ -62,19 +67,19 @@ for iteration in range(n_elections):
         utilities -= utilities.min(1)[:, np.newaxis]
         utilities /= utilities.max(1)[:, np.newaxis]
 
-        # Find the social utility winner and accumulate utilities
         UW = utility_winner(utilities)
-        utility_sums['UW'][n_cands] += utilities.sum(axis=0)[UW]
+        Z_uw[j, iteration] = utilities.sum(axis=0)[UW] - n_voters / 2
 
         for name, method in rated_methods.items():
             winner = method(utilities, tiebreaker='random')
-            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+            W_elec[name][j, iteration] = (
+                utilities.sum(axis=0)[winner] - n_voters / 2)
 
         rankings = honest_rankings(utilities)
         for name, method in ranked_methods.items():
             winner = method(rankings, tiebreaker='random')
-            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
-
+            W_elec[name][j, iteration] = (
+                utilities.sum(axis=0)[winner] - n_voters / 2)
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
@@ -102,19 +107,33 @@ plt.gca().set_prop_cycle(None)
 
 table = []
 
-# Calculate Social Utility Efficiency from summed utilities
-x_uw, y_uw = zip(*sorted(utility_sums['UW'].items()))
+rng = np.random.default_rng(0)
+
+# Calculate Social Utility Efficiency from paired per-election totals
+x = list(n_cands_list)
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
-    x, y = zip(*sorted(utility_sums[method].items()))
-    SUE = ((np.array(y) - n_voters * n_elections / 2) /
-           (np.array(y_uw) - n_voters * n_elections / 2))
-    plt.plot(x, SUE*100, '-', label=method)
-    table.append([method, *(SUE*100)])
+    y, el, eh = sue_ratio_curve_points_and_errors(
+        W_elec[method], Z_uw, rng=rng)
+    plt.errorbar(x, y, yerr=[el, eh], fmt='-', label=method,
+                 capsize=2, elinewidth=0.8)
+    table.append([method, *y])
 
 print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
 
 plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
+plt.figtext(
+    0.99,
+    0.01,
+    'Simulation error bars: 95% percentile bootstrap CI for '
+    r'$\hat\theta=\sum W_i/\sum Z_i$'
+    ' (paired resimulation indices; '
+    r'$W_i$ = method utility sum $-$ random baseline; '
+    r'$Z_i$ = SU-winner utility sum $-$ baseline)',
+    fontsize=7,
+    ha='right',
+    va='bottom',
+)
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')

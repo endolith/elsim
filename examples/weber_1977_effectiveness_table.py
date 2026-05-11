@@ -22,7 +22,6 @@ Typical result with n_elections = 100_000:
 # TODO: Standard is consistently ~1% high, while Borda is very accurate
 # TODO: Best Vote-for-or-against-k is not implemented yet
 import time
-from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,6 +32,8 @@ from elsim.methods import approval, borda, fptp, utility_winner
 from elsim.strategies import honest_rankings, vote_for_k
 from weber_1977_expressions import eff_borda, eff_standard, eff_vote_for_half
 
+from plot_uncertainty import sue_ratio_curve_points_and_errors
+
 n_elections = 2_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 1_000
 n_cands_list = (2, 3, 4, 5, 6, 10, 255)
@@ -42,27 +43,32 @@ ranked_methods = {'Standard': fptp, 'Borda': borda}
 rated_methods = {'Vote-for-half': lambda utilities, tiebreaker:
                  approval(vote_for_k(utilities, 'half'), tiebreaker)}
 
-utility_sums = {key: Counter() for key in (ranked_methods.keys() |
-                                           rated_methods.keys() | {'UW'})}
+idx = {nc: i for i, nc in enumerate(n_cands_list)}
+nc_ct = len(n_cands_list)
+method_keys = list(ranked_methods.keys()) + list(rated_methods.keys())
+W_elec = {m: np.zeros((nc_ct, n_elections)) for m in method_keys}
+Z_uw = np.zeros((nc_ct, n_elections))
 
 start_time = time.monotonic()
 
 for iteration in range(n_elections):
     for n_cands in n_cands_list:
+        j = idx[n_cands]
         utilities = random_utilities(n_voters, n_cands)
 
-        # Find the social utility winner and accumulate utilities
         UW = utility_winner(utilities)
-        utility_sums['UW'][n_cands] += utilities.sum(axis=0)[UW]
+        Z_uw[j, iteration] = utilities.sum(axis=0)[UW] - n_voters / 2
 
         for name, method in rated_methods.items():
             winner = method(utilities, tiebreaker='random')
-            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+            W_elec[name][j, iteration] = (
+                utilities.sum(axis=0)[winner] - n_voters / 2)
 
         rankings = honest_rankings(utilities)
         for name, method in ranked_methods.items():
             winner = method(rankings, tiebreaker='random')
-            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+            W_elec[name][j, iteration] = (
+                utilities.sum(axis=0)[winner] - n_voters / 2)
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
@@ -79,19 +85,28 @@ plt.gca().set_prop_cycle(None)
 
 table = {}
 
-# Calculate Social Utility Efficiency from summed utilities
-x_uw, y_uw = zip(*sorted(utility_sums['UW'].items()))
-average_utility = n_voters * n_elections / 2
+rng = np.random.default_rng(0)
+xp = list(n_cands_list)
+
 for method in ('Standard', 'Vote-for-half', 'Borda'):
-    x, y = zip(*sorted(utility_sums[method].items()))
-    SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
-    plt.plot(x, SUE*100, '-', label=method)
-    table.update({method: SUE*100})
+    y, el, eh = sue_ratio_curve_points_and_errors(
+        W_elec[method], Z_uw, rng=rng)
+    plt.errorbar(xp, y, yerr=[el, eh], fmt='-', label=method)
+    table.update({method: y})
 
 print(tabulate(table, 'keys', showindex=n_cands_list,
                tablefmt="pipe", floatfmt='.2f'))
 
 plt.plot([], [], 'k:', lw=0.8, label='Weber')  # Dummy plot for label
+plt.figtext(
+    0.99,
+    0.01,
+    'Simulation error bars: 95% percentile bootstrap CI for the plotted '
+    'SUE ratio (paired election resampling).',
+    fontsize=7,
+    ha='right',
+    va='bottom',
+)
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')

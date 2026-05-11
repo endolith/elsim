@@ -30,6 +30,8 @@ from tabulate import tabulate
 from elsim.elections import impartial_culture
 from elsim.methods import condorcet
 
+from plot_uncertainty import binomial_proportion_ci_errors_percent
+
 # Number of voters vs percent of elections with Condorcet paradox.
 WP_table = {3:   5.556,
             101: 8.690,
@@ -74,9 +76,21 @@ x, y = zip(*WP_table.items())
 plt.plot(x, y, label='WP')
 
 x, y = zip(*sorted(condorcet_paradox_counts.items()))
-CP = np.asarray(y) / n_elections  # Likelihood of paradox
-plt.plot(x, CP*100, '-', label='Simulation')
+k = np.asarray(y)
+CP = k / n_elections  # Likelihood of paradox
+el, eh = binomial_proportion_ci_errors_percent(k, n_elections)
+plt.errorbar(x, CP * 100, yerr=[el, eh], fmt='-', label='Simulation',
+             capsize=2, elinewidth=0.8)
 
+plt.figtext(
+    0.99,
+    0.01,
+    'Simulation error bars: 95% exact (Clopper–Pearson) CI for paradox rate '
+    f'(binomial; {n_elections:,} elections per point)',
+    fontsize=7,
+    ha='right',
+    va='bottom',
+)
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
