@@ -24,20 +24,19 @@ from
 import os
 import pickle
 from collections import defaultdict
+from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
-# from colorcet import fire
-from joblib import Parallel, delayed
 
+# from colorcet import fire
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
-                           star)
-from elsim.strategies import (approval_optimal, honest_normed_scores,
-                              honest_rankings, vote_for_k)
+from elsim.methods import approval, black, borda, coombs, fptp, irv, runoff, star
+from elsim.strategies import approval_optimal, honest_normed_scores, honest_rankings, vote_for_k
+from elsim.studies import JoblibBackend
 
 try:
-    import ehtplot.color  # noqa: F401  # Creates afmhot_u colormap
+    pass  # Creates afmhot_u colormap
 except ValueError:  # https://github.com/liamedeiros/ehtplot/pull/6
     pass
 
@@ -161,15 +160,14 @@ title += f', {disp:.1f} relative dispersion'
 # Load from .pkl file if it exists
 pkl_filename = title + '.pkl'
 if os.path.exists(pkl_filename):
-    print('Loading pickled simulation results')
     with open(pkl_filename, "rb") as file:
         aggregated_histograms, standard_deviations = pickle.load(file)
 else:
     print('Running simulations')
-    jobs = [delayed(simulate_batch)(n_cands)] * n_batches
-    print(f'{len(jobs)} tasks total:')
-    results = Parallel(n_jobs=-3, verbose=5)(jobs)
-    del jobs
+    backend = JoblibBackend(n_jobs=-3, verbose=5)
+    worker = partial(simulate_batch, n_cands)
+    print(f'{n_batches} tasks total:')
+    results = backend.map_repeat(worker, n_batches)
 
     # Get keys from the histograms of the first result
     keys = results[0][0].keys()
@@ -203,9 +201,7 @@ else:
 # %% Measure distributions
 
 for method, std in standard_deviations.items():
-    print(f"{method}:")
-    print(f"Winner distribution std: {std[0]:.3f}")
-    print()
+    pass
 
 # %% Plotting
 
