@@ -293,13 +293,28 @@ def test_legit_winner(election):
 
 @given(election=complete_ranked_ballots(min_cands=2, max_cands=25,
                                         min_voters=1, max_voters=100))
-def test_ranked_election_to_matrix(election):
+def test_pairwise_counts_partition_voters(election):
     election = np.asarray(election)
     matrix = ranked_election_to_matrix(election)
-    assert matrix.shape == (election.shape[1],)*2
-    assert matrix.min() == 0
-    assert matrix.max() <= len(election)
-    assert_array_equal(np.diagonal(matrix), 0)
+    n_cands = matrix.shape[0]
+    n_voters = election.shape[0]
+    for i in range(n_cands):
+        for j in range(i + 1, n_cands):
+            assert matrix[i, j] + matrix[j, i] == n_voters
+
+
+@given(election=complete_ranked_ballots(min_cands=2, max_cands=25,
+                                        min_voters=1, max_voters=100))
+def test_condorcet_winner_beats_everyone_pairwise(election):
+    election = np.asarray(election)
+    winner = condorcet(election)
+    if winner is None:
+        return
+    matrix = ranked_election_to_matrix(election)
+    for opponent in range(matrix.shape[0]):
+        if opponent == winner:
+            continue
+        assert matrix[winner, opponent] > matrix[opponent, winner]
 
 
 if __name__ == "__main__":
