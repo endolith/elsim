@@ -1,10 +1,12 @@
 """
-Two-round systems with a primary that narrows the field (blanket / top-n).
+Two-round voting methods that combine a primary (narrowing the field) with a
+general election.
 
-These model nonpartisan blanket primaries and related reforms: approval plus
-runoff (unified primary), pick-one top-four or top-five with a ranked general
-(Final Four / Final Five), IRV-style primaries that leave a fixed slate, and
-Condorcet in the general per :wikipedia:`Top-four primary` variations.
+These implement nonpartisan blanket primaries and related reforms: approval
+plus runoff (unified primary), pick-one top-four or top-five with a ranked
+general (Final Four / Final Five), IRV-style primaries that leave a fixed
+slate, and Condorcet in the general; see the ``References`` sections of the
+individual functions for sources.
 """
 import numpy as np
 
@@ -103,29 +105,36 @@ def _head_to_head_two(finalist_0, finalist_1, election, tiebreaker):
 
 def irv_eliminate_to_n(election, n, tiebreaker=None):
     """
-    Sequential-elimination primary: repeatedly eliminate the IRV last-place
-    candidate among remaining candidates until ``n`` (or fewer) remain.
+    Find the remaining candidates after an IRV-style sequential elimination
+    primary.
 
-    This is the ranked primary used in some top-four reform variants. [1]_
+    The candidate with the fewest first-preference votes among those still in
+    the race is eliminated (same rule as ``irv``), and the process repeats until
+    at most ``n`` candidates remain.  This models the ranked primary described
+    in reform proposals for top-four systems. [1]_
 
     Parameters
     ----------
     election : array_like
-        Ranked ballots (same format as ``irv``).
+        A collection of ranked ballots.  See `borda` for election format.
+        Currently, this must include full rankings for each voter.
     n : int
-        Number of candidates that should remain.
+        Number of candidates that should remain when the primary ends.
     tiebreaker : {'random', 'order', None}, optional
-        Same meaning as in ``irv`` (who to eliminate when last-place is tied).
+        If there is a tie, and `tiebreaker` is ``'random'``, tied candidates
+        are eliminated or selected at random.
+        If 'order', the lowest-ID tied candidate is preferred in each tie.
+        By default, ``None`` is returned if there are any ties.
 
     Returns
     -------
     finalists : {set of int, None}
-        Candidate IDs still in the race, or ``None`` if a tie could not be
-        broken while eliminating.
+        The set of candidate IDs still in the race, or ``None`` for an
+        unbroken tie during elimination.
 
     References
     ----------
-    .. [1] :wikipedia:`Top-four primary#Variations`
+    .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
 
     Examples
     --------
@@ -170,30 +179,36 @@ def irv_eliminate_to_n(election, n, tiebreaker=None):
 
 def approval_runoff(approval_election, ranked_election, tiebreaker=None):
     """
-    Unified primary / top-two approval plus runoff (St. Louis style). [1]_
+    Find the winner of an election using a top-two approval primary and a
+    pairwise runoff on ranked ballots.
 
-    The two candidates with the most approvals advance; the winner is decided
-    by pairwise majority on the ranked ballots (contingent vote between the
-    two finalists), the usual ranked-ballot model when the general uses a
-    separate runoff.
+    The two candidates with the most approvals advance.  The general election
+    is modeled as a pairwise majority vote between those two on the ranked
+    ballots (the contingent vote, same ranked-ballot abstraction as ``runoff``
+    uses between its finalists). [1]_ [2]_
 
     Parameters
     ----------
     approval_election : array_like
-        Approval ballots: rows are voters, columns candidates, entries 0/1.
+        A 2D collection of approval ballots.  See `approval` for format.
     ranked_election : array_like
-        Complete ranked ballots for the same voters (same number of rows as
-        ``approval_election``).
+        A collection of ranked ballots for the same voters as
+        ``approval_election`` (same number of rows).  See `borda` for format.
     tiebreaker : {'random', 'order', None}, optional
-        Used for selecting primary finalists and for a tied general.
+        If there is a tie, and `tiebreaker` is ``'random'``, a random finalist
+        is returned in the primary or in a tied general.
+        If 'order', the lowest-ID tied candidate is returned.
+        By default, ``None`` is returned for ties.
 
     Returns
     -------
     winner : {int, None}
+        The ID number of the winner, or ``None`` for an unbroken tie.
 
     References
     ----------
-    .. [1] :wikipedia:`Unified primary`
+    .. [1] `Unified primary <https://en.wikipedia.org/wiki/Unified_primary>`__
+    .. [2] `Contingent vote <https://en.wikipedia.org/wiki/Contingent_vote>`__
 
     Examples
     --------
@@ -225,27 +240,37 @@ def approval_runoff(approval_election, ranked_election, tiebreaker=None):
 
 def top_n_irv(election, n, tiebreaker=None):
     """
-    Pick-one top-``n`` primary (plurality / SNTV) and an IRV general. [1]_
+    Find the winner of an election using a pick-one top-``n`` primary and an
+    IRV general.
 
-    The ``n`` candidates with the most first-preference votes advance; the
-    winner is chosen by instant-runoff on the same rankings restricted to
-    those finalists (Alaska-style Final Four when ``n`` is 4).
+    The ``n`` candidates with the most first-preference votes advance (same
+    rule as ``sntv``).  The winner is then chosen by ``irv`` on the same
+    rankings restricted to those finalists (as used in Alaska-style top-four
+    with an IRV general). [1]_
 
     Parameters
     ----------
     election : array_like
-        Ranked ballots.
+        A collection of ranked ballots.  See `borda` for election format.
+        Currently, this must include full rankings for each voter.
     n : int
-        Primary cutoff (4 for Final Four, 5 for Final Five).
+        Number of candidates who advance from the primary (4 for Final Four,
+        5 for Final Five).
     tiebreaker : {'random', 'order', None}, optional
+        If there is a tie, and `tiebreaker` is ``'random'``, a random finalist
+        is returned or tied candidates are eliminated at random, according to
+        the underlying ``sntv`` / ``irv`` steps.
+        If 'order', the lowest-ID tied candidate is preferred in each tie.
+        By default, ``None`` is returned for ties.
 
     Returns
     -------
     winner : {int, None}
+        The ID number of the winner, or ``None`` for an unbroken tie.
 
     References
     ----------
-    .. [1] :wikipedia:`Top-four primary`
+    .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
 
     Examples
     --------
@@ -266,28 +291,35 @@ def top_n_irv(election, n, tiebreaker=None):
 
 def top_n_runoff(election, n, tiebreaker=None):
     """
-    Pick-one top-``n`` primary and a top-two contingent general. [1]_
+    Find the winner of an election using a pick-one top-``n`` primary and a
+    top-two contingent general.
 
     After the top ``n`` candidates by plurality advance, the general election
-    applies the same two-candidate contingent logic as ``runoff`` on the
-    restricted set (first round among finalists only, then pairwise between the
-    top two by first preference among finalists).
+    uses the same two-candidate contingent logic as ``runoff`` on the
+    restricted set of finalists (first round among finalists only, then
+    pairwise between the top two by first preference among finalists). [1]_
 
     Parameters
     ----------
     election : array_like
-        Ranked ballots.
+        A collection of ranked ballots.  See `borda` for election format.
+        Currently, this must include full rankings for each voter.
     n : int
-        Primary cutoff.
+        Number of candidates who advance from the primary.
     tiebreaker : {'random', 'order', None}, optional
+        If there is a tie, and `tiebreaker` is ``'random'``, a random finalist
+        is returned.
+        If 'order', the lowest-ID tied candidate is returned.
+        By default, ``None`` is returned for ties.
 
     Returns
     -------
     winner : {int, None}
+        The ID number of the winner, or ``None`` for an unbroken tie.
 
     References
     ----------
-    .. [1] :wikipedia:`Top-four primary#Variations`
+    .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
 
     Examples
     --------
@@ -308,25 +340,36 @@ def top_n_runoff(election, n, tiebreaker=None):
 
 def top_n_condorcet(election, n, tiebreaker=None):
     """
-    Pick-one top-``n`` primary and a Condorcet pairwise general. [1]_
+    Find the winner of an election using a pick-one top-``n`` primary and a
+    Condorcet pairwise general.
+
+    The primary uses the same top-``n`` rule as ``sntv``.  The general election
+    applies ``condorcet`` to the restricted rankings (no tiebreaker in the
+    general, matching ``condorcet`` itself). [1]_ [2]_
 
     Parameters
     ----------
     election : array_like
-        Ranked ballots.
+        A collection of ranked ballots.  See `borda` for election format.
+        Currently, this must include full rankings for each voter.
     n : int
-        Primary cutoff.
+        Number of candidates who advance from the primary.
     tiebreaker : {'random', 'order', None}, optional
-        Used only for the primary; the general has no tiebreaker (same as
-        ``condorcet``).
+        Used only for the primary.  If there is a tie, and `tiebreaker` is
+        ``'random'``, random tied candidates are returned.
+        If 'order', the lowest-ID tied candidates are returned.
+        By default, ``None`` is returned for ties in the primary.
 
     Returns
     -------
     winner : {int, None}
+        The ID number of the winner, or ``None`` for an unbroken tie in the
+        primary or no Condorcet winner in the general.
 
     References
     ----------
-    .. [1] :wikipedia:`Top-four primary#Variations`
+    .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
+    .. [2] `Condorcet method <https://en.wikipedia.org/wiki/Condorcet_method>`__
 
     Examples
     --------
@@ -347,23 +390,40 @@ def top_n_condorcet(election, n, tiebreaker=None):
 
 def irv_primary_top_n_irv(election, n, tiebreaker=None):
     """
-    Ranked IRV-style primary until ``n`` candidates remain, then IRV general. [1]_
+    Find the winner of an election using an IRV-style primary to a slate of
+    ``n``, then an IRV general.
+
+    The primary is ``irv_eliminate_to_n``; the general is ``irv`` on ballots
+    restricted to the surviving finalists. [1]_
 
     Parameters
     ----------
     election : array_like
-        Ranked ballots.
+        A collection of ranked ballots.  See `borda` for election format.
+        Currently, this must include full rankings for each voter.
     n : int
         Target number of finalists after the primary.
     tiebreaker : {'random', 'order', None}, optional
+        If there is a tie, and `tiebreaker` is ``'random'``, tied candidates
+        are eliminated or selected at random in the primary or general.
+        If 'order', the lowest-ID tied candidate is preferred in each tie.
+        By default, ``None`` is returned if there are any ties.
 
     Returns
     -------
     winner : {int, None}
+        The ID number of the winner, or ``None`` for an unbroken tie.
 
     References
     ----------
-    .. [1] :wikipedia:`Top-four primary#Variations`
+    .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
+
+    Examples
+    --------
+    >>> A, B, C = 0, 1, 2
+    >>> election = [*6*[[A, B, C]], *3*[[B, A, C]], *1*[[C, B, A]]]
+    >>> irv_primary_top_n_irv(election, 2, tiebreaker='order')
+    0
     """
     finalists = irv_eliminate_to_n(election, n, tiebreaker)
     if finalists is None:
@@ -377,23 +437,40 @@ def irv_primary_top_n_irv(election, n, tiebreaker=None):
 
 def irv_primary_top_n_runoff(election, n, tiebreaker=None):
     """
-    IRV-style primary until ``n`` remain, then top-two contingent general. [1]_
+    Find the winner of an election using an IRV-style primary to a slate of
+    ``n``, then a top-two contingent general.
+
+    The primary is ``irv_eliminate_to_n``; the general is ``runoff`` on
+    ballots restricted to the surviving finalists. [1]_
 
     Parameters
     ----------
     election : array_like
-        Ranked ballots.
+        A collection of ranked ballots.  See `borda` for election format.
+        Currently, this must include full rankings for each voter.
     n : int
         Target number of finalists after the primary.
     tiebreaker : {'random', 'order', None}, optional
+        If there is a tie, and `tiebreaker` is ``'random'``, a random finalist
+        is returned.
+        If 'order', the lowest-ID tied candidate is returned.
+        By default, ``None`` is returned for ties.
 
     Returns
     -------
     winner : {int, None}
+        The ID number of the winner, or ``None`` for an unbroken tie.
 
     References
     ----------
-    .. [1] :wikipedia:`Top-four primary#Variations`
+    .. [1] `Top-four primary: Variations <https://en.wikipedia.org/wiki/Top-four_primary#Variations>`__
+
+    Examples
+    --------
+    >>> A, B, C = 0, 1, 2
+    >>> election = [*6*[[A, B, C]], *3*[[B, A, C]], *1*[[C, B, A]]]
+    >>> irv_primary_top_n_runoff(election, 2, tiebreaker='order')
+    0
     """
     finalists = irv_eliminate_to_n(election, n, tiebreaker)
     if finalists is None:
@@ -406,30 +483,159 @@ def irv_primary_top_n_runoff(election, n, tiebreaker=None):
 
 
 def top_four_irv(election, tiebreaker=None):
-    """Same as ``top_n_irv(election, 4, tiebreaker)``."""
+    """
+    Find the winner of an election using a pick-one top-four primary and an
+    IRV general.
+
+    Same as ``top_n_irv(election, 4, tiebreaker)``. [1]_
+
+    Parameters
+    ----------
+    election : array_like
+        Passed to `top_n_irv`.
+    tiebreaker : {'random', 'order', None}, optional
+        Passed to `top_n_irv`.
+
+    Returns
+    -------
+    winner : {int, None}
+        The ID number of the winner, or ``None`` for an unbroken tie.
+
+    References
+    ----------
+    .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
+    """
     return top_n_irv(election, 4, tiebreaker)
 
 
 def top_five_irv(election, tiebreaker=None):
-    """Same as ``top_n_irv(election, 5, tiebreaker)``."""
+    """
+    Find the winner of an election using a pick-one top-five primary and an
+    IRV general.
+
+    Same as ``top_n_irv(election, 5, tiebreaker)``. [1]_ [2]_
+
+    Parameters
+    ----------
+    election : array_like
+        Passed to `top_n_irv`.
+    tiebreaker : {'random', 'order', None}, optional
+        Passed to `top_n_irv`.
+
+    Returns
+    -------
+    winner : {int, None}
+        The ID number of the winner, or ``None`` for an unbroken tie.
+
+    References
+    ----------
+    .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
+    .. [2] `Final Five Voting <https://en.wikipedia.org/wiki/Top-four_primary#Final_Five_Voting>`__
+    """
     return top_n_irv(election, 5, tiebreaker)
 
 
 def top_four_runoff(election, tiebreaker=None):
-    """Same as ``top_n_runoff(election, 4, tiebreaker)``."""
+    """
+    Find the winner of an election using a pick-one top-four primary and a
+    top-two contingent general.
+
+    Same as ``top_n_runoff(election, 4, tiebreaker)``. [1]_
+
+    Parameters
+    ----------
+    election : array_like
+        Passed to `top_n_runoff`.
+    tiebreaker : {'random', 'order', None}, optional
+        Passed to `top_n_runoff`.
+
+    Returns
+    -------
+    winner : {int, None}
+        The ID number of the winner, or ``None`` for an unbroken tie.
+
+    References
+    ----------
+    .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
+    """
     return top_n_runoff(election, 4, tiebreaker)
 
 
 def top_five_runoff(election, tiebreaker=None):
-    """Same as ``top_n_runoff(election, 5, tiebreaker)``."""
+    """
+    Find the winner of an election using a pick-one top-five primary and a
+    top-two contingent general.
+
+    Same as ``top_n_runoff(election, 5, tiebreaker)``. [1]_ [2]_
+
+    Parameters
+    ----------
+    election : array_like
+        Passed to `top_n_runoff`.
+    tiebreaker : {'random', 'order', None}, optional
+        Passed to `top_n_runoff`.
+
+    Returns
+    -------
+    winner : {int, None}
+        The ID number of the winner, or ``None`` for an unbroken tie.
+
+    References
+    ----------
+    .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
+    .. [2] `Final Five Voting <https://en.wikipedia.org/wiki/Top-four_primary#Final_Five_Voting>`__
+    """
     return top_n_runoff(election, 5, tiebreaker)
 
 
 def top_four_condorcet(election, tiebreaker=None):
-    """Same as ``top_n_condorcet(election, 4, tiebreaker)``."""
+    """
+    Find the winner of an election using a pick-one top-four primary and a
+    Condorcet pairwise general.
+
+    Same as ``top_n_condorcet(election, 4, tiebreaker)``. [1]_
+
+    Parameters
+    ----------
+    election : array_like
+        Passed to `top_n_condorcet`.
+    tiebreaker : {'random', 'order', None}, optional
+        Passed to `top_n_condorcet`.
+
+    Returns
+    -------
+    winner : {int, None}
+        The ID number of the winner, or ``None`` for an unbroken tie.
+
+    References
+    ----------
+    .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
+    """
     return top_n_condorcet(election, 4, tiebreaker)
 
 
 def top_five_condorcet(election, tiebreaker=None):
-    """Same as ``top_n_condorcet(election, 5, tiebreaker)``."""
+    """
+    Find the winner of an election using a pick-one top-five primary and a
+    Condorcet pairwise general.
+
+    Same as ``top_n_condorcet(election, 5, tiebreaker)``. [1]_ [2]_
+
+    Parameters
+    ----------
+    election : array_like
+        Passed to `top_n_condorcet`.
+    tiebreaker : {'random', 'order', None}, optional
+        Passed to `top_n_condorcet`.
+
+    Returns
+    -------
+    winner : {int, None}
+        The ID number of the winner, or ``None`` for an unbroken tie.
+
+    References
+    ----------
+    .. [1] `Top-four primary <https://en.wikipedia.org/wiki/Top-four_primary>`__
+    .. [2] `Final Five Voting <https://en.wikipedia.org/wiki/Top-four_primary#Final_Five_Voting>`__
+    """
     return top_n_condorcet(election, 5, tiebreaker)
