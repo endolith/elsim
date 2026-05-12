@@ -46,9 +46,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        # Run once without Numba (JIT path skipped via ImportError) and once
-        # with Numba installed (JIT path exercised, such as reflected-set usage).
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        # Run once without Numba (JIT path skipped via ImportError) and once with
+        # Numba installed (JIT path exercised, including IRV/Coombs rank scans).
         extras: ["test", "test,fast"]
 
     steps:

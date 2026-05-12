@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "Election simulation and analysis"
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.6.2"
+requires-python = ">=3.8"
 authors = [
     { email = "endolith@gmail.com" },
 ]
@@ -21,7 +21,14 @@ keywords = [
     "monte-carlo",
 ]
 classifiers = [
-    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: MIT License",
     "Topic :: Scientific/Engineering :: Mathematics",
     "Topic :: Sociology",
@@ -40,13 +47,16 @@ test = [
     "ruff",
 ]
 examples = [
-    "tabulate",
+    "contourpy>=1.3",
+    "hypothesis",
     "joblib",
+    "matplotlib>=3.8",
+    "pyehtplot",
+    "seaborn>=0.13",
+    "tabulate",
 ]
 fast = [
-    # Reflected ``set`` in IRV/Coombs @njit still compiles through current Numba;
-    # cap bumped as new minors are smoke-tested via Dependabot. See ``elsim.methods._common``.
-    "numba>=0.52,<0.61",
+    "numba>=0.58",
 ]
 docs = [
     "sphinx>=6",
