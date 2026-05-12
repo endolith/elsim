@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import assume, given
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import floats, integers, tuples
 from numpy.testing import assert_array_equal
@@ -81,11 +81,30 @@ def test_vote_for_or_against_k_shape():
     assert b.shape == utilities.shape
     assert b.dtype == np.int8
     assert set(np.unique(b)) <= {-1, 0, 1}
+    assert_array_equal((b == 1).sum(axis=1), np.full(50, k))
+    assert_array_equal((b == -1).sum(axis=1), np.full(50, k))
+    assert_array_equal((b == 0).sum(axis=1), np.full(50, 7 - 2 * k))
+
+
+def test_vote_for_or_against_k_uniform_types_shape():
+    rng = np.random.default_rng(1)
+    utilities = rng.random((50, 7))
+    k = 3
+    b = vote_for_or_against_k(utilities, k, rng=rng, strategy='uniform_types')
+    assert b.shape == utilities.shape
+    assert b.dtype == np.int8
+    assert set(np.unique(b)) <= {-1, 0, 1}
     assert_array_equal(np.abs(b).sum(axis=1), np.full(50, k))
     assert_array_equal((b == 0).sum(axis=1), np.full(50, 7 - k))
     pos = (b == 1).sum(axis=1) == k
     neg = (b == -1).sum(axis=1) == k
     assert_array_equal(pos | neg, np.ones(50, dtype=bool))
+
+
+def test_vote_for_or_against_k_invalid_strategy():
+    utilities = np.random.default_rng(2).random((4, 8))
+    with pytest.raises(ValueError):
+        vote_for_or_against_k(utilities, 2, strategy='bogus')
 
 
 @pytest.mark.parametrize("k", [0, 4])
@@ -117,6 +136,19 @@ def test_vote_for_k_properties(utilities):
     assert election.shape == utilities.shape
     assert 1 in set(election.flat)
     assert set(election.flat) <= {0, 1}
+
+
+@given(utilities=utilities(min_cands=4, max_cands=20))
+def test_vote_for_or_against_k_extremal_properties(utilities):
+    m = utilities.shape[1]
+    k = m // 2
+    assume(k >= 1)
+    rng = np.random.default_rng(0)
+    b = vote_for_or_against_k(utilities, k, rng=rng)
+    assert b.shape == utilities.shape
+    assert set(b.flat) <= {-1, 0, 1}
+    assert_array_equal((b == 1).sum(axis=1), np.full(utilities.shape[0], k))
+    assert_array_equal((b == -1).sum(axis=1), np.full(utilities.shape[0], k))
 
 
 @given(utilities=utilities(), max_score=integers(1, 100))

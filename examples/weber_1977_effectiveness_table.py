@@ -9,14 +9,13 @@ Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 
 Typical Monte Carlo Social Utility Efficiency (``n_elections`` = 100_000)
 with ``combined_approval``.  Best Vote-for-or-against-k uses
-``best_vote_for_or_against_k(m)`` and ``vote_for_or_against_k``, which draws
-Weber's ``2 * binom(m, k)`` strategic types (uniform random ``k``-subset ``S``,
-then **either** ``+1`` on ``S`` **or** ``-1`` on ``S``) **independently** of
-utilities.  That is what the type-counting description says; under this literal
-Merrill-style IC simulation the solid curve can sit far below the dashed
-``eff_best_vote_for_or_against_k`` line from the paper's infinite-voter
-analysis—if so, that mismatch is informative rather than a bug in the closed
-form.
+``best_vote_for_or_against_k(m)`` and ``vote_for_or_against_k`` (default
+``strategy='extremal'``): each voter assigns ``+1`` to their ``k`` best
+candidates by utility and ``-1`` to their ``k`` worst.  That IC-coupled rule
+tracks the dashed ``eff_best_vote_for_or_against_k`` / ``eff_vote_for_or_against_k``
+curves from the paper.  For the alternative ``strategy='uniform_types'`` draw
+(independent of utilities), Monte Carlo does not match those curves; see
+``elsim.strategies.vote_for_or_against_k``.
 
 |     |   Standard |   Vote-for-half |   Best Vote-for-or-against-k |   Borda |
 |----:|-----------:|----------------:|-----------------------------:|--------:|

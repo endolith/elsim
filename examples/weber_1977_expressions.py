@@ -86,8 +86,11 @@ def eff_vote_for_or_against_k(m, k):
     """
     Calculate effectiveness of the "vote-for-or-against-k" voting system.
 
-    This is a variant of combined approval voting (CAV) in which every voter
-    approves or disapproves of `k` candidates.
+    This is a variant of combined approval voting (CAV).  In Merrill-style
+    Monte Carlo with impartial culture, the effectiveness matches Weber when
+    each voter assigns ``+1`` to their ``k`` highest-utility candidates and
+    ``-1`` to their ``k`` lowest (``elsim.strategies.vote_for_or_against_k``,
+    default ``strategy='extremal'``).
 
     Parameters
     ----------

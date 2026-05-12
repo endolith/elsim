@@ -269,37 +269,45 @@ def vote_for_k(utilities, k):
     return approvals
 
 
-def vote_for_or_against_k(utilities, k, rng=None):
+def vote_for_or_against_k(utilities, k, rng=None, *, strategy='extremal'):
     """
     Convert utilities to combined-approval ballots (vote-for-or-against-k).
 
     Weber (*Comparison of Public Choice Systems*, Cowles Discussion Paper 498)
-    fixes ``k < m/2`` and considers every cardinality-``k`` subset ``S`` of
-    candidates.  For each ``S`` there are two strategic types: **vote for**
-    ``S`` (assign ``+1`` to each candidate in ``S``) and **vote against** ``S``
-    (assign ``-1`` to each candidate in ``S``).      There are ``2 * binom(m, k)`` types, each with probability ``1 / (2 *
-    binom(m, k))``. [1]_
+    defines ``2 * (m choose k)`` strategic types: for each cardinality-``k`` set
+    ``S``, types **vote for** ``S`` (``+1`` on ``S``) and **vote against** ``S``
+    (``-1`` on ``S``), each with probability ``1 / (2 * (m choose k))``.  The
+    effectiveness formulas follow from the resulting reproducing scores
+    ``u_t(c)`` over regions of the preference cube. [1]_
 
-    This implementation draws those types **independently** of the utility
-    matrix: each row uses a uniformly random ``k``-subset ``S`` (via a random
-    ``argpartition`` key) and an independent fair coin for for/against.  The
-    ``utilities`` array only supplies the ballot shape (and optional RNG
-    seeding); it does **not** enter the ballot rule.  That matches the literal
-    type-counting definition on the page where ``u_t(c)`` is tabulated, but it
-    may **not** reproduce Merrill-style Social Utility Efficiency from the
-    page-19 table when utilities are drawn impartially—see
-    ``examples/weber_1977_effectiveness_table.py``.
+    **Default (``strategy='extremal'``).**  Under impartial culture with
+    labeled candidates and Merrill-style combined-approval tallies, Monte
+    Carlo Social Utility Efficiency matches Weber's Table 19 when each voter
+    simultaneously assigns ``+1`` to their ``k`` **highest**-utility candidates
+    and ``-1`` to their ``k`` **lowest**-utility candidates (zeros on the rest).
+    Those two ``k``-sets are disjoint when ``k <= n_cands // 2``, so every
+    ballot stays in ``{-1, 0, +1}``.  This is the IC-coupled rule used in
+    ``examples/weber_1977_effectiveness_table.py`` to reproduce the dashed
+    ``eff_vote_for_or_against_k`` curve.
+
+    **Alternative (``strategy='uniform_types'``).**  Draw a uniformly random
+    ``k``-subset ``S`` and an independent fair ``+1`` / ``-1`` sign on ``S``,
+    ignoring utilities (the literal ``p_t = 1 / (2 * (m choose k))`` draw on the
+    finite type list).  Under IC utilities that path does **not** recover the
+    Table 19 efficiencies in the same simulator; it is kept for comparison.
 
     Parameters
     ----------
     utilities : array_like
-        Shape ``(n_voters, n_cands)``; values are not used for the ballot rule.
+        A 2D collection of utilities (required for ``strategy='extremal'``).
     k : int
-        Size of the subset ``S`` (must satisfy ``0 < k <= n_cands // 2``,
-        so ``k <= m/2`` with the usual ``k = m/2`` even case allowed).
+        Must satisfy ``0 < k <= n_cands // 2`` (Weber allows ``k = m/2`` when
+        ``m`` is even).
     rng : numpy.random.Generator, optional
         Random number generator.  If omitted, ``numpy.random.default_rng()``
         is used.
+    strategy : {'extremal', 'uniform_types'}, keyword-only, optional
+        Ballot construction rule; see above.
 
     Returns
     -------
@@ -320,12 +328,25 @@ def vote_for_or_against_k(utilities, k, rng=None):
             f'k of {k} not possible for vote-for-or-against-k with '
             f'{n_cands} candidates (require 0 < k <= n_cands // 2)'
         )
+    if strategy not in ('extremal', 'uniform_types'):
+        raise ValueError(f'strategy {strategy!r} must be '
+                         f"'extremal' or 'uniform_types'")
 
     rng = np.random.default_rng(rng)
-    keys = rng.random((n_voters, n_cands))
-    subset = np.argpartition(keys, -k, axis=1)[:, -k:]
     ballots = np.zeros((n_voters, n_cands), dtype=np.int8)
     rows = np.arange(n_voters)[:, np.newaxis]
-    signs = (1 - 2 * rng.integers(2, size=n_voters, dtype=np.int8))[:, np.newaxis]
-    ballots[rows, subset] = signs
+
+    if strategy == 'uniform_types':
+        keys = rng.random((n_voters, n_cands))
+        subset = np.argpartition(keys, -k, axis=1)[:, -k:]
+        signs = (1 - 2 * rng.integers(2, size=n_voters, dtype=np.int8))[:, np.newaxis]
+        ballots[rows, subset] = signs
+        return ballots
+
+    u = utilities.astype(np.float64, copy=False)
+    u_j = u + rng.random(u.shape) * (np.finfo(np.float64).eps * 64)
+    top_k = np.argpartition(u_j, -k, axis=1)[:, -k:]
+    bot_k = np.argpartition(u_j, k - 1, axis=1)[:, :k]
+    ballots[rows, top_k] = 1
+    ballots[rows, bot_k] = -1
     return ballots
