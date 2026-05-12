@@ -22,7 +22,7 @@ def _mc_sue(m, k, *, n_voters, n_elections, seed):
     uw_sum = meth_sum = 0.0
     for _ in range(n_elections):
         u = random_utilities(n_voters, m, random_state=rng)
-        b = vote_for_or_against_k(u, k, rng=rng, strategy='extremal')
+        b = vote_for_or_against_k(u, k, rng=rng)
         w = combined_approval(b, 'random')
         row = u.sum(axis=0)
         uw_sum += row[utility_winner(u)]

@@ -86,18 +86,19 @@ def eff_vote_for_or_against_k(m, k):
     """
     Calculate effectiveness of the "vote-for-or-against-k" voting system.
 
-    This is a variant of combined approval voting (CAV).  In Merrill-style
-    Monte Carlo with impartial culture, the effectiveness matches Weber when
-    each voter assigns ``+1`` to their ``k`` highest-utility candidates and
-    ``-1`` to their ``k`` lowest (``elsim.strategies.vote_for_or_against_k``,
-    default ``strategy='extremal'``).
+    This is a variant of combined approval voting (CAV).  Under impartial
+    culture utilities and combined-approval tallies, Monte Carlo Social Utility
+    Efficiency matches Weber's closed form when voters use
+    :func:`elsim.strategies.vote_for_or_against_k`.
 
     Parameters
     ----------
     m : int
         Total number of candidates.
     k : int
-        Number of candidates that each voter approves or disapproves of.
+        Size of each voter's ``+1`` and ``-1`` blocks in
+        :func:`elsim.strategies.vote_for_or_against_k` (``k`` highest- and ``k``
+        lowest-utility candidates per voter).
 
     Returns
     -------

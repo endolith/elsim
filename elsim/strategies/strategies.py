@@ -269,7 +269,7 @@ def vote_for_k(utilities, k):
     return approvals
 
 
-def vote_for_or_against_k(utilities, k, rng=None, *, strategy='extremal'):
+def vote_for_or_against_k(utilities, k, rng=None):
     """
     Convert utilities to combined-approval ballots (vote-for-or-against-k).
 
@@ -280,45 +280,31 @@ def vote_for_or_against_k(utilities, k, rng=None, *, strategy='extremal'):
     effectiveness formulas follow from the resulting reproducing scores
     ``u_t(c)`` over regions of the preference cube. [1]_
 
-    **Default (``strategy='extremal'``).**  Under impartial culture with
-    labeled candidates and Merrill-style combined-approval tallies, Monte
-    Carlo Social Utility Efficiency matches Weber's Table 19 when each voter
-    simultaneously assigns ``+1`` to their ``k`` **highest**-utility candidates
-    and ``-1`` to their ``k`` **lowest**-utility candidates (zeros on the rest).
-    Those two ``k``-sets are disjoint when ``k <= n_cands // 2``, so every
-    ballot stays in ``{-1, 0, +1}``.  This is the IC-coupled rule used in
-    ``examples/weber_1977_effectiveness_table.py`` to reproduce the dashed
-    ``eff_vote_for_or_against_k`` curve.
+    For **simulation**, each row uses ``utilities`` to rank candidates (with
+    tie-breaking noise), assigns ``+1`` to the ``k`` **highest**-utility
+    candidates and ``-1`` to the ``k`` **lowest** (zeros elsewhere).  When
+    ``k <= n_cands // 2`` those sets are disjoint, so ballots stay in
+    ``{-1, 0, +1}``.  With utilities drawn from impartial culture (e.g.
+    :func:`~elsim.elections.random_utilities`), Monte Carlo Social Utility
+    Efficiency matches Weber's Table 19 when tallies use combined approval, as
+    in ``examples/weber_1977_effectiveness_table.py`` and ``eff_vote_for_or_against_k``.
 
-    **Impartial culture.**  With i.i.d. continuous utilities (e.g. uniform on
-    ``[0, 1]``), the label set of a voter's top-``k`` candidates is **marginally**
-    uniform over all ``k``-subsets, and the bottom-``k`` label set is marginally
-    uniform as well.  That marginal fact does **not** identify different ballot
-    constructions: ``extremal`` fixes both sets from one ranking (so top and
-    bottom are strongly dependent), while ``uniform_types`` breaks that link by
-    drawing a subset with no reference to ``utilities``, which is why Monte Carlo
-    SUE differs.  Outside IC---spatial models, party structure, etc.---the same
-    ``extremal`` rule still reads rankings from ``utilities``, so behaviour is
-    driven by the preference model rather than by uniform random subsets.
-
-    **Alternative (``strategy='uniform_types'``).**  Draw a uniformly random
-    ``k``-subset ``S`` and an independent fair ``+1`` / ``-1`` sign on ``S``,
-    ignoring utilities (the literal ``p_t = 1 / (2 * (m choose k))`` draw on the
-    finite type list).  Under IC utilities that path does **not** recover the
-    Table 19 efficiencies in the same simulator; it is kept for comparison.
+    With i.i.d. continuous utilities, a voter's top-``k`` label set is
+    **marginally** uniform over ``k``-subsets and the bottom-``k`` set is
+    marginally uniform as well, but this function fixes both from one ranking,
+    which differs from drawing a random ``k``-subset independently of
+    ``utilities``; see :func:`vote_for_or_against_k_uniform_types`.
 
     Parameters
     ----------
     utilities : array_like
-        A 2D collection of utilities (required for ``strategy='extremal'``).
+        A 2D collection of utilities.  Rows are voters; columns are candidates.
     k : int
         Must satisfy ``0 < k <= n_cands // 2`` (Weber allows ``k = m/2`` when
         ``m`` is even).
     rng : numpy.random.Generator, optional
         Random number generator.  If omitted, ``numpy.random.default_rng()``
         is used.
-    strategy : {'extremal', 'uniform_types'}, keyword-only, optional
-        Ballot construction rule; see above.
 
     Returns
     -------
@@ -339,20 +325,10 @@ def vote_for_or_against_k(utilities, k, rng=None, *, strategy='extremal'):
             f'k of {k} not possible for vote-for-or-against-k with '
             f'{n_cands} candidates (require 0 < k <= n_cands // 2)'
         )
-    if strategy not in ('extremal', 'uniform_types'):
-        raise ValueError(f'strategy {strategy!r} must be '
-                         f"'extremal' or 'uniform_types'")
 
     rng = np.random.default_rng(rng)
     ballots = np.zeros((n_voters, n_cands), dtype=np.int8)
     rows = np.arange(n_voters)[:, np.newaxis]
-
-    if strategy == 'uniform_types':
-        keys = rng.random((n_voters, n_cands))
-        subset = np.argpartition(keys, -k, axis=1)[:, -k:]
-        signs = (1 - 2 * rng.integers(2, size=n_voters, dtype=np.int8))[:, np.newaxis]
-        ballots[rows, subset] = signs
-        return ballots
 
     u = utilities.astype(np.float64, copy=False)
     u_j = u + rng.random(u.shape) * (np.finfo(np.float64).eps * 64)
@@ -360,4 +336,59 @@ def vote_for_or_against_k(utilities, k, rng=None, *, strategy='extremal'):
     bot_k = np.argpartition(u_j, k - 1, axis=1)[:, :k]
     ballots[rows, top_k] = 1
     ballots[rows, bot_k] = -1
+    return ballots
+
+
+def vote_for_or_against_k_uniform_types(utilities, k, rng=None):
+    """
+    Combined-approval ballots from a uniform draw on Weber's finite type list.
+
+    For each voter, independently pick a uniformly random cardinality-``k``
+    subset ``S`` (via random ``argpartition`` keys) and then, with probability
+    ``1/2``, assign ``+1`` to every candidate in ``S`` or ``-1`` to every
+    candidate in ``S``.  The ``utilities`` array only fixes ballot shape and RNG
+    seeding; values do not enter the ballot rule.
+
+    This is the literal equal-probability enumeration over ``2 * (m choose k)``
+    types.  Under impartial-culture utilities it does **not** reproduce Weber's
+    Table 19 Social Utility Efficiency in the same Monte Carlo setup as
+    :func:`vote_for_or_against_k`.
+
+    Parameters
+    ----------
+    utilities : array_like
+        Shape ``(n_voters, n_cands)``; values are not used for the ballot rule.
+    k : int
+        Must satisfy ``0 < k <= n_cands // 2``.
+    rng : numpy.random.Generator, optional
+        Random number generator.  If omitted, ``numpy.random.default_rng()``
+        is used.
+
+    Returns
+    -------
+    election : ndarray
+        A 2D collection of combined approval ballots (``int8``).
+
+    References
+    ----------
+    .. [1] Weber, Robert J. (1978). "Comparison of Public Choice Systems".
+       Cowles Foundation Discussion Papers. Cowles Foundation for Research in
+       Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
+
+    """
+    utilities = np.asarray(utilities)
+    n_voters, n_cands = utilities.shape
+    if not 0 < k <= n_cands // 2:
+        raise ValueError(
+            f'k of {k} not possible for vote-for-or-against-k with '
+            f'{n_cands} candidates (require 0 < k <= n_cands // 2)'
+        )
+
+    rng = np.random.default_rng(rng)
+    ballots = np.zeros((n_voters, n_cands), dtype=np.int8)
+    rows = np.arange(n_voters)[:, np.newaxis]
+    keys = rng.random((n_voters, n_cands))
+    subset = np.argpartition(keys, -k, axis=1)[:, -k:]
+    signs = (1 - 2 * rng.integers(2, size=n_voters, dtype=np.int8))[:, np.newaxis]
+    ballots[rows, subset] = signs
     return ballots

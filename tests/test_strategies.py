@@ -6,7 +6,8 @@ from hypothesis.strategies import floats, integers, tuples
 from numpy.testing import assert_array_equal
 
 from elsim.strategies import (approval_optimal, honest_normed_scores,
-                              vote_for_k, vote_for_or_against_k)
+                              vote_for_k, vote_for_or_against_k,
+                              vote_for_or_against_k_uniform_types)
 
 
 def test_approval_optimal():
@@ -90,7 +91,7 @@ def test_vote_for_or_against_k_uniform_types_shape():
     rng = np.random.default_rng(1)
     utilities = rng.random((50, 7))
     k = 3
-    b = vote_for_or_against_k(utilities, k, rng=rng, strategy='uniform_types')
+    b = vote_for_or_against_k_uniform_types(utilities, k, rng=rng)
     assert b.shape == utilities.shape
     assert b.dtype == np.int8
     assert set(np.unique(b)) <= {-1, 0, 1}
@@ -101,17 +102,18 @@ def test_vote_for_or_against_k_uniform_types_shape():
     assert_array_equal(pos | neg, np.ones(50, dtype=bool))
 
 
-def test_vote_for_or_against_k_invalid_strategy():
-    utilities = np.random.default_rng(2).random((4, 8))
-    with pytest.raises(ValueError):
-        vote_for_or_against_k(utilities, 2, strategy='bogus')
-
-
 @pytest.mark.parametrize("k", [0, 4])
 def test_vote_for_or_against_k_invalid_k(k):
     utilities = np.random.default_rng(1).random((4, 7))
     with pytest.raises(ValueError):
         vote_for_or_against_k(utilities, k)
+
+
+@pytest.mark.parametrize("k", [0, 4])
+def test_vote_for_or_against_k_uniform_types_invalid_k(k):
+    utilities = np.random.default_rng(1).random((4, 7))
+    with pytest.raises(ValueError):
+        vote_for_or_against_k_uniform_types(utilities, k)
 
 
 def utilities(min_cands=2, max_cands=25, min_voters=1, max_voters=100):
@@ -139,7 +141,7 @@ def test_vote_for_k_properties(utilities):
 
 
 @given(utilities=utilities(min_cands=4, max_cands=20))
-def test_vote_for_or_against_k_extremal_properties(utilities):
+def test_vote_for_or_against_k_properties(utilities):
     m = utilities.shape[1]
     k = m // 2
     assume(k >= 1)
