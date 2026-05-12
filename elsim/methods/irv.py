@@ -9,10 +9,11 @@ _tiebreak_map = {'order': _order_tiebreak_elim,
                  None: _no_tiebreak}
 
 
-def _irv_eliminate_until_n_remain(election, tiebreaker, n):
+def _irv_eliminate_until_n_winners_remain(election, tiebreaker, n_winners):
     """
     Same elimination rule as `irv`, but do not stop on a majority; keep
-    eliminating the last-place active candidate until at most ``n`` remain.
+    eliminating the last-place active candidate until at most ``n_winners``
+    remain.
     """
     n_voters, n_cands = election.shape
     tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
@@ -25,7 +26,7 @@ def _irv_eliminate_until_n_remain(election, tiebreaker, n):
     if eliminated_cands:
         _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
 
-    while n_cands - len(eliminated_cands) > n:
+    while n_cands - len(eliminated_cands) > n_winners:
         _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
         cand_tallies_list = cand_tallies.tolist()
         active_tallies = [cand_tallies_list[c] for c in range(n_cands)
@@ -43,7 +44,7 @@ def _irv_eliminate_until_n_remain(election, tiebreaker, n):
     return {c for c in range(n_cands) if c not in eliminated_cands}
 
 
-def irv(election, tiebreaker=None, *, n_survivors=None):
+def irv(election, tiebreaker=None, *, n_winners=None):
     """
     Find the winner of an election using instant-runoff voting.
 
@@ -71,7 +72,7 @@ def irv(election, tiebreaker=None, *, n_survivors=None):
         are eliminated or selected at random.
         If 'order', the lowest-ID tied candidate is preferred in each tie.
         By default, ``None`` is returned if there are any ties.
-    n_survivors : int, optional
+    n_winners : int, optional
         If omitted (default), return the usual single IRV winner.
         If ``1``, same as omitted (one winner).
         If ``k`` with ``1 < k < n_candidates``, return the set of candidate IDs
@@ -85,12 +86,12 @@ def irv(election, tiebreaker=None, *, n_survivors=None):
     Returns
     -------
     outcome : {int, set of int, None}
-        If ``n_survivors`` is omitted or ``1``, the winner's ID, or ``None`` for
+        If ``n_winners`` is omitted or ``1``, the winner's ID, or ``None`` for
         an unbroken tie.
-        If ``n_survivors`` is strictly between ``1`` and the number of
+        If ``n_winners`` is strictly between ``1`` and the number of
         candidates, the set of surviving candidate IDs, or ``None`` for an
         unbroken tie during elimination.
-        If ``n_survivors`` is greater than or equal to the number of candidates,
+        If ``n_winners`` is greater than or equal to the number of candidates,
         the set of all candidate IDs.
 
     References
@@ -121,7 +122,7 @@ def irv(election, tiebreaker=None, *, n_survivors=None):
     >>> irv(election)
     0
 
-    The same ballots with ``n_survivors`` = 2 (no majority short-circuit;
+    The same ballots with ``n_winners`` = 2 (no majority short-circuit;
     eliminate last place once so two candidates remain):
 
     >>> election_b = [[A, C, B],
@@ -130,20 +131,20 @@ def irv(election, tiebreaker=None, *, n_survivors=None):
     ...               [B, C, A],
     ...               [C, A, B],
     ...               ]
-    >>> sorted(irv(election_b, n_survivors=2, tiebreaker='order'))
+    >>> sorted(irv(election_b, n_winners=2, tiebreaker='order'))
     [0, 1]
     """
     election = np.asarray(election)
     n_voters, n_cands = election.shape
 
-    if n_survivors is not None:
-        if n_survivors < 1:
-            raise ValueError('n_survivors must be at least 1')
-        if n_survivors >= n_cands:
+    if n_winners is not None:
+        if n_winners < 1:
+            raise ValueError('n_winners must be at least 1')
+        if n_winners >= n_cands:
             return set(range(n_cands))
-        if n_survivors > 1:
-            return _irv_eliminate_until_n_remain(election, tiebreaker,
-                                                 n_survivors)
+        if n_winners > 1:
+            return _irv_eliminate_until_n_winners_remain(election, tiebreaker,
+                                                         n_winners)
 
     tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
     voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
