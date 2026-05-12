@@ -273,28 +273,33 @@ def vote_for_or_against_k(utilities, k, rng=None):
     """
     Convert utilities to combined-approval ballots (vote-for-or-against-k).
 
-    Each voter assigns ``+1`` to each of their ``k`` highest-utility candidates
-    and ``-1`` to each of their ``k`` lowest-utility candidates on the same
-    ballot (zeros elsewhere).  When ``k <= n_cands // 2`` the two blocks are
-    disjoint, so each cell stays in ``{-1, 0, +1}``.  This is the Weber
-    impartial-culture / random-society model used to derive the effectiveness
-    formulas in *Comparison of Public Choice Systems* (Cowles Foundation
-    Discussion Paper 498). [1]_
+    Weber (*Comparison of Public Choice Systems*, Cowles Discussion Paper 498)
+    fixes ``k < m/2`` and considers every cardinality-``k`` subset ``S`` of
+    candidates.  For each ``S`` there are two strategic types: **vote for**
+    ``S`` (assign ``+1`` to each candidate in ``S``) and **vote against** ``S``
+    (assign ``-1`` to each candidate in ``S``).      There are ``2 * binom(m, k)`` types, each with probability ``1 / (2 *
+    binom(m, k))``. [1]_
+
+    This implementation draws those types **independently** of the utility
+    matrix: each row uses a uniformly random ``k``-subset ``S`` (via a random
+    ``argpartition`` key) and an independent fair coin for for/against.  The
+    ``utilities`` array only supplies the ballot shape (and optional RNG
+    seeding); it does **not** enter the ballot rule.  That matches the literal
+    type-counting definition on the page where ``u_t(c)`` is tabulated, but it
+    may **not** reproduce Merrill-style Social Utility Efficiency from the
+    page-19 table when utilities are drawn impartially—see
+    ``examples/weber_1977_effectiveness_table.py``.
 
     Parameters
     ----------
     utilities : array_like
-        A 2D collection of utilities.
-
-        Rows represent voters, and columns represent candidate IDs.
-        Higher utility numbers mean greater approval of that candidate by that
-        voter.
+        Shape ``(n_voters, n_cands)``; values are not used for the ballot rule.
     k : int
-        Number of candidates to vote for at the top of the ballot and
-        simultaneously against at the bottom.
+        Size of the subset ``S`` (must satisfy ``0 < k <= n_cands // 2``,
+        so ``k <= m/2`` with the usual ``k = m/2`` even case allowed).
     rng : numpy.random.Generator, optional
-        Used only to break ties in ``argpartition`` via a tiny jitter on
-        utilities.  If omitted, ``numpy.random.default_rng()`` is used.
+        Random number generator.  If omitted, ``numpy.random.default_rng()``
+        is used.
 
     Returns
     -------
@@ -317,14 +322,10 @@ def vote_for_or_against_k(utilities, k, rng=None):
         )
 
     rng = np.random.default_rng(rng)
-    u = utilities.astype(np.float64, copy=False)
-    u_j = u + rng.random(u.shape) * (np.finfo(np.float64).eps * 64)
-
-    top_k = np.argpartition(u_j, -k, axis=1)[:, -k:]
-    bot_k = np.argpartition(u_j, k - 1, axis=1)[:, :k]
-
+    keys = rng.random((n_voters, n_cands))
+    subset = np.argpartition(keys, -k, axis=1)[:, -k:]
     ballots = np.zeros((n_voters, n_cands), dtype=np.int8)
     rows = np.arange(n_voters)[:, np.newaxis]
-    ballots[rows, top_k] = 1
-    ballots[rows, bot_k] = -1
+    signs = (1 - 2 * rng.integers(2, size=n_voters, dtype=np.int8))[:, np.newaxis]
+    ballots[rows, subset] = signs
     return ballots

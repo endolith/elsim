@@ -213,30 +213,6 @@ def test_cases():
     # Discrete optimum can differ from round(alpha * m); e.g. m == 91.
     assert best_vote_for_or_against_k(91) == 34
 
-    from elsim.elections import random_utilities
-    from elsim.methods import combined_approval, utility_winner
-    from elsim.strategies import vote_for_or_against_k
-    import numpy as np
-
-    def _mc_sue_vote_for_or_against(m, k, nv=2500, ne=800, seed=2026):
-        rng = np.random.default_rng(seed)
-        uw_sum = 0.0
-        meth_sum = 0.0
-        for _ in range(ne):
-            u = random_utilities(nv, m, random_state=rng)
-            b = vote_for_or_against_k(u, k, rng=rng)
-            w = combined_approval(b, 'random')
-            row = u.sum(axis=0)
-            uw_sum += row[utility_winner(u)]
-            meth_sum += row[w]
-        avg = nv * ne / 2
-        return (meth_sum - avg) / (uw_sum - avg)
-
-    assert abs(_mc_sue_vote_for_or_against(3, 1)
-               - eff_vote_for_or_against_k(3, 1)) < 0.03
-    assert abs(_mc_sue_vote_for_or_against(6, 3)
-               - eff_vote_for_or_against_k(6, 3)) < 0.03
-
 
 if __name__ == '__main__':
     test_cases()

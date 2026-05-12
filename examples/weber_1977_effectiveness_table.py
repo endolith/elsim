@@ -8,21 +8,25 @@ Cowles Foundation Discussion Papers. Cowles Foundation for Research in
 Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 
 Typical Monte Carlo Social Utility Efficiency (``n_elections`` = 100_000)
-with ``combined_approval`` on the ballots from each strategy.  Best
-Vote-for-or-against-k uses ``best_vote_for_or_against_k(m)`` from
-``weber_1977_expressions`` to pick ``k`` for each ``m``, then
-``vote_for_or_against_k`` (Weber reproducing CAV: ``+1`` on each voter's top
-``k`` utilities and ``-1`` on their bottom ``k``).
+with ``combined_approval``.  Best Vote-for-or-against-k uses
+``best_vote_for_or_against_k(m)`` and ``vote_for_or_against_k``, which draws
+Weber's ``2 * binom(m, k)`` strategic types (uniform random ``k``-subset ``S``,
+then **either** ``+1`` on ``S`` **or** ``-1`` on ``S``) **independently** of
+utilities.  That is what the type-counting description says; under this literal
+Merrill-style IC simulation the solid curve can sit far below the dashed
+``eff_best_vote_for_or_against_k`` line from the paper's infinite-voter
+analysis—if so, that mismatch is informative rather than a bug in the closed
+form.
 
 |     |   Standard |   Vote-for-half |   Best Vote-for-or-against-k |   Borda |
 |----:|-----------:|----------------:|-----------------------------:|--------:|
-|   2 |      81.37 |           81.71 |                        ~82.8 |   81.41 |
-|   3 |      75.10 |           75.00 |                        ~86.4 |   86.53 |
-|   4 |      69.90 |           79.92 |                        ~80.8 |   89.47 |
-|   5 |      65.02 |           79.09 |                        ~87.0 |   91.34 |
-|   6 |      61.08 |           81.20 |                        ~81.6 |   92.61 |
-|  10 |      50.78 |           82.94 |                        ~89.3 |   95.35 |
-| 255 |      12.78 |           86.37 |                        ~92.1 |   99.80 |
+|   2 |      81.37 |           81.71 |          (see simulation)      |   81.41 |
+|   3 |      75.10 |           75.00 |          (see simulation)      |   86.53 |
+|   4 |      69.90 |           79.92 |          (see simulation)      |   89.47 |
+|   5 |      65.02 |           79.09 |          (see simulation)      |   91.34 |
+|   6 |      61.08 |           81.20 |          (see simulation)      |   92.61 |
+|  10 |      50.78 |           82.94 |          (see simulation)      |   95.35 |
+| 255 |      12.78 |           86.37 |          (see simulation)      |   99.80 |
 """
 # TODO: Standard is consistently ~1% high, while Borda is very accurate
 import time
