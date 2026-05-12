@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from hypothesis import assume, given
+from hypothesis import assume, given, settings
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import floats, integers, tuples
 from numpy.testing import assert_array_equal
@@ -133,6 +133,33 @@ def test_vote_for_or_against_k_properties(utilities):
     pos = (b == 1).sum(axis=1) == k
     neg = (b == -1).sum(axis=1) == k
     assert_array_equal(pos | neg, np.ones(n, dtype=bool))
+
+
+@settings(max_examples=20, deadline=None)
+@given(utilities=utilities(min_cands=4, max_cands=16, min_voters=2000,
+                            max_voters=2800))
+def test_vote_for_or_against_k_fair_coin_distribution(utilities):
+    m = utilities.shape[1]
+    k = m // 2
+    assume(k >= 1)
+    rng = np.random.default_rng(0)
+    b = vote_for_or_against_k(utilities, k, rng=rng)
+    n = utilities.shape[0]
+    assert_array_equal(np.abs(b).sum(axis=1), np.full(n, k))
+    pos = (b == 1).sum(axis=1) == k
+    neg = (b == -1).sum(axis=1) == k
+    assert_array_equal(pos | neg, np.ones(n, dtype=bool))
+    n_for = int(np.count_nonzero(pos))
+    assert abs(n_for / n - 0.5) < 0.06
+
+
+def test_vote_for_or_against_k_fair_coin_large_sample():
+    rng = np.random.default_rng(42)
+    n_voters, m, k = 25_000, 9, 4
+    utilities = rng.random((n_voters, m))
+    b = vote_for_or_against_k(utilities, k, rng=rng)
+    n_for = int(np.count_nonzero((b == 1).sum(axis=1) == k))
+    assert 12_000 < n_for < 13_000
 
 
 @given(utilities=utilities(), max_score=integers(1, 100))

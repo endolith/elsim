@@ -7,13 +7,15 @@ Weber, Robert J. (1978). "Comparison of Public Choice Systems".
 Cowles Foundation Discussion Papers. Cowles Foundation for Research in
 Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 
+The dashed lines are Weber's infinite-voter closed forms.  The solid curves
+from this script are **not** asserted to coincide with them for
+vote-for-or-against-k; compare visually or numerically as you like.
+
 Typical Monte Carlo Social Utility Efficiency (``n_elections`` = 100_000)
 with ``combined_approval``.  Best Vote-for-or-against-k uses
 ``best_vote_for_or_against_k(m)`` and ``vote_for_or_against_k``: each voter
 flips a fair coin, then either ``+1`` on their ``k`` best candidates by utility
-or ``-1`` on their ``k`` worst (never disapproving favorites alone).  The dashed
-lines plot Weber's infinite-voter closed forms; the solid curve may agree or
-differ---both are informative.
+or ``-1`` on their ``k`` worst (never disapproving favorites alone).
 
 |     |   Standard |   Vote-for-half |   Best Vote-for-or-against-k |   Borda |
 |----:|-----------:|----------------:|-----------------------------:|--------:|
