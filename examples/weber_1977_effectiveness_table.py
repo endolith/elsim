@@ -13,9 +13,7 @@ with ``combined_approval``.  Best Vote-for-or-against-k uses
 assigns ``+1`` to their ``k`` best candidates by utility and ``-1`` to their
 ``k`` worst.  With impartial-culture utilities (``random_utilities``), that
 tracks Weber's dashed ``eff_best_vote_for_or_against_k`` /
-``eff_vote_for_or_against_k`` curves from the paper.  The separate strategy
-``vote_for_or_against_k_uniform_types`` draws Weber's finite type list without
-using utilities and does **not** match those curves under the same simulation.
+``eff_vote_for_or_against_k`` curves from the paper.
 
 |     |   Standard |   Vote-for-half |   Best Vote-for-or-against-k |   Borda |
 |----:|-----------:|----------------:|-----------------------------:|--------:|

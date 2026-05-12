@@ -289,11 +289,10 @@ def vote_for_or_against_k(utilities, k, rng=None):
     Efficiency matches Weber's Table 19 when tallies use combined approval, as
     in ``examples/weber_1977_effectiveness_table.py`` and ``eff_vote_for_or_against_k``.
 
-    With i.i.d. continuous utilities, a voter's top-``k`` label set is
-    **marginally** uniform over ``k``-subsets and the bottom-``k`` set is
-    marginally uniform as well, but this function fixes both from one ranking,
-    which differs from drawing a random ``k``-subset independently of
-    ``utilities``; see :func:`vote_for_or_against_k_uniform_types`.
+    With i.i.d. continuous impartial-culture utilities, each voter's top-``k``
+    label set is **marginally** uniform over ``k``-subsets and the bottom-``k``
+    set is marginally uniform as well; this function couples both sets through
+    the same ranking.
 
     Parameters
     ----------
@@ -336,59 +335,4 @@ def vote_for_or_against_k(utilities, k, rng=None):
     bot_k = np.argpartition(u_j, k - 1, axis=1)[:, :k]
     ballots[rows, top_k] = 1
     ballots[rows, bot_k] = -1
-    return ballots
-
-
-def vote_for_or_against_k_uniform_types(utilities, k, rng=None):
-    """
-    Combined-approval ballots from a uniform draw on Weber's finite type list.
-
-    For each voter, independently pick a uniformly random cardinality-``k``
-    subset ``S`` (via random ``argpartition`` keys) and then, with probability
-    ``1/2``, assign ``+1`` to every candidate in ``S`` or ``-1`` to every
-    candidate in ``S``.  The ``utilities`` array only fixes ballot shape and RNG
-    seeding; values do not enter the ballot rule.
-
-    This is the literal equal-probability enumeration over ``2 * (m choose k)``
-    types.  Under impartial-culture utilities it does **not** reproduce Weber's
-    Table 19 Social Utility Efficiency in the same Monte Carlo setup as
-    :func:`vote_for_or_against_k`.
-
-    Parameters
-    ----------
-    utilities : array_like
-        Shape ``(n_voters, n_cands)``; values are not used for the ballot rule.
-    k : int
-        Must satisfy ``0 < k <= n_cands // 2``.
-    rng : numpy.random.Generator, optional
-        Random number generator.  If omitted, ``numpy.random.default_rng()``
-        is used.
-
-    Returns
-    -------
-    election : ndarray
-        A 2D collection of combined approval ballots (``int8``).
-
-    References
-    ----------
-    .. [1] Weber, Robert J. (1978). "Comparison of Public Choice Systems".
-       Cowles Foundation Discussion Papers. Cowles Foundation for Research in
-       Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
-
-    """
-    utilities = np.asarray(utilities)
-    n_voters, n_cands = utilities.shape
-    if not 0 < k <= n_cands // 2:
-        raise ValueError(
-            f'k of {k} not possible for vote-for-or-against-k with '
-            f'{n_cands} candidates (require 0 < k <= n_cands // 2)'
-        )
-
-    rng = np.random.default_rng(rng)
-    ballots = np.zeros((n_voters, n_cands), dtype=np.int8)
-    rows = np.arange(n_voters)[:, np.newaxis]
-    keys = rng.random((n_voters, n_cands))
-    subset = np.argpartition(keys, -k, axis=1)[:, -k:]
-    signs = (1 - 2 * rng.integers(2, size=n_voters, dtype=np.int8))[:, np.newaxis]
-    ballots[rows, subset] = signs
     return ballots

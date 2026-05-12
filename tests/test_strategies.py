@@ -6,8 +6,7 @@ from hypothesis.strategies import floats, integers, tuples
 from numpy.testing import assert_array_equal
 
 from elsim.strategies import (approval_optimal, honest_normed_scores,
-                              vote_for_k, vote_for_or_against_k,
-                              vote_for_or_against_k_uniform_types)
+                              vote_for_k, vote_for_or_against_k)
 
 
 def test_approval_optimal():
@@ -87,33 +86,11 @@ def test_vote_for_or_against_k_shape():
     assert_array_equal((b == 0).sum(axis=1), np.full(50, 7 - 2 * k))
 
 
-def test_vote_for_or_against_k_uniform_types_shape():
-    rng = np.random.default_rng(1)
-    utilities = rng.random((50, 7))
-    k = 3
-    b = vote_for_or_against_k_uniform_types(utilities, k, rng=rng)
-    assert b.shape == utilities.shape
-    assert b.dtype == np.int8
-    assert set(np.unique(b)) <= {-1, 0, 1}
-    assert_array_equal(np.abs(b).sum(axis=1), np.full(50, k))
-    assert_array_equal((b == 0).sum(axis=1), np.full(50, 7 - k))
-    pos = (b == 1).sum(axis=1) == k
-    neg = (b == -1).sum(axis=1) == k
-    assert_array_equal(pos | neg, np.ones(50, dtype=bool))
-
-
 @pytest.mark.parametrize("k", [0, 4])
 def test_vote_for_or_against_k_invalid_k(k):
     utilities = np.random.default_rng(1).random((4, 7))
     with pytest.raises(ValueError):
         vote_for_or_against_k(utilities, k)
-
-
-@pytest.mark.parametrize("k", [0, 4])
-def test_vote_for_or_against_k_uniform_types_invalid_k(k):
-    utilities = np.random.default_rng(1).random((4, 7))
-    with pytest.raises(ValueError):
-        vote_for_or_against_k_uniform_types(utilities, k)
 
 
 def utilities(min_cands=2, max_cands=25, min_voters=1, max_voters=100):
