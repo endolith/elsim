@@ -280,19 +280,16 @@ def vote_for_or_against_k(utilities, k, rng=None):
     effectiveness formulas follow from the resulting reproducing scores
     ``u_t(c)`` over regions of the preference cube. [1]_
 
-    For **simulation**, each row uses ``utilities`` to rank candidates (with
-    tie-breaking noise), assigns ``+1`` to the ``k`` **highest**-utility
-    candidates and ``-1`` to the ``k`` **lowest** (zeros elsewhere).  When
-    ``k <= n_cands // 2`` those sets are disjoint, so ballots stay in
-    ``{-1, 0, +1}``.  With utilities drawn from impartial culture (e.g.
-    :func:`~elsim.elections.random_utilities`), Monte Carlo Social Utility
-    Efficiency matches Weber's Table 19 when tallies use combined approval, as
-    in ``examples/weber_1977_effectiveness_table.py`` and ``eff_vote_for_or_against_k``.
+    For **simulation**, each voter independently flips a fair coin.  **Vote for**
+    puts ``+1`` on that voter's ``k`` **highest**-utility candidates (ties broken
+    with noise).  **Vote against** puts ``-1`` on their ``k`` **lowest**-utility
+    candidates---not on their favorites.  The unused candidates stay at ``0``.
+    When ``k <= n_cands // 2`` the top and bottom blocks are disjoint, so each
+    ballot lies in ``{-1, 0, +1}`` with exactly ``k`` nonzero entries.
 
-    With i.i.d. continuous impartial-culture utilities, each voter's top-``k``
-    label set is **marginally** uniform over ``k``-subsets and the bottom-``k``
-    set is marginally uniform as well; this function couples both sets through
-    the same ranking.
+    Monte Carlo Social Utility Efficiency under impartial culture may or may not
+    track ``eff_vote_for_or_against_k`` from the paper's infinite-voter analysis;
+    see ``examples/weber_1977_effectiveness_table.py``.
 
     Parameters
     ----------
@@ -333,6 +330,9 @@ def vote_for_or_against_k(utilities, k, rng=None):
     u_j = u + rng.random(u.shape) * (np.finfo(np.float64).eps * 64)
     top_k = np.argpartition(u_j, -k, axis=1)[:, -k:]
     bot_k = np.argpartition(u_j, k - 1, axis=1)[:, :k]
-    ballots[rows, top_k] = 1
-    ballots[rows, bot_k] = -1
+    choice = rng.integers(2, size=n_voters, dtype=np.int8)
+    vote_for = (choice == 0)[:, np.newaxis]
+    target = np.where(vote_for, top_k, bot_k)
+    vals = np.where(vote_for, np.int8(1), np.int8(-1))
+    ballots[rows, target] = vals
     return ballots

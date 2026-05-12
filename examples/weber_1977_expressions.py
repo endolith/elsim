@@ -86,19 +86,19 @@ def eff_vote_for_or_against_k(m, k):
     """
     Calculate effectiveness of the "vote-for-or-against-k" voting system.
 
-    This is a variant of combined approval voting (CAV).  Under impartial
-    culture utilities and combined-approval tallies, Monte Carlo Social Utility
-    Efficiency matches Weber's closed form when voters use
-    :func:`elsim.strategies.vote_for_or_against_k`.
+    Weber's closed-form value for impartial culture in the infinite-voter
+    limit (Cowles DP 498).  It is not asserted here to coincide with finite
+    Monte Carlo Social Utility Efficiency for any particular ballot generator;
+    compare against :func:`elsim.strategies.vote_for_or_against_k` in
+    ``examples/weber_1977_effectiveness_table.py`` if desired.
 
     Parameters
     ----------
     m : int
         Total number of candidates.
     k : int
-        Size of each voter's ``+1`` and ``-1`` blocks in
-        :func:`elsim.strategies.vote_for_or_against_k` (``k`` highest- and ``k``
-        lowest-utility candidates per voter).
+        Number of candidates approved (``+1``) or disapproved (``-1``) on each
+        ballot in the vote-for-or-against-``k`` system analyzed in the paper.
 
     Returns
     -------

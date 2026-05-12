@@ -10,10 +10,10 @@ Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 Typical Monte Carlo Social Utility Efficiency (``n_elections`` = 100_000)
 with ``combined_approval``.  Best Vote-for-or-against-k uses
 ``best_vote_for_or_against_k(m)`` and ``vote_for_or_against_k``: each voter
-assigns ``+1`` to their ``k`` best candidates by utility and ``-1`` to their
-``k`` worst.  With impartial-culture utilities (``random_utilities``), that
-tracks Weber's dashed ``eff_best_vote_for_or_against_k`` /
-``eff_vote_for_or_against_k`` curves from the paper.
+flips a fair coin, then either ``+1`` on their ``k`` best candidates by utility
+or ``-1`` on their ``k`` worst (never disapproving favorites alone).  The dashed
+lines plot Weber's infinite-voter closed forms; the solid curve may agree or
+differ---both are informative.
 
 |     |   Standard |   Vote-for-half |   Best Vote-for-or-against-k |   Borda |
 |----:|-----------:|----------------:|-----------------------------:|--------:|
