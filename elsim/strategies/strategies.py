@@ -267,3 +267,72 @@ def vote_for_k(utilities, k):
     # TODO: Not sure if this is the most efficient way
     approvals[np.arange(len(approvals))[:, np.newaxis], top_k] = 1
     return approvals
+
+
+def vote_for_or_against_k(utilities, k, rng=None):
+    """
+    Convert utilities to combined-approval ballots (vote-for-or-against-k).
+
+    Weber (*Comparison of Public Choice Systems*, Cowles Discussion Paper 498)
+    defines ``2 * (m choose k)`` strategic types: for each cardinality-``k`` set
+    ``S``, types **vote for** ``S`` (``+1`` on ``S``) and **vote against** ``S``
+    (``-1`` on ``S``), each with probability ``1 / (2 * (m choose k))``.  The
+    effectiveness formulas follow from the resulting reproducing scores
+    ``u_t(c)`` over regions of the preference cube. [1]_
+
+    For **simulation**, each voter independently flips a fair coin.  **Vote for**
+    puts ``+1`` on that voter's ``k`` **highest**-utility candidates (ties broken
+    with noise).  **Vote against** puts ``-1`` on their ``k`` **lowest**-utility
+    candidates---not on their favorites.  The unused candidates stay at ``0``.
+    When ``k <= n_cands // 2`` the top and bottom blocks are disjoint, so each
+    ballot lies in ``{-1, 0, +1}`` with exactly ``k`` nonzero entries.
+
+    Monte Carlo Social Utility Efficiency under impartial culture may or may not
+    track ``eff_vote_for_or_against_k`` from the paper's infinite-voter analysis;
+    see ``examples/weber_1977_effectiveness_table.py``.
+
+    Parameters
+    ----------
+    utilities : array_like
+        A 2D collection of utilities.  Rows are voters; columns are candidates.
+    k : int
+        Must satisfy ``0 < k <= n_cands // 2`` (Weber allows ``k = m/2`` when
+        ``m`` is even).
+    rng : numpy.random.Generator, optional
+        Random number generator.  If omitted, ``numpy.random.default_rng()``
+        is used.
+
+    Returns
+    -------
+    election : ndarray
+        A 2D collection of combined approval ballots (``int8``).
+
+    References
+    ----------
+    .. [1] Weber, Robert J. (1978). "Comparison of Public Choice Systems".
+       Cowles Foundation Discussion Papers. Cowles Foundation for Research in
+       Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
+
+    """
+    utilities = np.asarray(utilities)
+    n_voters, n_cands = utilities.shape
+    if not 0 < k <= n_cands // 2:
+        raise ValueError(
+            f'k of {k} not possible for vote-for-or-against-k with '
+            f'{n_cands} candidates (require 0 < k <= n_cands // 2)'
+        )
+
+    rng = np.random.default_rng(rng)
+    ballots = np.zeros((n_voters, n_cands), dtype=np.int8)
+    rows = np.arange(n_voters)[:, np.newaxis]
+
+    u = utilities.astype(np.float64, copy=False)
+    u_j = u + rng.random(u.shape) * (np.finfo(np.float64).eps * 64)
+    top_k = np.argpartition(u_j, -k, axis=1)[:, -k:]
+    bot_k = np.argpartition(u_j, k - 1, axis=1)[:, :k]
+    choice = rng.integers(2, size=n_voters, dtype=np.int8)
+    vote_for = (choice == 0)[:, np.newaxis]
+    target = np.where(vote_for, top_k, bot_k)
+    vals = np.where(vote_for, np.int8(1), np.int8(-1))
+    ballots[rows, target] = vals
+    return ballots

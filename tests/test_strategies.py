@@ -1,11 +1,12 @@
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import assume, given, settings
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import floats, integers, tuples
 from numpy.testing import assert_array_equal
 
-from elsim.strategies import approval_optimal, honest_normed_scores, vote_for_k
+from elsim.strategies import (approval_optimal, honest_normed_scores,
+                              vote_for_k, vote_for_or_against_k)
 
 
 def test_approval_optimal():
@@ -72,6 +73,28 @@ def test_invalid_k(k):
         vote_for_k(election, k)
 
 
+def test_vote_for_or_against_k_shape():
+    rng = np.random.default_rng(0)
+    utilities = rng.random((50, 7))
+    k = 3
+    b = vote_for_or_against_k(utilities, k, rng=rng)
+    assert b.shape == utilities.shape
+    assert b.dtype == np.int8
+    assert set(np.unique(b)) <= {-1, 0, 1}
+    assert_array_equal(np.abs(b).sum(axis=1), np.full(50, k))
+    assert_array_equal((b == 0).sum(axis=1), np.full(50, 7 - k))
+    pos = (b == 1).sum(axis=1) == k
+    neg = (b == -1).sum(axis=1) == k
+    assert_array_equal(pos | neg, np.ones(50, dtype=bool))
+
+
+@pytest.mark.parametrize("k", [0, 4])
+def test_vote_for_or_against_k_invalid_k(k):
+    utilities = np.random.default_rng(1).random((4, 7))
+    with pytest.raises(ValueError):
+        vote_for_or_against_k(utilities, k)
+
+
 def utilities(min_cands=2, max_cands=25, min_voters=1, max_voters=100):
     """
     Strategy to generate utilities arrays
@@ -94,6 +117,49 @@ def test_vote_for_k_properties(utilities):
     assert election.shape == utilities.shape
     assert 1 in set(election.flat)
     assert set(election.flat) <= {0, 1}
+
+
+@given(utilities=utilities(min_cands=4, max_cands=20))
+def test_vote_for_or_against_k_properties(utilities):
+    m = utilities.shape[1]
+    k = m // 2
+    assume(k >= 1)
+    rng = np.random.default_rng(0)
+    b = vote_for_or_against_k(utilities, k, rng=rng)
+    assert b.shape == utilities.shape
+    assert set(b.flat) <= {-1, 0, 1}
+    n = utilities.shape[0]
+    assert_array_equal(np.abs(b).sum(axis=1), np.full(n, k))
+    pos = (b == 1).sum(axis=1) == k
+    neg = (b == -1).sum(axis=1) == k
+    assert_array_equal(pos | neg, np.ones(n, dtype=bool))
+
+
+@settings(max_examples=20, deadline=None)
+@given(utilities=utilities(min_cands=4, max_cands=16, min_voters=2000,
+                            max_voters=2800))
+def test_vote_for_or_against_k_fair_coin_distribution(utilities):
+    m = utilities.shape[1]
+    k = m // 2
+    assume(k >= 1)
+    rng = np.random.default_rng(0)
+    b = vote_for_or_against_k(utilities, k, rng=rng)
+    n = utilities.shape[0]
+    assert_array_equal(np.abs(b).sum(axis=1), np.full(n, k))
+    pos = (b == 1).sum(axis=1) == k
+    neg = (b == -1).sum(axis=1) == k
+    assert_array_equal(pos | neg, np.ones(n, dtype=bool))
+    n_for = int(np.count_nonzero(pos))
+    assert abs(n_for / n - 0.5) < 0.06
+
+
+def test_vote_for_or_against_k_fair_coin_large_sample():
+    rng = np.random.default_rng(42)
+    n_voters, m, k = 25_000, 9, 4
+    utilities = rng.random((n_voters, m))
+    b = vote_for_or_against_k(utilities, k, rng=rng)
+    n_for = int(np.count_nonzero((b == 1).sum(axis=1) == k))
+    assert 12_000 < n_for < 13_000
 
 
 @given(utilities=utilities(), max_score=integers(1, 100))
