@@ -290,6 +290,17 @@ def vote_for_or_against_k(utilities, k, rng=None, *, strategy='extremal'):
     ``examples/weber_1977_effectiveness_table.py`` to reproduce the dashed
     ``eff_vote_for_or_against_k`` curve.
 
+    **Impartial culture.**  With i.i.d. continuous utilities (e.g. uniform on
+    ``[0, 1]``), the label set of a voter's top-``k`` candidates is **marginally**
+    uniform over all ``k``-subsets, and the bottom-``k`` label set is marginally
+    uniform as well.  That marginal fact does **not** identify different ballot
+    constructions: ``extremal`` fixes both sets from one ranking (so top and
+    bottom are strongly dependent), while ``uniform_types`` breaks that link by
+    drawing a subset with no reference to ``utilities``, which is why Monte Carlo
+    SUE differs.  Outside IC---spatial models, party structure, etc.---the same
+    ``extremal`` rule still reads rankings from ``utilities``, so behaviour is
+    driven by the preference model rather than by uniform random subsets.
+
     **Alternative (``strategy='uniform_types'``).**  Draw a uniformly random
     ``k``-subset ``S`` and an independent fair ``+1`` / ``-1`` sign on ``S``,
     ignoring utilities (the literal ``p_t = 1 / (2 * (m choose k))`` draw on the
