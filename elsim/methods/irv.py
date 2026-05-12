@@ -85,12 +85,9 @@ def irv(election, tiebreaker=None):
     # Currently this step is needed because eliminated candidates drop to zero
     # votes and can't be distinguished from candidates who never received any.
     _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
-    eliminated_cands = set(_all_indices(cand_tallies, 0))
-    # Guard required: Numba cannot compute the type fingerprint of an empty
-    # Python set (no elements → unknown dtype), so skip the call when there
-    # are no pre-round eliminations.  The call would be a no-op anyway.
-    if eliminated_cands:
-        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
+    eliminated_mask = np.zeros(n_cands, dtype=bool)
+    eliminated_mask[_all_indices(cand_tallies, 0)] = True
+    _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
 
     for round_ in range(n_cands):
         _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
@@ -113,9 +110,9 @@ def irv(election, tiebreaker=None):
             # No tiebreaker case
             return None
         else:
-            eliminated_cands.add(cand_to_eliminate)
+            eliminated_mask[cand_to_eliminate] = True
 
         # Increment rank indices past all eliminated candidates
-        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
+        _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
 
     raise RuntimeError('Bug in IRV calculation')

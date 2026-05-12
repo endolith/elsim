@@ -74,7 +74,7 @@ def coombs(election, tiebreaker=None):
     # No IRV-style eager elimination of zero top tallies here: Coombs'
     # elimination criterion is last-place tallies, not lowest top tallies.
 
-    eliminated_cands = set()
+    eliminated_mask = np.zeros(n_cands, dtype=bool)
 
     for round_ in range(n_cands):
         _tally_at_rank_idx(cand_top_tallies, election, voter_top_rank_idx)
@@ -101,11 +101,11 @@ def coombs(election, tiebreaker=None):
             # No tiebreaker case
             return None
         else:
-            eliminated_cands.add(cand_to_eliminate)
+            eliminated_mask[cand_to_eliminate] = True
 
         # Increment/decrement rank indices past all eliminated candidates
-        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
-        _dec_rank_idx(election, voter_bottom_rank_idx, eliminated_cands)
+        _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
+        _dec_rank_idx(election, voter_bottom_rank_idx, eliminated_mask)
 
         # (top and bottom rank indices move in opposite directions)
     raise RuntimeError("Bug in Coombs' calculation")

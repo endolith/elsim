@@ -7,15 +7,7 @@ import warnings
 import numpy as np
 
 try:
-    from numba import NumbaPendingDeprecationWarning, njit
-
-    # ``irv`` / ``coombs`` pass a Python ``set`` of eliminated candidate IDs into
-    # ``@njit`` helpers; Numba compiles membership tests via reflected ``set`` and
-    # emits ``NumbaPendingDeprecationWarning``. Reflection for ``set`` is officially
-    # deprecated (replacement timeline is not the old 0.47 story—see Numba's
-    # "Deprecation of reflection for List and Set types"). Hide the noise for users;
-    # revisit if a Numba release stops compiling this pattern.
-    warnings.simplefilter("ignore", category=NumbaPendingDeprecationWarning)
+    from numba import njit
 
     numba_enabled = True
 except ImportError:
@@ -71,25 +63,37 @@ def _tally_at_rank_idx(tallies, election, rank_idx):
 
 
 @njit(cache=True, nogil=True)
-def _inc_rank_idx(election, rank_idx, eliminated):
+def _inc_rank_idx(election, rank_idx, eliminated_mask):
     """
     Increment each voter's (top) rank index past all eliminated candidates.
+
+    ``eliminated_mask[i]`` is True if candidate ``i`` is eliminated.
     """
     n_voters = election.shape[0]
     for voter in range(n_voters):
-        while election[voter, rank_idx[voter]] in eliminated:
-            rank_idx[voter] += 1
+        while True:
+            top_cand = election[voter, rank_idx[voter]]
+            if eliminated_mask[top_cand]:
+                rank_idx[voter] += 1
+            else:
+                break
 
 
 @njit(cache=True, nogil=True)
-def _dec_rank_idx(election, rank_idx, eliminated):
+def _dec_rank_idx(election, rank_idx, eliminated_mask):
     """
     Decrement each voter's (bottom) rank index past all eliminated candidates.
+
+    ``eliminated_mask[i]`` is True if candidate ``i`` is eliminated.
     """
     n_voters = election.shape[0]
     for voter in range(n_voters):
-        while election[voter, rank_idx[voter]] in eliminated:
-            rank_idx[voter] -= 1
+        while True:
+            bottom_cand = election[voter, rank_idx[voter]]
+            if eliminated_mask[bottom_cand]:
+                rank_idx[voter] -= 1
+            else:
+                break
 
 
 # https://stackoverflow.com/a/6294205/125507
