@@ -51,8 +51,25 @@ else:
 @njit(cache=True, nogil=True)
 def _tally_at_rank_idx(tallies, election, rank_idx):
     """
-    Tally the candidate each voter has at rank_idx on their ballot,
-    re-using the tallies array.
+    Tally the candidate at each voter's current rank index.
+
+    Clears ``tallies`` then, for each voter, increments the count for the
+    candidate at ``election[voter, rank_idx[voter]]``.
+
+    Parameters
+    ----------
+    tallies : ndarray
+        1D array of length ``n_cands``, modified in place. Is reset to zero
+        before tallying.
+    election : ndarray
+        Ranked ballots: rows are voters, columns are rank positions from best
+        to worst; ``election[i, j]`` is the candidate ID voter ``i`` assigns to
+        rank ``j``. Shape ``(n_voters, n_ranks)`` (often ``n_ranks`` equals the
+        number of candidates when ballots are complete).
+    rank_idx : ndarray
+        1D array of length ``n_voters``. Per-voter column index into
+        ``election`` for the rank being tallied (e.g. top after eliminations in
+        IRV, or bottom for Coombs last-place counts), depending on the caller.
     """
     # Clear tally array
     tallies[:] = 0
@@ -65,9 +82,23 @@ def _tally_at_rank_idx(tallies, election, rank_idx):
 @njit(cache=True, nogil=True)
 def _inc_rank_idx(election, rank_idx, eliminated_mask):
     """
-    Increment each voter's (top) rank index past all eliminated candidates.
+    Advance each voter's top-rank cursor past eliminated candidates.
 
-    ``eliminated_mask[i]`` is True if candidate ``i`` is eliminated.
+    For each voter, increases ``rank_idx[voter]`` until the candidate at
+    ``election[voter, rank_idx[voter]]`` is not eliminated.
+
+    Parameters
+    ----------
+    election : ndarray
+        Ranked ballots: rows are voters, columns are rank positions from best
+        to worst; ``election[i, j]`` is the candidate ID at rank ``j``. Shape
+        ``(n_voters, n_ranks)``.
+    rank_idx : ndarray
+        1D array of length ``n_voters``, modified in place. Column index for
+        each voter's current first choice among remaining candidates.
+    eliminated_mask : ndarray
+        1D boolean array of length ``n_cands``. ``eliminated_mask[i]`` is True
+        if candidate ``i`` is eliminated.
     """
     n_voters = election.shape[0]
     for voter in range(n_voters):
@@ -82,9 +113,24 @@ def _inc_rank_idx(election, rank_idx, eliminated_mask):
 @njit(cache=True, nogil=True)
 def _dec_rank_idx(election, rank_idx, eliminated_mask):
     """
-    Decrement each voter's (bottom) rank index past all eliminated candidates.
+    Move each voter's bottom-rank cursor past eliminated candidates.
 
-    ``eliminated_mask[i]`` is True if candidate ``i`` is eliminated.
+    For each voter, decreases ``rank_idx[voter]`` until the candidate at
+    ``election[voter, rank_idx[voter]]`` is not eliminated.
+
+    Parameters
+    ----------
+    election : ndarray
+        Ranked ballots: rows are voters, columns are rank positions from best
+        to worst; ``election[i, j]`` is the candidate ID at rank ``j``. Shape
+        ``(n_voters, n_ranks)``.
+    rank_idx : ndarray
+        1D array of length ``n_voters``, modified in place. Column index for
+        each voter's current last choice among remaining candidates (Coombs
+        bottom scan).
+    eliminated_mask : ndarray
+        1D boolean array of length ``n_cands``. ``eliminated_mask[i]`` is True
+        if candidate ``i`` is eliminated.
     """
     n_voters = election.shape[0]
     for voter in range(n_voters):
@@ -145,7 +191,9 @@ def _no_tiebreak(winners, n=1):
 
 
 def _get_tiebreak(tiebreaker, tiebreak_map):
-    """Return the tiebreak callable for ``tiebreaker`` from ``tiebreak_map``."""
+    """
+    Return the tiebreak callable for ``tiebreaker`` from ``tiebreak_map``.
+    """
     try:
         return tiebreak_map[tiebreaker]
     except KeyError:
