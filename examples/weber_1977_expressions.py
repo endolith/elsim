@@ -21,7 +21,7 @@ table from page 19:
 | 10 |     49.79% |          82.99% |                       88.09% |  95.35% |
 | ∞  |      0.00% |          86.60% |                       92.25% | 100.00% |
 """
-from numpy import round, sqrt
+from numpy import sqrt
 from numpy.testing import assert_, assert_almost_equal
 
 
@@ -120,11 +120,18 @@ def best_vote_for_or_against_k(m):
 
     Returns
     -------
-    k : float
-        Number of candidates for every voter to approve or disapprove.
+    k : int
+        Number of candidates in each voter's for- or against-set (Weber allows
+        ``k = m/2`` when ``m`` is even; otherwise ``1 <= k <= m // 2``).
     """
-    alpha = (9 - sqrt(21))/12
-    return round(alpha * m)
+    best_k = 1
+    best_eff = eff_vote_for_or_against_k(m, 1)
+    for k in range(2, m // 2 + 1):
+        e = eff_vote_for_or_against_k(m, k)
+        if e > best_eff:
+            best_eff = e
+            best_k = k
+    return best_k
 
 
 def eff_best_vote_for_or_against_k(m):
@@ -203,22 +210,35 @@ def test_cases():
     assert_almost_equal(eff_best_vote_for_or_against_k(4), 80.83/100, 4)
     assert_almost_equal(eff_borda(6), 92.58/100, decimal=4)
 
+    # Discrete optimum can differ from round(alpha * m); e.g. m == 91.
+    assert best_vote_for_or_against_k(91) == 34
+
 
 if __name__ == '__main__':
     test_cases()
 
-    from numpy import array
+    from numpy import array, concatenate, sqrt
     from tabulate import tabulate
 
+    m_finite = (2, 3, 4, 5, 6, 10)
+    m_arr = array(m_finite, dtype=float)
     table = {}
-    m_cands_list = (2, 3, 4, 5, 6, 10, 1e30)
-    for m in m_cands_list:
-        for name, method in (('Standard', eff_standard),
-                             ('Vote-for-half', eff_vote_for_half),
-                             ('Best Vote-for-or-against-k',
-                              eff_best_vote_for_or_against_k),
-                             ('Borda', eff_borda)):
-            table.update({name: method(array(m_cands_list))})
+    for name, method in (('Standard', eff_standard),
+                         ('Vote-for-half', eff_vote_for_half),
+                         ('Borda', eff_borda)):
+        table[name] = method(m_arr)
+    table['Best Vote-for-or-against-k'] = array(
+        [eff_best_vote_for_or_against_k(m) for m in m_finite])
 
-    print(tabulate(table, 'keys', showindex=m_cands_list[:-1] + ('∞',),
+    lim_best = float((42 * sqrt(21) - 138)**0.5 / 8)
+    inf_values = {
+        'Standard': 0.0,
+        'Vote-for-half': float(sqrt(3) / 2),
+        'Borda': 1.0,
+        'Best Vote-for-or-against-k': lim_best,
+    }
+    for name in table:
+        table[name] = concatenate([table[name], [inf_values[name]]])
+
+    print(tabulate(table, 'keys', showindex=m_finite + ('∞',),
                    tablefmt="pipe", floatfmt='.2%'))

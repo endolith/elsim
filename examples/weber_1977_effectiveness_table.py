@@ -7,20 +7,28 @@ Weber, Robert J. (1978). "Comparison of Public Choice Systems".
 Cowles Foundation Discussion Papers. Cowles Foundation for Research in
 Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 
-Typical result with n_elections = 100_000:
+Typical Monte Carlo Social Utility Efficiency (``n_elections`` = 100_000)
+with ``combined_approval``.  Best Vote-for-or-against-k uses
+``best_vote_for_or_against_k(m)`` and ``vote_for_or_against_k``, which draws
+Weber's ``2 * binom(m, k)`` strategic types (uniform random ``k``-subset ``S``,
+then **either** ``+1`` on ``S`` **or** ``-1`` on ``S``) **independently** of
+utilities.  That is what the type-counting description says; under this literal
+Merrill-style IC simulation the solid curve can sit far below the dashed
+``eff_best_vote_for_or_against_k`` line from the paper's infinite-voter
+analysis—if so, that mismatch is informative rather than a bug in the closed
+form.
 
-|     |   Standard |   Vote-for-half |   Borda |
-|----:|-----------:|----------------:|--------:|
-|   2 |      81.37 |           81.71 |   81.41 |
-|   3 |      75.10 |           75.00 |   86.53 |
-|   4 |      69.90 |           79.92 |   89.47 |
-|   5 |      65.02 |           79.09 |   91.34 |
-|   6 |      61.08 |           81.20 |   92.61 |
-|  10 |      50.78 |           82.94 |   95.35 |
-| 255 |      12.78 |           86.37 |   99.80 |
+|     |   Standard |   Vote-for-half |   Best Vote-for-or-against-k |   Borda |
+|----:|-----------:|----------------:|-----------------------------:|--------:|
+|   2 |      81.37 |           81.71 |          (see simulation)      |   81.41 |
+|   3 |      75.10 |           75.00 |          (see simulation)      |   86.53 |
+|   4 |      69.90 |           79.92 |          (see simulation)      |   89.47 |
+|   5 |      65.02 |           79.09 |          (see simulation)      |   91.34 |
+|   6 |      61.08 |           81.20 |          (see simulation)      |   92.61 |
+|  10 |      50.78 |           82.94 |          (see simulation)      |   95.35 |
+| 255 |      12.78 |           86.37 |          (see simulation)      |   99.80 |
 """
 # TODO: Standard is consistently ~1% high, while Borda is very accurate
-# TODO: Best Vote-for-or-against-k is not implemented yet
 import time
 from collections import Counter
 
@@ -29,9 +37,12 @@ import numpy as np
 from tabulate import tabulate
 
 from elsim.elections import random_utilities
-from elsim.methods import approval, borda, fptp, utility_winner
-from elsim.strategies import honest_rankings, vote_for_k
-from weber_1977_expressions import eff_borda, eff_standard, eff_vote_for_half
+from elsim.methods import approval, borda, combined_approval, fptp, utility_winner
+from elsim.strategies import (honest_rankings, vote_for_k,
+                              vote_for_or_against_k)
+from weber_1977_expressions import (eff_best_vote_for_or_against_k, eff_borda,
+                                    eff_standard, eff_vote_for_half,
+                                    best_vote_for_or_against_k)
 
 n_elections = 2_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 1_000
@@ -43,7 +54,8 @@ rated_methods = {'Vote-for-half': lambda utilities, tiebreaker:
                  approval(vote_for_k(utilities, 'half'), tiebreaker)}
 
 utility_sums = {key: Counter() for key in (ranked_methods.keys() |
-                                           rated_methods.keys() | {'UW'})}
+                                           rated_methods.keys() |
+                                           {'Best Vote-for-or-against-k', 'UW'})}
 
 start_time = time.monotonic()
 
@@ -59,6 +71,12 @@ for iteration in range(n_elections):
             winner = method(utilities, tiebreaker='random')
             utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
 
+        k_voa = best_vote_for_or_against_k(n_cands)
+        winner = combined_approval(
+            vote_for_or_against_k(utilities, k_voa), tiebreaker='random')
+        utility_sums['Best Vote-for-or-against-k'][n_cands] += (
+            utilities.sum(axis=0)[winner])
+
         rankings = honest_rankings(utilities)
         for name, method in ranked_methods.items():
             winner = method(rankings, tiebreaker='random')
@@ -71,6 +89,8 @@ plt.figure(f'Effectiveness, {n_voters} voters, {n_elections} elections')
 plt.title('The Effectiveness of Several Voting Systems')
 for name, method in (('Standard', eff_standard),
                      ('Vote-for-half', eff_vote_for_half),
+                     ('Best Vote-for-or-against-k',
+                      eff_best_vote_for_or_against_k),
                      ('Borda', eff_borda)):
     plt.plot(n_cands_list, method(np.array(n_cands_list))*100, ':', lw=0.8)
 
@@ -82,7 +102,8 @@ table = {}
 # Calculate Social Utility Efficiency from summed utilities
 x_uw, y_uw = zip(*sorted(utility_sums['UW'].items()))
 average_utility = n_voters * n_elections / 2
-for method in ('Standard', 'Vote-for-half', 'Borda'):
+for method in ('Standard', 'Vote-for-half', 'Best Vote-for-or-against-k',
+               'Borda'):
     x, y = zip(*sorted(utility_sums[method].items()))
     SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
     plt.plot(x, SUE*100, '-', label=method)
