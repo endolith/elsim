@@ -15,4 +15,12 @@ from .irv import irv
 from .runoff import runoff
 from .score import score
 from .star import matrix_from_scores, star
+from .three_two_one import three_two_one
 from .utility_winner import utility_winner
+from .partisan_primaries import (
+    closed_partisan_primary_runoff,
+    nominee_restricted_plurality,
+    open_partisan_primary,
+    pairwise_majority_from_rankings,
+    top_two_runoff_reduced_turnout,
+)

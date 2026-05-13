@@ -259,6 +259,71 @@ def normal_electorate(n_voters, n_cands, dims=2, corr=0.0, disp=1.0,
     return voters, candidates
 
 
+def bimodal_electorate(n_voters_each, n_cands_each, dims=2, corr=0.0, disp=1.0,
+                       separation=0.5, random_state=None):
+    """
+    Generate two-party spatial electorate and candidates (two clusters).
+
+    Voters and candidates are drawn in two equal groups. The first group is
+    centered at ``-separation`` and the second at ``+separation`` on the first
+    dimension (after the same correlation/scaling transform as
+    :func:`normal_electorate`). This matches a simple two-mode voter model (for
+    example two partisan bases at ±0.5 on a left–right axis when
+    ``separation`` is 0.5).
+
+    Convention for downstream partisan simulations: candidate indices ``0 ..``
+    ``n_cands_each - 1`` belong to the first cluster ("left"), and
+    ``n_cands_each .. 2 * n_cands_each - 1`` to the second ("right"). Voter
+    indices ``0 .. n_voters_each - 1`` are left-cluster voters;
+    ``n_voters_each .. 2 * n_voters_each - 1`` are right-cluster voters.
+
+    Parameters
+    ----------
+    n_voters_each : int
+        Number of voters in each cluster (total voters ``2 * n_voters_each``).
+    n_cands_each : int
+        Number of candidates per cluster (total candidates ``2 * n_cands_each``).
+    dims : int
+        Number of dimensions (same meaning as in :func:`normal_electorate`).
+    corr : float
+        Correlation between dimensions (same meaning as in :func:`normal_electorate`).
+    disp : float
+        Relative dispersion of candidates vs voters (same meaning as in
+        :func:`normal_electorate`).
+    separation : float
+        Distance along the first axis between the two cluster centers.
+    random_state : {None, int, np.random.Generator}, optional
+        Same as :func:`normal_electorate`.
+
+    Returns
+    -------
+    voters : numpy.ndarray
+        Shape ``(2 * n_voters_each, dims)``.
+    cands : numpy.ndarray
+        Shape ``(2 * n_cands_each, dims)``.
+    """
+    rng = _check_random_state(random_state)
+
+    left_v, left_c = normal_electorate(n_voters_each, n_cands_each, dims=dims,
+                                       corr=corr, disp=disp, random_state=rng)
+    left_v = np.asarray(left_v).copy()
+    left_c = np.asarray(left_c).copy()
+    left_v[:, 0] -= separation
+    left_c[:, 0] -= separation
+
+    right_v, right_c = normal_electorate(n_voters_each, n_cands_each, dims=dims,
+                                         corr=corr, disp=disp, random_state=rng)
+    right_v = np.asarray(right_v).copy()
+    right_c = np.asarray(right_c).copy()
+    right_v[:, 0] += separation
+    right_c[:, 0] += separation
+
+    voters = np.vstack((left_v, right_v))
+    cands = np.vstack((left_c, right_c))
+
+    return voters, cands
+
+
 def normed_dist_utilities(voters, cands):
     """
     Generate normalized utilities from a spatial model.
