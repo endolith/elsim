@@ -1,6 +1,9 @@
 """
 Use Hypothesis to find simple elections that violate Condorcet compliance.
 
+This is property-based search (Hypothesis), not a batched Monte Carlo study, so
+it does not use ``elsim.studies`` parallel helpers.
+
 This depends on Hypothesis' "shrinking" algorithm, which is not guaranteed to
 find the absolute simplest case (or any at all), but typically works well.
 https://hypothesis.readthedocs.io/en/latest/data.html#shrinking

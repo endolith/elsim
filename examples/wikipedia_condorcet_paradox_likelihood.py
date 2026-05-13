@@ -21,6 +21,7 @@ With n_elections = 10_000_000 (which takes forever):
 
 """
 from collections import Counter
+from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -29,6 +30,7 @@ from tabulate import tabulate
 
 from elsim.elections import impartial_culture
 from elsim.methods import condorcet
+from elsim.studies import merge_counters
 
 # Number of voters vs percent of elections with Condorcet paradox.
 WP_table = {3:   5.556,
@@ -53,22 +55,22 @@ def simulate_batch(n_voters, n_cands, batch_size):
     condorcet_paradox_count = Counter()
     # Reuse the same chunk of memory to save time
     election = np.empty((n_voters, n_cands), dtype=np.uint8)
-    for iteration in range(batch_size):
+    for _iteration in range(batch_size):
         election[:] = impartial_culture(n_voters, n_cands)
-        CW = condorcet(election)
-        if CW is None:
+        cw = condorcet(election)
+        if cw is None:
             condorcet_paradox_count[n_voters] += 1
     return condorcet_paradox_count
 
 
-jobs = []
-for n_voters in WP_table:
-    jobs.extend(n_batches *
-                [delayed(simulate_batch)(n_voters, n_cands, batch_size)])
-
-print(f'{len(jobs)} tasks total:')
-results = Parallel(n_jobs=-3, verbose=5)(jobs)
-condorcet_paradox_counts = sum(results, Counter())
+fns = [
+    partial(simulate_batch, n_voters, n_cands, batch_size)
+    for n_voters in WP_table
+    for _ in range(n_batches)
+]
+print(f'{len(fns)} tasks total:')
+results = Parallel(n_jobs=-3, verbose=5)(delayed(fn)() for fn in fns)
+condorcet_paradox_counts = merge_counters(results)
 
 x, y = zip(*WP_table.items())
 plt.plot(x, y, label='WP')

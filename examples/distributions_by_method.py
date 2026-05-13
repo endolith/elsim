@@ -35,7 +35,7 @@ def human_format(num):
 
 def simulate_batch():
     winners = defaultdict(list)
-    for iteration in range(batch_size):
+    for _iteration in range(batch_size):
         v, c = normal_electorate(n_voters, n_cands, dims=1, disp=disp)
 
         if cand_dist == 'uniform':
@@ -87,8 +87,8 @@ def simulate_batch():
     return winners
 
 
-jobs = [delayed(simulate_batch)()] * n_batches
-print(f'{len(jobs)} tasks total:')
+jobs = [delayed(simulate_batch)() for _ in range(n_batches)]
+print(f'{n_batches} tasks total:')
 results = Parallel(n_jobs=-3, verbose=5)(jobs)
 
 winners = {k: [v for d in results for v in d[k]] for k in results[0]}

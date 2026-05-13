@@ -42,16 +42,13 @@ running as many simulations, however the Coombs results are consistently
 high.
 """
 import time
-from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
 
-from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.methods import (approval, black, borda, condorcet, coombs, fptp,
-                           irv, runoff, utility_winner)
-from elsim.strategies import approval_optimal, honest_rankings
+from elsim.methods import black, borda, coombs, fptp, irv, runoff, utility_winner
+from elsim.studies import accumulate_spatial_condorcet_by_ncands, approval_at_optimal
 
 n_elections = 10_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
 n_voters = 201
@@ -59,12 +56,18 @@ n_cands_list = (2, 3, 4, 5, 6, 7)
 corr = 0.5
 D = 2
 
-ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
-                  'Borda': borda, 'Coombs': coombs, 'Black': black}
-
-rated_methods = {'SU max': utility_winner,
-                 'Approval': lambda utilities, tiebreaker:
-                     approval(approval_optimal(utilities), tiebreaker)}
+ranked_methods = {
+    "Plurality": fptp,
+    "Runoff": runoff,
+    "Hare": irv,
+    "Borda": borda,
+    "Coombs": coombs,
+    "Black": black,
+}
+rated_methods = {
+    "SU max": utility_winner,
+    "Approval": approval_at_optimal,
+}
 
 # Plot Merrill's results as dotted lines for comparison (traced from plots)
 merrill_fig_2c = {
@@ -90,31 +93,18 @@ merrill_fig_2d = {
 for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
                               ('2.d', 0.5, 0, merrill_fig_2d)):
 
-    condorcet_winner_count = {key: Counter() for key in (
-        ranked_methods.keys() | rated_methods.keys() | {'CW'})}
     start_time = time.monotonic()
-
-    for iteration in range(n_elections):
-        for n_cands in n_cands_list:
-            v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
-                                     disp=disp)
-            utilities = normed_dist_utilities(v, c)
-            rankings = honest_rankings(utilities)
-
-            # If there is a Condorcet winner, analyze election, otherwise skip
-            # it
-            CW = condorcet(rankings)
-            if CW is not None:
-                condorcet_winner_count['CW'][n_cands] += 1
-
-                for name, method in ranked_methods.items():
-                    if method(rankings, tiebreaker='random') == CW:
-                        condorcet_winner_count[name][n_cands] += 1
-
-                for name, method in rated_methods.items():
-                    if method(utilities, tiebreaker='random') == CW:
-                        condorcet_winner_count[name][n_cands] += 1
-
+    condorcet_winner_count = accumulate_spatial_condorcet_by_ncands(
+        n_elections,
+        n_voters=n_voters,
+        n_cands_list=n_cands_list,
+        dims=D,
+        corr=corr,
+        disp=disp,
+        ranked_methods=ranked_methods,
+        rated_methods=rated_methods,
+        tiebreaker='random',
+    )
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
           '\n')
@@ -147,6 +137,7 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
 
     print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
     print()
+
 
     plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
     plt.legend()

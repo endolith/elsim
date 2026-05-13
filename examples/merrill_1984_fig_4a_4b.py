@@ -41,17 +41,13 @@ discrepancies.  It is smoother, so maybe the original just had lower number of
 simulations.
 """
 import time
-from collections import Counter
-from random import randint
 
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
 
-from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
-                           utility_winner)
-from elsim.strategies import approval_optimal, honest_rankings
+from elsim.methods import black, borda, coombs, fptp, irv, runoff, utility_winner
+from elsim.studies import accumulate_spatial_sue_by_ncands, approval_at_optimal
 
 n_elections = 10_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
 n_voters = 201
@@ -59,12 +55,18 @@ n_cands_list = (2, 3, 4, 5, 6, 7)
 corr = 0.5
 D = 2
 
-ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
-                  'Borda': borda, 'Coombs': coombs, 'Black': black}
-
-rated_methods = {'SU max': utility_winner,
-                 'Approval': lambda utilities, tiebreaker:
-                     approval(approval_optimal(utilities), tiebreaker)}
+ranked_methods = {
+    "Plurality": fptp,
+    "Runoff": runoff,
+    "Hare": irv,
+    "Borda": borda,
+    "Coombs": coombs,
+    "Black": black,
+}
+rated_methods = {
+    "SU max": utility_winner,
+    "Approval": approval_at_optimal,
+}
 
 # Plot Merrill's results as dotted lines for comparison (traced from plots)
 merrill_fig_4a = {
@@ -90,30 +92,18 @@ merrill_fig_4b = {
 for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
                               ('4.b', 0.5, 0, merrill_fig_4b)):
 
-    utility_sums = {key: Counter() for key in (ranked_methods.keys() |
-                                               rated_methods.keys() |
-                                               {'SU max', 'RW'})}
     start_time = time.monotonic()
-
-    for iteration in range(n_elections):
-        for n_cands in n_cands_list:
-            v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
-                                     disp=disp)
-            utilities = normed_dist_utilities(v, c)
-            rankings = honest_rankings(utilities)
-
-            # Pick a random winner and accumulate utilities
-            RW = randint(0, n_cands - 1)
-            utility_sums['RW'][n_cands] += utilities.sum(axis=0)[RW]
-
-            for name, method in rated_methods.items():
-                winner = method(utilities, tiebreaker='random')
-                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
-
-            for name, method in ranked_methods.items():
-                winner = method(rankings, tiebreaker='random')
-                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
-
+    utility_sums = accumulate_spatial_sue_by_ncands(
+        n_elections,
+        n_voters=n_voters,
+        n_cands_list=n_cands_list,
+        dims=D,
+        corr=corr,
+        disp=disp,
+        ranked_methods=ranked_methods,
+        rated_methods=rated_methods,
+        tiebreaker='random',
+    )
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
           '\n')

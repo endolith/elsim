@@ -32,20 +32,26 @@ import numpy as np
 from tabulate import tabulate
 
 from elsim.elections import random_utilities
-from elsim.methods import (approval, black, borda, condorcet, coombs, fptp,
-                           irv, runoff, utility_winner)
-from elsim.strategies import approval_optimal, honest_rankings
+from elsim.strategies import honest_rankings
+from elsim.methods import black, borda, coombs, fptp, irv, runoff, utility_winner
+from elsim.studies import approval_at_optimal, tally_condorcet_agreement
 
 n_elections = 10_000  # Roughly 15 seconds on a 2019 6-core i7-9750H
 n_voters = 25
 n_cands_list = (2, 3, 4, 5, 7, 10)
 
-ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
-                  'Borda': borda, 'Coombs': coombs, 'Black': black}
-
-rated_methods = {'SU max': utility_winner,
-                 'Approval': lambda utilities, tiebreaker:
-                     approval(approval_optimal(utilities), tiebreaker)}
+ranked_methods = {
+    "Plurality": fptp,
+    "Runoff": runoff,
+    "Hare": irv,
+    "Borda": borda,
+    "Coombs": coombs,
+    "Black": black,
+}
+rated_methods = {
+    "SU max": utility_winner,
+    "Approval": approval_at_optimal,
+}
 
 condorcet_winner_count = {key: Counter() for key in (
     ranked_methods.keys() | rated_methods.keys() | {'CW'})}
@@ -68,18 +74,11 @@ for iteration in range(n_elections):
 
         rankings = honest_rankings(utilities)
 
-        # If there is a Condorcet winner, analyze election, otherwise skip it
-        CW = condorcet(rankings)
-        if CW is not None:
-            condorcet_winner_count['CW'][n_cands] += 1
-
-            for name, method in ranked_methods.items():
-                if method(rankings, tiebreaker='random') == CW:
-                    condorcet_winner_count[name][n_cands] += 1
-
-            for name, method in rated_methods.items():
-                if method(utilities, tiebreaker='random') == CW:
-                    condorcet_winner_count[name][n_cands] += 1
+        delta = tally_condorcet_agreement(
+            rankings, utilities, ranked_methods, rated_methods, tiebreaker='random',
+        )
+        for key, value in delta.items():
+            condorcet_winner_count[key][n_cands] += value
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')

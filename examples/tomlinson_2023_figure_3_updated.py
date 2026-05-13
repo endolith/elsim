@@ -15,6 +15,7 @@ runoff voting https://arxiv.org/abs/2303.09734
 """
 import pickle
 from collections import defaultdict
+from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,10 +23,8 @@ from joblib import Parallel, delayed
 from seaborn import histplot
 
 from elsim.elections import normed_dist_utilities
-from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
-                           star)
-from elsim.strategies import (approval_optimal, honest_normed_scores,
-                              honest_rankings, vote_for_k)
+from elsim.methods import approval, black, borda, coombs, fptp, irv, runoff, star
+from elsim.strategies import approval_optimal, honest_normed_scores, honest_rankings, vote_for_k
 
 n_elections = 100_000  # Roughly 1 minute on a 2019 6-core i7-9750H
 n_voters = 1_000
@@ -54,7 +53,7 @@ def human_format(num):
 
 def simulate_batch(n_cands):
     winners = defaultdict(list)
-    for iteration in range(batch_size):
+    for _iteration in range(batch_size):
         # v, c = normal_electorate(n_voters, n_cands, dims=1, disp=disp)
 
         if cand_dist == 'uniform':
@@ -115,9 +114,9 @@ def simulate_batch(n_cands):
     return winners
 
 
-jobs = [delayed(simulate_batch)(n_cands)] * n_batches
-print(f'{len(jobs)} tasks total:')
-results = Parallel(n_jobs=-3, verbose=5)(jobs)
+worker = partial(simulate_batch, n_cands)
+print(f'{n_batches} tasks total:')
+results = Parallel(n_jobs=-3, verbose=5)(delayed(worker)() for _ in range(n_batches))
 winners = {k: [v for d in results for v in d[k]] for k in results[0]}
 
 title = f'{human_format(n_elections)} 1D elections, '

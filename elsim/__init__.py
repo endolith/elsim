@@ -15,6 +15,6 @@ elections by combining their functions in the following order:
    Functions that implement voting methods, which calculate a winner from a
    collection of ballots.
 """
-from . import elections, methods, strategies
+from . import elections, methods, strategies, studies
 
 __version__ = "0.1.3"

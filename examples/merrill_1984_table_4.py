@@ -31,48 +31,55 @@ up to 9%.
 """
 import time
 from collections import Counter
-from random import randint
 
 import numpy as np
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
-                           utility_winner)
-from elsim.strategies import approval_optimal, honest_rankings
+from elsim.methods import black, borda, coombs, fptp, irv, runoff, utility_winner
+from elsim.strategies import honest_rankings
+from elsim.studies import approval_at_optimal, expand_rows, spatial_random_reference_utility_updates
 
 n_elections = 10_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 201
 n_cands = 5
 
-ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
-                  'Borda': borda, 'Coombs': coombs, 'Black': black}
+ranked_methods = {
+    "Plurality": fptp,
+    "Runoff": runoff,
+    "Hare": irv,
+    "Borda": borda,
+    "Coombs": coombs,
+    "Black": black,
+}
+rated_methods = {
+    "SU max": utility_winner,
+    "Approval": approval_at_optimal,
+}
 
-rated_methods = {'SU max': utility_winner,
-                 'Approval': lambda utilities, tiebreaker:
-                     approval(approval_optimal(utilities), tiebreaker)}
+#             disp, corr, D
+condition_rows = ((1.0, 0.5, 2),
+                    (1.0, 0.5, 4),
+                    (1.0, 0.0, 2),
+                    (1.0, 0.0, 4),
+                    (0.5, 0.5, 2),
+                    (0.5, 0.5, 4),
+                    (0.5, 0.0, 2),
+                    (0.5, 0.0, 4),
+                    )
+conditions = expand_rows(condition_rows, ('disp', 'corr', 'D'))
 
 start_time = time.monotonic()
 
-#             disp, corr, D
-conditions = ((1.0, 0.5, 2),
-              (1.0, 0.5, 4),
-              (1.0, 0.0, 2),
-              (1.0, 0.0, 4),
-              (0.5, 0.5, 2),
-              (0.5, 0.5, 4),
-              (0.5, 0.0, 2),
-              (0.5, 0.0, 4),
-              )
-
 results = []
 
-for disp, corr, D in conditions:
+for scenario in conditions:
+    disp, corr, D = scenario['disp'], scenario['corr'], scenario['D']
     print(disp, corr, D)
 
     utility_sums = Counter()
 
-    for iteration in range(n_elections):
+    for _ in range(n_elections):
         v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                  disp=disp)
 
@@ -89,17 +96,12 @@ for disp, corr, D in conditions:
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
 
-        # Pick a random winner and accumulate utilities
-        RW = randint(0, n_cands - 1)
-        utility_sums['RW'] += utilities.sum(axis=0)[RW]
-
-        for name, method in rated_methods.items():
-            winner = method(utilities, tiebreaker='random')
-            utility_sums[name] += utilities.sum(axis=0)[winner]
-
-        for name, method in ranked_methods.items():
-            winner = method(rankings, tiebreaker='random')
-            utility_sums[name] += utilities.sum(axis=0)[winner]
+        delta = spatial_random_reference_utility_updates(
+            utilities, rankings, ranked_methods, rated_methods,
+            tiebreaker='random',
+        )
+        for name, value in delta.items():
+            utility_sums[name] += value
 
     results.append(utility_sums)
 
@@ -108,7 +110,7 @@ print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
 # Neither Tabulate nor Markdown support column span or multiple headers, but
 # at least this prints to plain text in a readable way.
-header = ['Disp\nCorr\nDims'] + [f'{x}\n{y}\n{z}' for x, y, z in conditions]
+header = ['Disp\nCorr\nDims'] + [f'{x}\n{y}\n{z}' for x, y, z in condition_rows]
 
 # Calculate Social Utility Efficiency from summed utilities
 y_uw = np.array([c['SU max'] for c in results])

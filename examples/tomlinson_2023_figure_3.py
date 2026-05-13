@@ -12,6 +12,7 @@ runoff voting https://arxiv.org/abs/2303.09734
 """
 import pickle
 from collections import defaultdict
+from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -46,7 +47,7 @@ def human_format(num):
 
 def simulate_batch(n_cands):
     winners = defaultdict(list)
-    for iteration in range(batch_size):
+    for _iteration in range(batch_size):
 
         # "voters and candidates come from the uniform distribution on [0, 1]"
         v = np.random.uniform(0, 1, n_voters)
@@ -80,9 +81,9 @@ fig, ax = plt.subplots(nrows=2, ncols=3, num=title,
 fig.suptitle(title)
 
 for n_cands in n_cands_list:
-    jobs = [delayed(simulate_batch)(n_cands)] * n_batches
-    print(f'{len(jobs)} tasks total:')
-    results = Parallel(n_jobs=-3, verbose=5)(jobs)
+    worker = partial(simulate_batch, n_cands)
+    print(f'{n_batches} tasks total:')
+    results = Parallel(n_jobs=-3, verbose=5)(delayed(worker)() for _ in range(n_batches))
 
     winners = {k: [v for d in results for v in d[k]] for k in results[0]}
 

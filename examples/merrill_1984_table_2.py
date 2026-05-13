@@ -38,42 +38,50 @@ import numpy as np
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.methods import (approval, black, borda, condorcet, coombs, fptp,
-                           irv, runoff, utility_winner)
-from elsim.strategies import approval_optimal, honest_rankings
+from elsim.strategies import honest_rankings
+from elsim.methods import black, borda, coombs, fptp, irv, runoff, utility_winner
+from elsim.studies import approval_at_optimal, expand_rows, tally_condorcet_agreement
 
 n_elections = 10_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 201
 n_cands = 5
 
-ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
-                  'Borda': borda, 'Coombs': coombs, 'Black': black}
+ranked_methods = {
+    "Plurality": fptp,
+    "Runoff": runoff,
+    "Hare": irv,
+    "Borda": borda,
+    "Coombs": coombs,
+    "Black": black,
+}
+rated_methods = {
+    "SU max": utility_winner,
+    "Approval": approval_at_optimal,
+}
 
-rated_methods = {'SU max': utility_winner,
-                 'Approval': lambda utilities, tiebreaker:
-                     approval(approval_optimal(utilities), tiebreaker)}
+#             disp, corr, D
+condition_rows = ((1.0, 0.5, 2),
+                    (1.0, 0.5, 4),
+                    (1.0, 0.0, 2),
+                    (1.0, 0.0, 4),
+                    (0.5, 0.5, 2),
+                    (0.5, 0.5, 4),
+                    (0.5, 0.0, 2),
+                    (0.5, 0.0, 4),
+                    )
+conditions = expand_rows(condition_rows, ('disp', 'corr', 'D'))
 
 start_time = time.monotonic()
 
-#             disp, corr, D
-conditions = ((1.0, 0.5, 2),
-              (1.0, 0.5, 4),
-              (1.0, 0.0, 2),
-              (1.0, 0.0, 4),
-              (0.5, 0.5, 2),
-              (0.5, 0.5, 4),
-              (0.5, 0.0, 2),
-              (0.5, 0.0, 4),
-              )
-
 results = []
 
-for disp, corr, D in conditions:
+for scenario in conditions:
+    disp, corr, D = scenario['disp'], scenario['corr'], scenario['D']
     print(disp, corr, D)
 
     condorcet_winner_count = Counter()
 
-    for iteration in range(n_elections):
+    for _ in range(n_elections):
         v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                  disp=disp)
 
@@ -90,18 +98,11 @@ for disp, corr, D in conditions:
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
 
-        # If there is a Condorcet winner, analyze election, otherwise skip it
-        CW = condorcet(rankings)
-        if CW is not None:
-            condorcet_winner_count['CW'] += 1
-
-            for name, method in ranked_methods.items():
-                if method(rankings, tiebreaker='random') == CW:
-                    condorcet_winner_count[name] += 1
-
-            for name, method in rated_methods.items():
-                if method(utilities, tiebreaker='random') == CW:
-                    condorcet_winner_count[name] += 1
+        condorcet_winner_count.update(
+            tally_condorcet_agreement(
+                rankings, utilities, ranked_methods, rated_methods, tiebreaker='random',
+            ),
+        )
 
     results.append(condorcet_winner_count)
 
@@ -110,7 +111,7 @@ print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
 # Neither Tabulate nor Markdown support column span or multiple headers, but
 # at least this prints to plain text in a readable way.
-header = ['Disp\nCorr\nDims'] + [f'{x}\n{y}\n{z}' for x, y, z in conditions]
+header = ['Disp\nCorr\nDims'] + [f'{x}\n{y}\n{z}' for x, y, z in condition_rows]
 
 # Of those elections with CW, likelihood that method chooses CW
 table = []
