@@ -5,7 +5,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
 
-from elsim.methods import sntv
+from elsim.methods import fptp, sntv
 
 
 def collect_random_results(method, election):
@@ -289,6 +289,18 @@ def test_small_n(tiebreaker):
                                         min_voters=1, max_voters=100))
 def test_defaults(election):
     assert sntv(election) == sntv(election, 1) == sntv(election, 1, None)
+
+
+@given(election=complete_ranked_ballots(min_cands=2, max_cands=20,
+                                        min_voters=1, max_voters=80))
+def test_sntv_one_seat_matches_fptp_order(election):
+    election = np.asarray(election)
+    f_w = fptp(election, tiebreaker='order')
+    s_w = sntv(election, 1, tiebreaker='order')
+    if f_w is None:
+        assert s_w is None
+    else:
+        assert s_w == {f_w}
 
 
 if __name__ == "__main__":

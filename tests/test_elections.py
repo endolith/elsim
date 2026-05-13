@@ -10,17 +10,19 @@ from elsim.elections import (impartial_culture, normal_electorate,
 def test_random_utilities():
     rng = np.random.default_rng(1788)  # Deterministic tests
 
-    for n_voters in (1, 5, 100):
-        for n_cands in (1, 2, 3, 7, 100):
+    for n_voters in (0, 1, 5, 100):
+        for n_cands in (0, 1, 2, 3, 7, 100):
             election = random_utilities(n_voters, n_cands, random_state=rng)
 
             # Make sure rows are voters and columns are candidates
             assert election.shape == (n_voters, n_cands)
 
-            # Make sure each row is within [0, 1]
+            # Make sure each row is within [0, 1) (``Generator.random``)
+            if n_cands == 0:
+                continue
             for row in election:
                 assert row.min() >= 0
-                assert row.max() <= 1
+                assert row.max() < 1
 
     # Check that utilities are equally distributed from 0 to 1
     n_voters = 10000
@@ -43,8 +45,9 @@ def test_impartial_culture():
             assert election.shape == (n_voters, n_cands)
 
             # Make sure each row is a permutation with no ties
+            if n_cands == 0:
+                continue
             for row in election:
-                # (Empty arrays test equal, which is fine)
                 assert_array_equal(np.bincount(row), 1)
 
     # Check that rankings are equally distributed
@@ -83,6 +86,18 @@ def test_normal_electorate():
     assert_allclose(np.std(voters[:, 1])*disp,
                     np.std(cands[:, 1]), rtol=0.1)
 
+    # Smaller draw: alternate correlation sign, 3D, n_voters or n_cands zero
+    voters_s, cands_s = normal_electorate(80, 40, 3, -0.2, 1.5,
+                                          random_state=rng)
+    assert voters_s.shape == (80, 3)
+    assert cands_s.shape == (40, 3)
+    assert np.isfinite(voters_s).all() and np.isfinite(cands_s).all()
+
+    voters_z, cands_z = normal_electorate(0, 5, 2, 0.0, 1.0,
+                                          random_state=rng)
+    assert voters_z.shape == (0, 2)
+    assert cands_z.shape == (5, 2)
+
 
 def test_normed_dist_utilities():
     voters = [[1, 1],
@@ -100,6 +115,12 @@ def test_normed_dist_utilities():
                      [0.000000000000000, 1.000000000000000, 0.223619005440422],
                      [0.762689671355725, 0.000000000000000, 1.000000000000000]]
                     )
+
+    # Two candidates at the same point: per-voter min == max after shifting,
+    # so normalization divides 0 by 0 and the row is all NaN.
+    voters_coinc = np.array([[0.0, 0.0]])
+    cands_coinc = np.array([[1.0, 0.0], [1.0, 0.0]])
+    assert np.isnan(normed_dist_utilities(voters_coinc, cands_coinc)).all()
 
 
 @pytest.mark.parametrize("func", [random_utilities, impartial_culture,
