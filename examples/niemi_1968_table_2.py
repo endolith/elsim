@@ -22,13 +22,14 @@ Example output with n_elections = 1_000_000:
 
 """
 from collections import Counter
+from functools import partial
 
 import numpy as np
-from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import impartial_culture
 from elsim.methods import condorcet
+from elsim.studies import JoblibBackend, merge_counters
 
 # It needs many simulations to get similar accuracy as the analytical results
 n_elections = 100_000  # Roughly 30 seconds on a 2019 6-core i7-9750H
@@ -45,26 +46,24 @@ def simulate_batch(n_voters, n_cands, batch_size):
     condorcet_paradox_count = Counter()
     # Reuse the same chunk of memory to save time
     election = np.empty((n_voters, n_cands), dtype=np.uint8)
-    for iteration in range(batch_size):
+    for _iteration in range(batch_size):
         election[:] = impartial_culture(n_voters, n_cands)
-        CW = condorcet(election)
-        if CW is None:
+        cw = condorcet(election)
+        if cw is None:
             condorcet_paradox_count[n_cands, n_voters] += 1
     return condorcet_paradox_count
 
 
-jobs = []
-for n_voters in n_voters_list:
-    for n_cands in n_cands_list:
-        jobs.extend(n_batches *
-                    [delayed(simulate_batch)(n_voters, n_cands, batch_size)])
-
-print(f'{len(jobs)} tasks total:')
-results = Parallel(n_jobs=-3, verbose=5)(jobs)
-condorcet_paradox_counts = sum(results, Counter())
-
-nm, P = zip(*sorted(condorcet_paradox_counts.items()))
-P = np.asarray(P) / n_elections  # Percent likelihood of paradox
+backend = JoblibBackend(n_jobs=-3, verbose=5)
+fns = [
+    partial(simulate_batch, n_voters, n_cands, batch_size)
+    for n_voters in n_voters_list
+    for n_cands in n_cands_list
+    for _ in range(n_batches)
+]
+print(f'{len(fns)} tasks total:')
+results = backend.map_each(fns)
+condorcet_paradox_counts = merge_counters(results)
 
 table = []
 for n in n_cands_list:

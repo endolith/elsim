@@ -14,6 +14,7 @@ no. 1, pp. 23-48, 1984.  :doi:`10.2307/2110786`
 import matplotlib.pyplot as plt
 
 from elsim.elections import normal_electorate
+from elsim.studies import expand_product
 
 n_voters = 201
 n_cands = 5
@@ -22,7 +23,8 @@ n_cands = 5
 # rotated to principal axes.)"
 corr = 0.5
 
-for disp in (0.5, 1.0):
+for scenario in expand_product(disp=(0.5, 1.0)):
+    disp = scenario['disp']
     voters, cands = normal_electorate(n_voters, n_cands, dims=2, corr=corr,
                                       disp=disp)
 

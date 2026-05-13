@@ -49,9 +49,8 @@ import numpy as np
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.methods import (approval, black, borda, condorcet, coombs, fptp,
-                           irv, runoff, utility_winner)
-from elsim.strategies import approval_optimal, honest_rankings
+from elsim.strategies import honest_rankings
+from elsim.studies import merrill_1984_comparison_methods, tally_condorcet_agreement
 
 n_elections = 10_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
 n_voters = 201
@@ -59,12 +58,7 @@ n_cands_list = (2, 3, 4, 5, 6, 7)
 corr = 0.5
 D = 2
 
-ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
-                  'Borda': borda, 'Coombs': coombs, 'Black': black}
-
-rated_methods = {'SU max': utility_winner,
-                 'Approval': lambda utilities, tiebreaker:
-                     approval(approval_optimal(utilities), tiebreaker)}
+ranked_methods, rated_methods = merrill_1984_comparison_methods()
 
 # Plot Merrill's results as dotted lines for comparison (traced from plots)
 merrill_fig_2c = {
@@ -94,26 +88,19 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
         ranked_methods.keys() | rated_methods.keys() | {'CW'})}
     start_time = time.monotonic()
 
-    for iteration in range(n_elections):
+    for _ in range(n_elections):
         for n_cands in n_cands_list:
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp)
             utilities = normed_dist_utilities(v, c)
             rankings = honest_rankings(utilities)
 
-            # If there is a Condorcet winner, analyze election, otherwise skip
-            # it
-            CW = condorcet(rankings)
-            if CW is not None:
-                condorcet_winner_count['CW'][n_cands] += 1
-
-                for name, method in ranked_methods.items():
-                    if method(rankings, tiebreaker='random') == CW:
-                        condorcet_winner_count[name][n_cands] += 1
-
-                for name, method in rated_methods.items():
-                    if method(utilities, tiebreaker='random') == CW:
-                        condorcet_winner_count[name][n_cands] += 1
+            delta = tally_condorcet_agreement(
+                rankings, utilities, ranked_methods, rated_methods,
+                tiebreaker='random',
+            )
+            for key, value in delta.items():
+                condorcet_winner_count[key][n_cands] += value
 
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
@@ -147,6 +134,7 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
 
     print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
     print()
+
 
     plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
     plt.legend()
