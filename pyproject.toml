@@ -66,10 +66,14 @@ docs = [
     "sphinxcontrib-apidoc",
     "linkify-it-py",
 ]
+bench = [
+    "asv",
+]
 
 [project.urls]
 Homepage = "https://github.com/endolith/elsim"
 Documentation = "https://endolith.github.io/elsim/"
+Benchmarks = "https://endolith.github.io/elsim/benchmarks/"
 
 [tool.hatch.version]
 path = "elsim/__init__.py"
