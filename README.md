@@ -176,6 +176,16 @@ File issues on the [GitHub issue tracker](https://github.com/endolith/elsim/issu
 - ND:
   - [Voter Satisfaction Efficiency](https://github.com/electology/vse-sim) by Jameson Quinn
 
+### Libraries and research code
+
+- [VMES](https://github.com/ragconsumer/VMES) by Marcus Ogren (Voting Method Evaluation Suite) - MIT-licensed Julia package (JuMP-oriented workflow); impartial culture, multivariate spatial electorates, and other voter models in [`votermodels.jl`](https://github.com/ragconsumer/VMES/blob/main/src/votermodels.jl). On the order of 50 named voting procedures (`@namevm` in [`mwmethods.jl`](https://github.com/ragconsumer/VMES/blob/main/src/mwmethods.jl) and [`vms.jl`](https://github.com/ragconsumer/VMES/blob/main/src/vms.jl)). [Project documentation (Google Doc)](https://docs.google.com/document/d/1eqsBthp3fF55CyqFB7ve9Mu_sVpj4loYrf0yq-NpJ_o/edit?usp=sharing).
+
+- [IEVS](https://rangevoting.org/IEVS/) by Warren D. Smith (Infinitely Extendible Voting Simulator) - C program and [`IEVS.c`](https://rangevoting.org/IEVS/IEVS.c) source; copyright notice in that file allows non-commercial use with conditions and reserves commercial rights. 68 coded voting methods and 11 utility-generator modes (`NumMethods` and `NumUtilGens` in `IEVS.c`).
+
+- [pref_voting](https://github.com/voting-tools/pref_voting) by Wesley H. Holliday and Eric Pacuit - MIT-licensed Python library for preferential and related voting rules; impartial and anonymous impartial culture plus many other cultures via [`prefsampling`](https://github.com/COMSOC-Community/prefsampling) in [`generate_profiles.py`](https://github.com/voting-tools/pref_voting/blob/main/pref_voting/generate_profiles.py), and multivariate-normal spatial profiles in [`generate_spatial_profiles.py`](https://github.com/voting-tools/pref_voting/blob/main/pref_voting/generate_spatial_profiles.py). Very large documented method catalog ([readthedocs](https://pref-voting.readthedocs.io/), [JOSS](https://doi.org/10.21105/joss.07020)); centers on profiles and social-choice analysis more than raw Monte Carlo election throughput.
+
+- [exp_soc_util_perf](https://github.com/epacuit/exp_soc_util_perf) by Holliday and Pacuit - notebooks, data, and a [Streamlit app](https://exp-soc-util-perf.pacuit.org/) for *The Social Utility of Voting Revisited*; no `LICENSE` file at the GitHub repository root (reuse rights unclear). Paper-specific reproduction code, not a packaged simulation library.
+
 ### Voting system implementations
 
 - [See the list on Electowiki](https://electowiki.org/wiki/Voting_links#Election_calculators)
