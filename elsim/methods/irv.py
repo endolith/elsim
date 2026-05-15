@@ -9,7 +9,42 @@ _tiebreak_map = {'order': _order_tiebreak_elim,
                  None: _no_tiebreak}
 
 
-def irv(election, tiebreaker=None):
+def _irv_eliminate_until_n_winners_remain(election, tiebreaker, n_winners):
+    """
+    Same elimination rule as `irv`, but do not stop on a majority; keep
+    eliminating the last-place active candidate until at most ``n_winners``
+    remain.
+    """
+    n_voters, n_cands = election.shape
+    tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
+
+    voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
+    cand_tallies = np.empty(n_cands, dtype=np.uint)
+
+    _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
+    eliminated_cands = set(_all_indices(cand_tallies, 0))
+    if eliminated_cands:
+        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
+
+    while n_cands - len(eliminated_cands) > n_winners:
+        _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
+        cand_tallies_list = cand_tallies.tolist()
+        active_tallies = [cand_tallies_list[c] for c in range(n_cands)
+                          if c not in eliminated_cands]
+        last_place_tally = min(active_tallies)
+        last_place_cands = [c for c in range(n_cands)
+                            if c not in eliminated_cands
+                            and cand_tallies_list[c] == last_place_tally]
+        cand_to_eliminate = tiebreak(last_place_cands)[0]
+        if cand_to_eliminate is None:
+            return None
+        eliminated_cands.add(cand_to_eliminate)
+        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
+
+    return {c for c in range(n_cands) if c not in eliminated_cands}
+
+
+def irv(election, tiebreaker=None, *, n_winners=None):
     """
     Find the winner of an election using instant-runoff voting.
 
@@ -37,11 +72,27 @@ def irv(election, tiebreaker=None):
         are eliminated or selected at random.
         If 'order', the lowest-ID tied candidate is preferred in each tie.
         By default, ``None`` is returned if there are any ties.
+    n_winners : int, optional
+        If omitted (default), return the usual single IRV winner.
+        If ``1``, same as omitted (one winner).
+        If ``k`` with ``1 < k < n_candidates``, return the set of candidate IDs
+        still standing after repeatedly eliminating the last-place active
+        candidate (same transfer rule as above) until ``k`` remain, without
+        stopping early when someone has a majority.  This models a ranked
+        primary that narrows the field to ``k`` for a later round.
+        If ``k`` is greater than or equal to the number of candidates, every
+        candidate is returned as a set.
 
     Returns
     -------
-    winner : {int, None}
-        The ID number of the winner, or ``None`` for an unbroken tie.
+    outcome : {int, set of int, None}
+        If ``n_winners`` is omitted or ``1``, the winner's ID, or ``None`` for
+        an unbroken tie.
+        If ``n_winners`` is strictly between ``1`` and the number of
+        candidates, the set of surviving candidate IDs, or ``None`` for an
+        unbroken tie during elimination.
+        If ``n_winners`` is greater than or equal to the number of candidates,
+        the set of all candidate IDs.
 
     References
     ----------
@@ -70,9 +121,31 @@ def irv(election, tiebreaker=None):
 
     >>> irv(election)
     0
+
+    The same ballots with ``n_winners`` = 2 (no majority short-circuit;
+    eliminate last place once so two candidates remain):
+
+    >>> election_b = [[A, C, B],
+    ...               [A, C, B],
+    ...               [B, C, A],
+    ...               [B, C, A],
+    ...               [C, A, B],
+    ...               ]
+    >>> sorted(irv(election_b, n_winners=2, tiebreaker='order'))
+    [0, 1]
     """
     election = np.asarray(election)
     n_voters, n_cands = election.shape
+
+    if n_winners is not None:
+        if n_winners < 1:
+            raise ValueError('n_winners must be at least 1')
+        if n_winners >= n_cands:
+            return set(range(n_cands))
+        if n_winners > 1:
+            return _irv_eliminate_until_n_winners_remain(election, tiebreaker,
+                                                         n_winners)
+
     tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
     voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
     cand_tallies = np.empty(n_cands, dtype=np.uint)
