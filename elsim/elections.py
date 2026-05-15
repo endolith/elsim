@@ -1,3 +1,8 @@
+"""
+Implements various election types.
+
+Currently these are randomly-generated elections.
+"""
 import numbers as _numbers
 
 import numpy as _np

@@ -20,7 +20,6 @@ from elsim import elections, methods, strategies
 __version__ = "0.1.3"
 
 __all__ = [
-    '__version__',
     'elections',
     'methods',
     'strategies',

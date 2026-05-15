@@ -7,11 +7,8 @@ according to the rules of that method.
 from elsim.methods.approval import approval, combined_approval
 from elsim.methods.black import black
 from elsim.methods.borda import borda
-from elsim.methods.condorcet import (
-    condorcet,
-    condorcet_from_matrix,
-    ranked_election_to_matrix,
-)
+from elsim.methods.condorcet import (condorcet, condorcet_from_matrix,
+                                     ranked_election_to_matrix)
 from elsim.methods.coombs import coombs
 from elsim.methods.fptp import fptp, sntv
 from elsim.methods.irv import irv
