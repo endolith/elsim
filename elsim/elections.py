@@ -1,11 +1,16 @@
-import numbers
+"""
+Implements various election types.
 
-import numpy as np
+Currently these are randomly-generated elections.
+"""
+import numbers as _numbers
+
+import numpy as _np
 from scipy.spatial.distance import cdist as _cdist
 
 from elsim.strategies import honest_rankings as _honest_rankings
 
-elections_rng = np.random.default_rng()
+elections_rng = _np.random.default_rng()
 
 
 def _check_random_state(seed):
@@ -22,9 +27,9 @@ def _check_random_state(seed):
     """
     if seed is None:
         return elections_rng
-    if isinstance(seed, (numbers.Integral, np.integer)):
-        return np.random.default_rng(seed)
-    if isinstance(seed, np.random.Generator):
+    if isinstance(seed, (_numbers.Integral, _np.integer)):
+        return _np.random.default_rng(seed)
+    if isinstance(seed, _np.random.Generator):
         return seed
     raise ValueError(f'{seed} cannot be used to seed a '
                      'numpy.random.Generator instance')
@@ -245,7 +250,7 @@ def normal_electorate(n_voters, n_cands, dims=2, corr=0.0, disp=1.0,
 
     # Correlation is proportional to variance, while raw values are
     # proportional to standard deviation, and SD = √(variance)
-    scale = np.sqrt(A/B)
+    scale = _np.sqrt(A/B)
 
     voters = rng.standard_normal((n_voters, dims))
     voters[:, 0] *= scale
@@ -315,10 +320,18 @@ def normed_dist_utilities(voters, cands):
     utilities = -dists
 
     # Normalize utilities to [0, 1] for each voter
-    utilities -= utilities.min(1)[:, np.newaxis]
-    utilities /= utilities.max(1)[:, np.newaxis]
+    utilities -= utilities.min(1)[:, _np.newaxis]
+    utilities /= utilities.max(1)[:, _np.newaxis]
 
     # TODO: Actually Merrill says: "For the spatial-model simulations standard
     # scores were used as the most practical computational method."
 
     return utilities
+
+
+__all__ = [
+    'impartial_culture',
+    'normal_electorate',
+    'normed_dist_utilities',
+    'random_utilities',
+]

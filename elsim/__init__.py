@@ -15,6 +15,12 @@ elections by combining their functions in the following order:
    Functions that implement voting methods, which calculate a winner from a
    collection of ballots.
 """
-from . import elections, methods, strategies
+from elsim import elections, methods, strategies
 
 __version__ = "0.1.3"
+
+__all__ = [
+    'elections',
+    'methods',
+    'strategies',
+]
