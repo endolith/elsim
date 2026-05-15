@@ -10,7 +10,7 @@ repos:
         args: [--maxkb=2048]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.12
+    rev: v0.15.13
     hooks:
       # Quote --select=...: in YAML flow style, commas inside [...] split list items (E902 on Windows).
       - id: ruff
