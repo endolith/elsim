@@ -7,7 +7,7 @@ according to the rules of that method.
 from .approval import approval, combined_approval
 from .black import black
 from .blanket_primary import (approval_runoff, irv_primary_top_n_runoff,
-                             top_n_condorcet, top_n_irv, top_n_runoff)
+                              top_n_condorcet, top_n_irv, top_n_runoff)
 from .borda import borda
 from .condorcet import (condorcet, condorcet_from_matrix,
                         ranked_election_to_matrix)
