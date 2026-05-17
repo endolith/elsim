@@ -5,8 +5,8 @@ Finds one 2D election that satisfies both:
 - IRV: strict center-outward elimination order (closest to origin eliminated each round).
 - TVR: converges to the center (Condorcet) candidate.
 
-Then renders the IRV animation to Images/collapse_2d_both_*_nc*_nv*/irv/ and the
-TVR animation to .../tvr/.  Same ballots, same candidates and voters; two GIFs.
+Then renders the IRV animation to examples/results/collapse_2d_both_*_nc*_nv*/irv/
+and the TVR animation to .../tvr/.  Same ballots, same candidates and voters; two GIFs.
 """
 
 from datetime import datetime
@@ -18,6 +18,7 @@ from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings
 
 from collapse_2d_shared import (
+    RESULTS_DIR,
     sort_candidates_bell_curve,
     palette_name,
     n_voters,
@@ -102,7 +103,7 @@ if __name__ == '__main__':
     print(message)
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_dir = Path('Images') / f'collapse_2d_both_{timestamp}_nc{n_cands}_nv{n_voters}'
+    output_dir = RESULTS_DIR / f'collapse_2d_both_{timestamp}_nc{n_cands}_nv{n_voters}'
     output_dir.mkdir(parents=True, exist_ok=True)
 
     np.savez(output_dir / 'positions.npz', voters=voters, candidates=candidates)

@@ -29,6 +29,7 @@ from elsim.strategies import honest_rankings
 
 from collapse_2d_shared import (
     KEY_FRAME_MS,
+    RESULTS_DIR,
     transition_step_ms,
     candidate_name,
     ceildiv,
@@ -428,7 +429,7 @@ def run_tvr_animation(
 
 if __name__ == '__main__':
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_dir = Path('Images') / f'collapse_2d_tvr_{timestamp}_nc{n_cands}_nv{n_voters}'
+    output_dir = RESULTS_DIR / f'collapse_2d_tvr_{timestamp}_nc{n_cands}_nv{n_voters}'
 
     if INPUT_POSITIONS is not None:
         data = np.load(INPUT_POSITIONS)
