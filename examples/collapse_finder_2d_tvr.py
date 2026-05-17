@@ -24,6 +24,7 @@ from PIL import Image
 
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.methods import ranked_election_to_matrix
+from elsim.methods._common import _all_indices, _inc_rank_idx, _tally_at_rank_idx
 from elsim.strategies import honest_rankings
 
 from collapse_2d_shared import (
@@ -53,49 +54,63 @@ from collapse_utils import count_wins
 INPUT_POSITIONS = None
 
 
-def compute_borda_scores(rankings, active):
+def compute_borda_scores(election, eliminated_mask):
     """
-    Borda scores for active candidates as if non-active were never on the ballot.
+    Borda scores for non-eliminated candidates as if eliminated were never on the ballot.
 
-    Rankings: n_voters × n_cands array of candidate indices (0-based).
+    election : ndarray
+        Ranked ballots (n_voters × n_cands), same format as :func:`elsim.methods.borda.borda`.
+    eliminated_mask : ndarray of bool, length n_cands
+        ``eliminated_mask[i]`` is True if candidate ``i`` is eliminated.
     Returns ndarray of length n_cands; eliminated candidates have score 0.
-    Scoring: n_remaining-1 points for 1st place, 0 for last place.
+    Scoring among remainders: n_remaining-1 points for 1st place, 0 for last place.
     """
-    active_set = set(active)
-    n_remaining = len(active)
-    scores = np.zeros(rankings.shape[1], dtype=float)
-    for ballot in rankings:
+    n_remaining = int(np.sum(~eliminated_mask))
+    scores = np.zeros(election.shape[1], dtype=float)
+    for ballot in election:
         pos = 0
         for cand_id in ballot:
-            if cand_id in active_set:
-                scores[cand_id] += (n_remaining - 1 - pos)
-                pos += 1
+            if eliminated_mask[cand_id]:
+                continue
+            scores[cand_id] += (n_remaining - 1 - pos)
+            pos += 1
     return scores
 
 
-def simulate_tvr_rounds(rankings, candidates):
+def simulate_tvr_rounds(election, candidates):
     """
     Simulate TVR (Baldwin's method) with round-by-round trace data.
 
-    Each round eliminates the candidate with the lowest Borda score among
-    remaining candidates (re-tallied as if eliminated candidates were never
-    on the ballot).  Returns None on any tie so only clean runs are kept.
+    Uses the same rank-index machinery as :func:`elsim.methods.coombs.coombs`
+    (``voter_top_rank_idx``, ``_tally_at_rank_idx``, ``eliminated_mask``,
+    ``_inc_rank_idx``) for top-preference state, while eliminating the lowest
+    Borda score among remaining candidates each round (Baldwin, not Coombs
+    last-place elimination).  Returns None on any tie so only clean runs are kept.
 
     Per-round trace includes enough data to animate the ballot updates voter
     by voter: for each voter, which active candidates move up in rank when
     the loser is removed (i.e. which candidates are ranked below the loser
     in that voter's ballot).
     """
-    n_voters, n_cands = rankings.shape
-    active = list(range(n_cands))
+    election = np.asarray(election)
+    n_voters, n_cands = election.shape
+    voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
+    cand_top_tallies = np.empty(n_cands, dtype=np.uint)
+    eliminated_mask = np.zeros(n_cands, dtype=bool)
     rounds = []
 
-    while len(active) > 1:
-        n_remaining = len(active)
-        borda_before = compute_borda_scores(rankings, active)
+    # No IRV-style eager elimination of zero top tallies here: Baldwin's
+    # elimination criterion is Borda scores, not lowest top tallies (coombs.py).
 
-        min_score = min(borda_before[c] for c in active)
-        low_scorers = [c for c in active if borda_before[c] == min_score]
+    while np.sum(~eliminated_mask) > 1:
+        _tally_at_rank_idx(cand_top_tallies, election, voter_top_rank_idx)
+
+        borda_before = compute_borda_scores(election, eliminated_mask)
+        borda_list = borda_before.tolist()
+
+        min_score = min(borda_list[c] for c in range(n_cands) if not eliminated_mask[c])
+        low_scorers = _all_indices(borda_list, min_score)
+        low_scorers = [c for c in low_scorers if not eliminated_mask[c]]
         if len(low_scorers) != 1:
             return None
 
@@ -103,13 +118,12 @@ def simulate_tvr_rounds(rankings, candidates):
 
         # For each voter: the active candidates ranked below the loser.
         # When loser is removed, each of these gains +1 Borda point.
-        active_set = set(active)
         promoted_per_voter = []
-        for ballot in rankings:
+        for ballot in election:
             promoted = []
             found_loser = False
             for cand_id in ballot:
-                if cand_id not in active_set:
+                if eliminated_mask[cand_id]:
                     continue
                 if cand_id == loser:
                     found_loser = True
@@ -118,8 +132,9 @@ def simulate_tvr_rounds(rankings, candidates):
                     promoted.append(cand_id)
             promoted_per_voter.append(promoted)
 
-        active.remove(loser)
-        borda_after = compute_borda_scores(rankings, active)
+        eliminated_mask[loser] = True
+        _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
+        borda_after = compute_borda_scores(election, eliminated_mask)
 
         rounds.append({
             'loser': loser,
@@ -128,7 +143,7 @@ def simulate_tvr_rounds(rankings, candidates):
             'promoted_per_voter': promoted_per_voter,
         })
 
-    winner = active[0]
+    winner = int(np.flatnonzero(~eliminated_mask)[0])
     # Verify winner is nearest to origin (the Condorcet/center candidate).
     dists = np.linalg.norm(candidates, axis=1)
     center = int(np.argmin(dists))
