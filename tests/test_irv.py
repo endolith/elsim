@@ -5,7 +5,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
 
-from elsim.methods import irv
+from elsim.methods import irv, irv_rounds
 
 
 def collect_random_results(method, election):
@@ -241,7 +241,7 @@ def test_examples(tiebreaker):
     assert irv(election) == r
 
 
-def test_irv_record_rounds_matches_winner_only():
+def test_irv_rounds_matches_irv():
     election = np.array([[2, 0, 1],
                          [0, 1, 2],
                          [2, 0, 1],
@@ -252,21 +252,20 @@ def test_irv_record_rounds_matches_winner_only():
                          [2, 0, 1],
                          [2, 1, 0],
                          [0, 2, 1]])
-    assert irv(election) == irv(election, tiebreaker='order', record_rounds=True)['winner']
-    traced = irv(election, tiebreaker='order', record_rounds=True)
+    assert irv(election, 'order') == irv_rounds(election, 'order')['winner']
+    traced = irv_rounds(election, 'order', record_rounds=True)
     assert traced['final_ballots'].shape == (len(election),)
     assert len(traced['final_tallies']) == 3
 
 
-def test_irv_min_remaining():
+def test_irv_rounds_min_remaining():
     A, B, C = 0, 1, 2
     election = [[A, C, B],
                 [A, C, B],
                 [B, C, A],
                 [B, C, A],
                 [C, A, B]]
-    result = irv(election, tiebreaker='order', min_remaining=2,
-                 record_rounds=True)
+    result = irv_rounds(election, 'order', min_remaining=2, record_rounds=True)
     assert sorted(np.flatnonzero(~result['eliminated_mask'])) == [0, 1]
     assert len(result['rounds']) == 1
     assert result['rounds'][0]['loser'] == 2

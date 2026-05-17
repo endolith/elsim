@@ -16,7 +16,7 @@ import numpy as np
 from PIL import Image
 
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.methods import irv, ranked_election_to_matrix
+from elsim.methods import irv_rounds, ranked_election_to_matrix
 from elsim.strategies import honest_rankings
 
 from collapse_2d_shared import (
@@ -46,7 +46,7 @@ def simulate_irv_rounds(election, candidates):
     """
     Run IRV until two candidates remain; keep only center-outward collapses.
 
-    Uses :func:`elsim.methods.irv.irv` with ``record_rounds=True``.  Returns None if
+    Uses :func:`elsim.methods.irv.irv_rounds`.  Returns None if
     IRV hits an elimination tie or the elimination order is not strict
     center-outward (closest to the origin eliminated each round, farthest two
     at the end).
@@ -54,7 +54,7 @@ def simulate_irv_rounds(election, candidates):
     dists_to_origin = np.linalg.norm(candidates, axis=1)
     n_cands = len(candidates)
 
-    result = irv(
+    result = irv_rounds(
         election, tiebreaker=None, min_remaining=2, record_rounds=True,
     )
     if result is None:
