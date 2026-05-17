@@ -11,7 +11,7 @@ from elsim.methods.condorcet import (condorcet, condorcet_from_matrix,
                                      ranked_election_to_matrix)
 from elsim.methods.coombs import coombs
 from elsim.methods.fptp import fptp, sntv
-from elsim.methods.irv import irv
+from elsim.methods.irv import irv, irv_rounds
 from elsim.methods.runoff import runoff
 from elsim.methods.score import score
 from elsim.methods.star import matrix_from_scores, star
@@ -27,6 +27,7 @@ __all__ = [
     'coombs',
     'fptp',
     'irv',
+    'irv_rounds',
     'matrix_from_scores',
     'ranked_election_to_matrix',
     'runoff',
