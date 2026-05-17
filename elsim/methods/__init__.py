@@ -9,7 +9,7 @@ from elsim.methods.black import black
 from elsim.methods.borda import borda
 from elsim.methods.condorcet import (condorcet, condorcet_from_matrix,
                                      ranked_election_to_matrix)
-from elsim.methods.coombs import coombs
+from elsim.methods.coombs import coombs, coombs_rounds
 from elsim.methods.fptp import fptp, sntv
 from elsim.methods.irv import irv, irv_rounds
 from elsim.methods.runoff import runoff
@@ -25,6 +25,7 @@ __all__ = [
     'condorcet',
     'condorcet_from_matrix',
     'coombs',
+    'coombs_rounds',
     'fptp',
     'irv',
     'irv_rounds',

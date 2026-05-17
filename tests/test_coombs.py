@@ -5,7 +5,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
 
-from elsim.methods import coombs
+from elsim.methods import coombs, coombs_rounds
 
 
 def collect_random_results(method, election):
@@ -216,6 +216,51 @@ def test_legit_winner_order(election, tiebreaker):
 def test_legit_winner_none(election):
     n_cands = np.shape(election)[1]
     assert coombs(election) in {None} | set(range(n_cands))
+
+
+def test_coombs_rounds_matches_coombs():
+    # Two-round election: B eliminated (most last-place), C wins with majority
+    A, B, C = 0, 1, 2
+    election = [[A, C, B],
+                [A, C, B],
+                [B, C, A],
+                [B, C, A],
+                [C, A, B]]
+    assert coombs(election, 'order') == coombs_rounds(election, 'order')['winner']
+    traced = coombs_rounds(election, 'order', record_rounds=True)
+    assert traced['final_ballots'].shape == (len(election),)
+    assert len(traced['final_tallies']) == 3
+    assert len(traced['rounds']) == 1
+    assert traced['rounds'][0]['loser'] == B
+    # ballot snapshots present when record_rounds=True
+    assert 'ballots_before' in traced['rounds'][0]
+    assert 'affected_voters' in traced['rounds'][0]
+
+
+def test_coombs_rounds_tie_returns_none():
+    A, B, C = 0, 1, 2
+    election = [[A, B, C],
+                [B, C, A],
+                [A, C, B],
+                [B, C, A],
+                [C, B, A],
+                [C, A, B],
+                [C, A, B],
+                ]
+    assert coombs_rounds(election) is None
+
+
+def test_coombs_rounds_min_remaining():
+    A, B, C = 0, 1, 2
+    election = [[A, C, B],
+                [A, C, B],
+                [B, C, A],
+                [B, C, A],
+                [C, A, B]]
+    result = coombs_rounds(election, 'order', min_remaining=2, record_rounds=True)
+    assert sorted(np.flatnonzero(~result['eliminated_mask'])) == [A, C]
+    assert len(result['rounds']) == 1
+    assert result['rounds'][0]['loser'] == B
 
 
 if __name__ == "__main__":
