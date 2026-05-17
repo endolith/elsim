@@ -78,21 +78,18 @@ def load_or_find_election():
         candidates = data['candidates']
         rankings, irv_trace, tvr_trace = election_to_traces(voters, candidates)
         if irv_trace is None:
-            raise RuntimeError(
-                f'IRV did not yield center-outward order for {INPUT_POSITIONS}.'
-            )
+            raise RuntimeError('IRV did not yield center-outward order '
+                               f'for {INPUT_POSITIONS}.')
         if tvr_trace is None:
-            raise RuntimeError(
-                f'TVR did not converge to center for {INPUT_POSITIONS}.'
-            )
+            raise RuntimeError('TVR did not converge to center '
+                               f'for {INPUT_POSITIONS}.')
         return voters, candidates, rankings, irv_trace, tvr_trace, f'Loaded election from {INPUT_POSITIONS}.'
 
     result = find_both_election(n_voters, n_cands, max_trials, disp=disp)
     if result is None:
-        raise RuntimeError(
-            'No election found that satisfies both IRV center-outward and TVR '
-            'center-winner. Increase max_trials or reduce n_cands.'
-        )
+        raise RuntimeError('No election found that satisfies both IRV '
+                           'center-outward and TVR center-winner. '
+                           'Increase max_trials or reduce n_cands.')
     trial, voters, candidates, rankings, irv_trace, tvr_trace = result
     return (
         voters, candidates, rankings, irv_trace, tvr_trace,
