@@ -9,43 +9,81 @@ _tiebreak_map = {'order': _order_tiebreak_elim,
                  None: _no_tiebreak}
 
 
-def irv_rounds(election, tiebreaker=None, *, min_remaining=1, record_trace=False):
+def irv(election, tiebreaker=None, *, min_remaining=1, record_rounds=False):
     """
-    Run instant-runoff voting and optionally record per-round elimination data.
+    Find the winner of an election using instant-runoff voting.
+
+    If any candidate gets a majority of first-preference votes, they win.
+    Otherwise, the candidate(s) with the least number of first-choice votes
+    is eliminated, votes for eliminated candidates are transferred according to
+    the voters' preference rankings, and a series of runoff elections are held
+    between the remainders until a candidate gets a majority. [1]_
+
+    Also known as "the alternative vote", "ranked-choice voting", Hare's
+    method, or Ware's method.
+
+    The votes in each instant-runoff round are calculated from the same set of
+    ranked ballots.  If voters are honest and consistent between rounds, then
+    this is also equivalent to the exhaustive ballot method, which uses actual
+    separate runoff elections. [2]_
 
     Parameters
     ----------
     election : array_like
-        Ranked ballots; see `irv`.
+        A collection of ranked ballots.  See `borda` for election format.
+        Currently, this must include full rankings for each voter.
     tiebreaker : {'random', 'order', None}, optional
-        Tie-breaking rule when eliminating last-place candidates; see `irv`.
+        If there is a tie, and `tiebreaker` is ``'random'``, tied candidates
+        are eliminated or selected at random.
+        If 'order', the lowest-ID tied candidate is preferred in each tie.
+        By default, ``None`` is returned if there are any ties.
     min_remaining : int, optional
         Stop eliminating when this many candidates remain (default 1).
-        A majority winner ends the count early regardless.
-    record_trace : bool, optional
-        If True, each elimination round includes ballot and tally snapshots
-        for animation (see Returns).
+        A majority of first-preference votes ends the count early regardless.
+        Only used when ``record_rounds`` is True.
+    record_rounds : bool, optional
+        If False (default), return only the winner ID (or ``None``).
+        If True, return a dict with per-round elimination data for animation
+        (see below).  When False, no per-round ballot copies are made, so
+        performance matches the previous winner-only API.
 
     Returns
     -------
-    result : dict or None
-        ``None`` if elimination is tied and ``tiebreaker`` is ``None``.
-        Otherwise a dict with:
+    winner or result
+        If ``record_rounds`` is False: the winner's candidate ID, or ``None``.
+        If ``record_rounds`` is True: ``None`` on an elimination tie when
+        ``tiebreaker`` is ``None``; otherwise a dict with keys ``winner``,
+        ``rounds`` (each with ``loser``, ``ballots_before``, ``ballots_after``,
+        ``tallies_before``, ``affected_voters``), ``eliminated_mask``,
+        ``final_ballots``, and ``final_tallies``.
 
-        winner : int or None
-            Majority winner if one was found before stopping; else the sole
-            remaining candidate when exactly one is left; else ``None``.
-        rounds : list of dict
-            One entry per elimination round (empty if none).  With
-            ``record_trace=True``, each dict has keys ``loser``,
-            ``ballots_before``, ``ballots_after``, ``tallies_before``,
-            ``affected_voters``.
-        eliminated_mask : ndarray of bool
-            Final elimination state.
-        final_ballots : ndarray
-            Per-voter top remaining choice at the end (length ``n_voters``).
-        final_tallies : ndarray
-            First-preference tallies at the end (length ``n_cands``).
+    References
+    ----------
+    .. [1] :wikipedia:`Instant-runoff voting`
+    .. [2] :wikipedia:`Exhaustive ballot`
+
+    Examples
+    --------
+    Label some candidates:
+
+    >>> A, B, C = 0, 1, 2
+
+    Specify the ballots for the 5 voters:
+
+    >>> election = [[A, C, B],
+    ...             [A, C, B],
+    ...             [B, C, A],
+    ...             [B, C, A],
+    ...             [C, A, B],
+    ...             ]
+
+    In the first round, no candidate gets a majority, so Candidate C (2) is
+    eliminated, with 1 out of 5 first-place votes.  Voter 4's
+    support of C is transferred to Candidate A (0), causing
+    Candidate A to win, with 3 out of 5 votes:
+
+    >>> irv(election)
+    0
     """
     election = np.asarray(election)
     n_voters, n_cands = election.shape
@@ -90,14 +128,14 @@ def irv_rounds(election, tiebreaker=None, *, min_remaining=1, record_trace=False
         if cand_to_eliminate is None:
             return None
 
-        if record_trace:
+        if record_rounds:
             ballots_before = election[np.arange(n_voters), voter_top_rank_idx].copy()
             affected_voters = np.flatnonzero(ballots_before == cand_to_eliminate)
 
         eliminated_mask[cand_to_eliminate] = True
         _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
 
-        if record_trace:
+        if record_rounds:
             ballots_after = election[np.arange(n_voters), voter_top_rank_idx].copy()
             rounds.append({
                 'loser': cand_to_eliminate,
@@ -112,85 +150,17 @@ def irv_rounds(election, tiebreaker=None, *, min_remaining=1, record_trace=False
         if len(remaining) == 1:
             winner = int(remaining[0])
 
-    _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
-    final_ballots = election[np.arange(n_voters), voter_top_rank_idx].copy()
+    if record_rounds:
+        _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
+        final_ballots = election[np.arange(n_voters), voter_top_rank_idx].copy()
+        return {
+            'winner': winner,
+            'rounds': rounds,
+            'eliminated_mask': eliminated_mask,
+            'final_ballots': final_ballots,
+            'final_tallies': cand_tallies.copy(),
+        }
 
-    return {
-        'winner': winner,
-        'rounds': rounds,
-        'eliminated_mask': eliminated_mask,
-        'final_ballots': final_ballots,
-        'final_tallies': cand_tallies.copy(),
-    }
-
-
-def irv(election, tiebreaker=None):
-    """
-    Find the winner of an election using instant-runoff voting.
-
-    If any candidate gets a majority of first-preference votes, they win.
-    Otherwise, the candidate(s) with the least number of first-choice votes
-    is eliminated, votes for eliminated candidates are transferred according to
-    the voters' preference rankings, and a series of runoff elections are held
-    between the remainders until a candidate gets a majority. [1]_
-
-    Also known as "the alternative vote", "ranked-choice voting", Hare's
-    method, or Ware's method.
-
-    The votes in each instant-runoff round are calculated from the same set of
-    ranked ballots.  If voters are honest and consistent between rounds, then
-    this is also equivalent to the exhaustive ballot method, which uses actual
-    separate runoff elections. [2]_
-
-    Parameters
-    ----------
-    election : array_like
-        A collection of ranked ballots.  See `borda` for election format.
-        Currently, this must include full rankings for each voter.
-    tiebreaker : {'random', 'order', None}, optional
-        If there is a tie, and `tiebreaker` is ``'random'``, tied candidates
-        are eliminated or selected at random.
-        If 'order', the lowest-ID tied candidate is preferred in each tie.
-        By default, ``None`` is returned if there are any ties.
-
-    Returns
-    -------
-    winner : {int, None}
-        The ID number of the winner, or ``None`` for an unbroken tie.
-
-    References
-    ----------
-    .. [1] :wikipedia:`Instant-runoff voting`
-    .. [2] :wikipedia:`Exhaustive ballot`
-
-    Examples
-    --------
-    Label some candidates:
-
-    >>> A, B, C = 0, 1, 2
-
-    Specify the ballots for the 5 voters:
-
-    >>> election = [[A, C, B],
-    ...             [A, C, B],
-    ...             [B, C, A],
-    ...             [B, C, A],
-    ...             [C, A, B],
-    ...             ]
-
-    In the first round, no candidate gets a majority, so Candidate C (2) is
-    eliminated, with 1 out of 5 first-place votes.  Voter 4's
-    support of C is transferred to Candidate A (0), causing
-    Candidate A to win, with 3 out of 5 votes:
-
-    >>> irv(election)
-    0
-    """
-    result = irv_rounds(election, tiebreaker=tiebreaker, min_remaining=1,
-                        record_trace=False)
-    if result is None:
-        return None
-    winner = result['winner']
     if winner is not None:
         return winner
     raise RuntimeError('Bug in IRV calculation')

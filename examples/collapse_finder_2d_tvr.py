@@ -81,11 +81,10 @@ def simulate_tvr_rounds(election, candidates):
     """
     Simulate TVR (Baldwin's method) with round-by-round trace data.
 
-    Uses the same rank-index machinery as :func:`elsim.methods.coombs.coombs`
-    (``voter_top_rank_idx``, ``_tally_at_rank_idx``, ``eliminated_mask``,
-    ``_inc_rank_idx``) for top-preference state, while eliminating the lowest
-    Borda score among remaining candidates each round (Baldwin, not Coombs
-    last-place elimination).  Returns None on any tie so only clean runs are kept.
+    Each round: if any remaining candidate has a majority of first-preference
+    votes, they win; otherwise eliminate the lowest Borda score among remaining
+    candidates (re-tallied as if eliminated candidates were never on the ballot).
+    Returns None on any tie so only clean runs are kept.
 
     Per-round trace includes enough data to animate the ballot updates voter
     by voter: for each voter, which active candidates move up in rank when
@@ -98,12 +97,16 @@ def simulate_tvr_rounds(election, candidates):
     cand_top_tallies = np.empty(n_cands, dtype=np.uint)
     eliminated_mask = np.zeros(n_cands, dtype=bool)
     rounds = []
-
-    # No IRV-style eager elimination of zero top tallies here: Baldwin's
-    # elimination criterion is Borda scores, not lowest top tallies (coombs.py).
+    winner = None
 
     while np.sum(~eliminated_mask) > 1:
         _tally_at_rank_idx(cand_top_tallies, election, voter_top_rank_idx)
+        cand_top_tallies_list = cand_top_tallies.tolist()
+
+        max_cand_top_tally = max(cand_top_tallies_list)
+        if max_cand_top_tally > n_voters / 2:
+            winner = cand_top_tallies_list.index(max_cand_top_tally)
+            break
 
         borda_before = compute_borda_scores(election, eliminated_mask)
         borda_list = borda_before.tolist()
@@ -143,7 +146,11 @@ def simulate_tvr_rounds(election, candidates):
             'promoted_per_voter': promoted_per_voter,
         })
 
-    winner = int(np.flatnonzero(~eliminated_mask)[0])
+    if winner is None:
+        remaining = np.flatnonzero(~eliminated_mask)
+        if len(remaining) != 1:
+            return None
+        winner = int(remaining[0])
     # Verify winner is nearest to origin (the Condorcet/center candidate).
     dists = np.linalg.norm(candidates, axis=1)
     center = int(np.argmin(dists))
