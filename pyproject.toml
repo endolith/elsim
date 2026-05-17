@@ -47,10 +47,13 @@ test = [
     "ruff",
 ]
 examples = [
+    "colorcet",
     "contourpy>=1.3",
     "hypothesis",
     "joblib",
     "matplotlib>=3.8",
+    "palettable",
+    "pillow",
     "pyehtplot",
     "seaborn>=0.13",
     "tabulate",
