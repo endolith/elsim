@@ -3,7 +3,7 @@ Demo each colormap as a static first frame matching the IRV animation layout.
 
 Uses a fixed election (positions.npz) so all palettes are comparable. Layout:
 scatter + votes bar + approval rating + head-to-head wins (same as IRV start frame).
-Saves to Images/palette_demo_<timestamp>/{9cand_dark,9cand_white}/<palette>.png.
+Saves to examples/results/palette_demo_<timestamp>/{9cand_dark,9cand_white}/<palette>.png.
 """
 
 from datetime import datetime
@@ -21,6 +21,7 @@ from elsim.strategies import honest_rankings
 
 from collapse_2d_shared import (
     PALETTE_NAMES,
+    RESULTS_DIR,
     get_palette_colors,
     get_theme,
     plot_approval_bar,
@@ -127,7 +128,7 @@ if __name__ == '__main__':
     labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_base = Path('Images') / f'palette_demo_{timestamp}'
+    output_base = RESULTS_DIR / f'palette_demo_{timestamp}'
     for sub in ('9cand_dark', '9cand_white'):
         (output_base / sub).mkdir(parents=True, exist_ok=True)
 

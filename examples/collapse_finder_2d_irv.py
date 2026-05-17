@@ -21,6 +21,7 @@ from elsim.strategies import honest_rankings
 
 from collapse_2d_shared import (
     KEY_FRAME_MS,
+    RESULTS_DIR,
     transition_step_ms,
     candidate_name,
     ceildiv,
@@ -353,7 +354,7 @@ def run_irv_animation(
 
 if __name__ == '__main__':
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_dir = Path('Images') / f'collapse_2d_irv_{timestamp}_nc{n_cands}_nv{n_voters}'
+    output_dir = RESULTS_DIR / f'collapse_2d_irv_{timestamp}_nc{n_cands}_nv{n_voters}'
 
     result = find_center_outward_election(n_voters, n_cands, max_trials, disp=disp)
     if result is None:

@@ -1,17 +1,22 @@
 """
 Shared palette, Voronoi, and theme for 2D collapse finder scripts.
 
-Used by collapse_finder_2d_irv.py and collapse_finder_2d_palette_demo.py.
+Used by collapse_finder_2d_irv.py, collapse_finder_2d_tvr.py, collapse_finder_2d_both.py,
+and collapse_finder_2d_palette_demo.py.
 Blacklist: Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12 omitted (always bad).
 """
 
 import importlib
+from pathlib import Path
 
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
 from scipy.spatial import Voronoi
+
+# Default output root for collapse finder scripts (examples/results/).
+RESULTS_DIR = Path(__file__).resolve().parent / 'results'
 
 # Shared animation config for IRV/TVR/both scripts. Override in script if needed.
 n_voters = 5000
