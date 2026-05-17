@@ -16,8 +16,7 @@ import numpy as np
 from PIL import Image
 
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.methods import ranked_election_to_matrix
-from elsim.methods._common import _all_indices, _inc_rank_idx, _tally_at_rank_idx
+from elsim.methods import irv_rounds, ranked_election_to_matrix
 from elsim.strategies import honest_rankings
 
 from collapse_2d_shared import (
@@ -45,77 +44,40 @@ from collapse_utils import count_wins
 
 def simulate_irv_rounds(election, candidates):
     """
-    Simulate IRV with round-by-round trace data.
+    Run IRV until two candidates remain; keep only center-outward collapses.
 
-    Follows :func:`elsim.methods.irv.irv` (``_tally_at_rank_idx``, ``_inc_rank_idx``,
-    ``eliminated_mask``, pre-round zero top-tally elimination).  Returns None if
-    there is any tie for elimination, because this example is intended to find a
-    clean center-outward pattern with deterministic rounds.
+    Uses :func:`elsim.methods.irv.irv_rounds` for the count.  Returns None if
+    IRV hits an elimination tie or the elimination order is not strict
+    center-outward (closest to the origin eliminated each round, farthest two
+    at the end).
     """
-    election = np.asarray(election)
-    n_voters, n_cands = election.shape
     dists_to_origin = np.linalg.norm(candidates, axis=1)
+    n_cands = len(candidates)
 
-    voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
-    cand_tallies = np.empty(n_cands, dtype=np.uint)
-    eliminated_mask = np.zeros(n_cands, dtype=bool)
-    rounds = []
+    result = irv_rounds(
+        election, tiebreaker=None, min_remaining=2, record_trace=True,
+    )
+    if result is None:
+        return None
 
-    # Eliminate candidates with no first-choice votes before rounds begin (irv.py).
-    _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
-    for cand in _all_indices(cand_tallies.tolist(), 0):
-        eliminated_mask[cand] = True
-    if np.any(eliminated_mask):
-        _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
-
-    while np.sum(~eliminated_mask) > 2:
-        _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
-
-        # (tolist makes things 2-4x faster) — irv.py
-        cand_tallies_list = cand_tallies.tolist()
-
-        # If not, eliminate least-favorited candidate (irv.py).
-        last_place_tally = min(t for t in cand_tallies_list if t != 0)
-        last_place_cands = _all_indices(cand_tallies_list, last_place_tally)
-        if len(last_place_cands) != 1:
+    eliminated = set()
+    for round_data in result['rounds']:
+        remaining = [c for c in range(n_cands) if c not in eliminated]
+        expected_loser = min(remaining, key=lambda c: (dists_to_origin[c], c))
+        if round_data['loser'] != expected_loser:
             return None
+        eliminated.add(round_data['loser'])
 
-        loser = last_place_cands[0]
-
-        # Strict condition: eliminate closest remaining candidate every round.
-        remaining = [c for c in range(n_cands) if not eliminated_mask[c]]
-        expected_loser = min(remaining, key=lambda cand: (dists_to_origin[cand], cand))
-        if loser != expected_loser:
-            return None
-
-        ballots_before = election[np.arange(n_voters), voter_top_rank_idx].copy()
-        affected_voters = np.flatnonzero(ballots_before == loser)
-
-        eliminated_mask[loser] = True
-        _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
-        ballots_after = election[np.arange(n_voters), voter_top_rank_idx].copy()
-
-        rounds.append({
-            'loser': loser,
-            'ballots_before': ballots_before,
-            'ballots_after': ballots_after,
-            'tallies_before': cand_tallies.copy(),
-            'affected_voters': affected_voters,
-        })
-
-    final_two = sorted(c for c in range(n_cands) if not eliminated_mask[c])
+    final_two = sorted(np.flatnonzero(~result['eliminated_mask']))
     farthest_two = sorted(np.argsort(dists_to_origin)[-2:])
     if final_two != farthest_two:
         return None
 
-    ballots_final = election[np.arange(n_voters), voter_top_rank_idx].copy()
-    _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
-
     return {
-        'rounds': rounds,
+        'rounds': result['rounds'],
         'final_two': final_two,
-        'final_ballots': ballots_final,
-        'final_tallies': cand_tallies.copy(),
+        'final_ballots': result['final_ballots'],
+        'final_tallies': result['final_tallies'],
         'dists_to_origin': dists_to_origin,
     }
 
