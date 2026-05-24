@@ -106,8 +106,10 @@ def baldwin_rounds(election, tiebreaker=None, *, min_remaining=1, record_rounds=
         # If not, eliminate the candidate with the lowest Borda score
         borda_before = _compute_borda_scores(election, eliminated_mask)
         borda_list = borda_before.tolist()
-        min_score = min(borda_list[c] for c in range(n_cands) if not eliminated_mask[c])
-        low_scorers = [c for c in _all_indices(borda_list, min_score) if not eliminated_mask[c]]
+        min_score = min(borda_list[c]
+                        for c in range(n_cands) if not eliminated_mask[c])
+        low_scorers = [c for c in _all_indices(borda_list, min_score)
+                       if not eliminated_mask[c]]
         cand_to_eliminate = tiebreak(low_scorers)[0]
 
         if cand_to_eliminate is None:
