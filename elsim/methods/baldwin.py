@@ -14,8 +14,8 @@ def _compute_borda_scores(election, eliminated_mask):
     """
     Borda scores for non-eliminated candidates as if eliminated were never on the ballot.
 
-    Scoring among remaining candidates: ``n_remaining - 1`` points for 1st
-    place, 0 for last place.  Eliminated candidates receive score 0.
+    Scoring among remaining candidates matches `borda`: ``n_remaining`` points
+    for 1st place, 1 for last place.  Eliminated candidates receive score 0.
 
     Parameters
     ----------
@@ -36,7 +36,7 @@ def _compute_borda_scores(election, eliminated_mask):
         for cand_id in ballot:
             if eliminated_mask[cand_id]:
                 continue
-            scores[cand_id] += (n_remaining - 1 - pos)
+            scores[cand_id] += (n_remaining - pos)
             pos += 1
     return scores
 
