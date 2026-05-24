@@ -26,6 +26,7 @@ def collect_random_results(method, election):
 def test_basic(tiebreaker):
     # Standard Tennessee example
     # https://en.wikipedia.org/wiki/Template:Tenn_voting_example
+    # https://en.wikipedia.org/wiki/First-past-the-post_voting#Example
     Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
     election = [*42*[[Memphis, Nashville, Chattanooga, Knoxville]],
                 *26*[[Nashville, Chattanooga, Knoxville, Memphis]],
@@ -33,6 +34,7 @@ def test_basic(tiebreaker):
                 *17*[[Knoxville, Chattanooga, Nashville, Memphis]],
                 ]
 
+    # "Since Memphis has the most votes, it would win a FPTP election."
     assert fptp(election, tiebreaker) == Memphis
 
     # Example from Ques 9

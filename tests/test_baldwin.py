@@ -59,12 +59,17 @@ def test_different_from_irv():
 def test_examples(tiebreaker):
     # Standard Tennessee example
     # https://en.wikipedia.org/wiki/Template:Tenn_voting_example
+    # https://electowiki.org/wiki/Baldwin%27s_method#Example
     Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
     election = [*42*[[Memphis, Nashville, Chattanooga, Knoxville]],
                 *26*[[Nashville, Chattanooga, Knoxville, Memphis]],
                 *15*[[Chattanooga, Knoxville, Nashville, Memphis]],
                 *17*[[Knoxville, Chattanooga, Nashville, Memphis]],
                 ]
+
+    # "This leaves us with Nashville and Chattanooga. Nashville has 42+26
+    # points, giving it 68 points, while Chattanooga has 17+15 points giving it
+    # 32. This makes Nashville the winner."
     assert baldwin(election, tiebreaker) == Nashville
 
 
