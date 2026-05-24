@@ -126,12 +126,17 @@ def test_one_round():
 def test_examples(tiebreaker):
     # Standard Tennessee example (two-round)
     # https://en.wikipedia.org/wiki/Template:Tenn_voting_example
+    # https://en.wikipedia.org/wiki/Coombs%27_method#An_example
     Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
     election = [*42*[[Memphis, Nashville, Chattanooga, Knoxville]],
                 *26*[[Nashville, Chattanooga, Knoxville, Memphis]],
                 *15*[[Chattanooga, Knoxville, Nashville, Memphis]],
                 *17*[[Knoxville, Chattanooga, Nashville, Memphis]],
                 ]
+
+    # "so the second choice of Group A, Nashville, gets an additional 42
+    # first-place votes, giving it an absolute majority of first-place votes
+    # (68 versus 15+17=32), and making it the winner.""
     assert coombs(election, tiebreaker) == Nashville
 
     # Four-round example from Ques 9
