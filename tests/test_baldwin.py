@@ -73,6 +73,61 @@ def test_examples(tiebreaker):
     assert baldwin(election, tiebreaker) == Nashville
 
 
+def test_electowiki_notes_example():
+    """
+    Electowiki Notes example: cycle with no Condorcet winner.
+
+    https://electowiki.org/wiki/Baldwin%27s_method#Notes
+
+    25 A>B>C, 40 B>C>A, 35 C>A>B.  Electowiki lists Borda totals A 185, B 205,
+    C 210 (same ordering as our standard 2-1-0 Borda scores 85, 105, 110).
+    A (Borda loser) is eliminated; B then wins over C.  Black's method elects C.
+    """
+    A, B, C = 0, 1, 2
+    election = [*25*[[A, B, C]],
+                *40*[[B, C, A]],
+                *35*[[C, A, B]],
+                ]
+    traced = baldwin_rounds(election, 'order', record_rounds=True)
+    assert traced['rounds'][0]['loser'] == A
+    np.testing.assert_array_equal(
+        traced['rounds'][0]['borda_before'], [85, 105, 110],
+    )
+    assert baldwin(election, 'order') == B
+
+    from elsim.methods import black
+    assert black(election, 'order') == C
+
+
+def test_electowiki_tennessee_example():
+    """
+    Electowiki Tennessee capital example with round-by-round Borda scores.
+
+    https://electowiki.org/wiki/Baldwin%27s_method#Example
+
+    Round 1 Borda: Memphis 126, Nashville 194, Knoxville 107, Chattanooga 173.
+    Knoxville eliminated, then Memphis (84 vs 126 vs 90), then Nashville wins.
+    """
+    Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
+    election = [*42*[[Memphis, Nashville, Chattanooga, Knoxville]],
+                *26*[[Nashville, Chattanooga, Knoxville, Memphis]],
+                *15*[[Chattanooga, Knoxville, Nashville, Memphis]],
+                *17*[[Knoxville, Chattanooga, Nashville, Memphis]],
+                ]
+
+    traced = baldwin_rounds(election, 'order', record_rounds=True)
+    assert [r['loser'] for r in traced['rounds']] == [Knoxville, Memphis]
+    np.testing.assert_array_equal(
+        traced['rounds'][0]['borda_before'],
+        [126, 194, 173, 107],
+    )
+    np.testing.assert_array_equal(
+        traced['rounds'][1]['borda_before'],
+        [84, 126, 90, 0],
+    )
+    assert baldwin(election, 'order') == Nashville
+
+
 def test_no_tiebreak_tied_losers():
     A, B, C = 0, 1, 2
     # Perfect cycle — every candidate has the same Borda score
