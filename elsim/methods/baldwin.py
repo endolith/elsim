@@ -9,6 +9,7 @@ _tiebreak_map = {'order': _order_tiebreak_elim,
                  None: _no_tiebreak}
 
 
+# TODO: Should this be njitted?
 def _compute_borda_scores(election, eliminated_mask):
     """
     Borda scores for non-eliminated candidates as if eliminated were never on the ballot.
