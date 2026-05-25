@@ -1,4 +1,6 @@
+import json
 import random
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -6,6 +8,8 @@ from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
 
 from elsim.methods import irv, irv_rounds
+
+_FIXTURES = Path(__file__).resolve().parent / 'fixtures'
 
 
 def collect_random_results(method, election):
@@ -20,6 +24,117 @@ def collect_random_results(method, election):
         assert isinstance(winner, int)
         winners.add(winner)
     return winners
+
+
+def _irish_1990_election():
+    """
+    1990 Irish presidential election (three candidates).
+
+    First preferences and Currie transfers are scaled 1:1000 from the official
+    counts on Wikipedia; the 206/37 split among Currie voters reproduces the
+    published second-round totals (Robinson 817,830; Lenihan 731,273).
+
+    https://en.wikipedia.org/wiki/Instant-runoff_voting#1990_Irish_presidential_election
+    """
+    Robinson, Lenihan, Currie = 0, 1, 2
+    return [*694 * [[Lenihan, Robinson, Currie]],
+            *612 * [[Robinson, Lenihan, Currie]],
+            *206 * [[Currie, Robinson, Lenihan]],
+            * 37 * [[Currie, Lenihan, Robinson]]]
+
+
+def _prahran_2014_election():
+    """
+    2014 Prahran (Victoria) state election, eight candidates.
+
+    Built from first-preference counts and VEC preference-flow percentages
+    (Parliamentary Library / Wikipedia Examples table).  Remaining candidates
+    after each flow are filled in ballot-paper ID order below the stated
+    second preference.
+
+    https://en.wikipedia.org/wiki/Instant-runoff_voting#2014_Prahran_election_(Victoria)
+    """
+    Hibbins, Walker, Pharaoh, Goldsmith, Stefanopoulos, NewtonBrown, Gullone, Menadue = range(8)
+
+    first_prefs = {
+        Menadue: 82,
+        Stefanopoulos: 227,
+        Walker: 282,
+        Goldsmith: 247,
+        Gullone: 837,
+        Pharaoh: 9586,
+        Hibbins: 9160,
+        NewtonBrown: 16582,
+    }
+    flows = [
+        (Menadue, {NewtonBrown: 0.122, Pharaoh: 0.085, Hibbins: 0.134}),
+        (Stefanopoulos, {NewtonBrown: 0.216, Pharaoh: 0.191, Hibbins: 0.195}),
+        (Walker, {NewtonBrown: 0.278, Pharaoh: 0.173, Hibbins: 0.134}),
+        (Goldsmith, {NewtonBrown: 0.335, Pharaoh: 0.195, Hibbins: 0.266}),
+        (Gullone, {NewtonBrown: 0.233, Pharaoh: 0.19, Hibbins: 0.577}),
+        (Pharaoh, {NewtonBrown: 0.129, Hibbins: 0.871}),
+    ]
+
+    def fill_tail(first, second):
+        order = [first]
+        if second is not None:
+            order.append(second)
+        for cand in range(8):
+            if cand not in order:
+                order.append(cand)
+        return order
+
+    def split_votes(n, fracs):
+        keys = list(fracs.keys())
+        raw = {k: fracs[k] * n for k in keys}
+        base = {k: int(raw[k]) for k in keys}
+        rem = n - sum(base.values())
+        if rem:
+            for k in sorted(keys, key=lambda k: -(raw[k] - base[k]))[:rem]:
+                base[k] += 1
+        return base
+
+    election = []
+    fp = dict(first_prefs)
+    for elim, fracs in flows:
+        n = fp.pop(elim)
+        second_counts = split_votes(n, fracs)
+        exhausted = n - sum(second_counts.values())
+        for second, cnt in second_counts.items():
+            election.extend(fill_tail(elim, second) for _ in range(cnt))
+        election.extend(fill_tail(elim, None) for _ in range(exhausted))
+    for cand, n in fp.items():
+        election.extend(fill_tail(cand, None) for _ in range(n))
+    return election
+
+
+def _burlington_2009_election():
+    """
+    2009 Burlington mayoral election (six candidates on the ballot).
+
+    Rankings are derived from Electowiki inline ballot counts; candidates not
+    scored on a ballot are appended in ascending ID order so every voter has a
+    full ranking (required by ``irv``).  This matches the usual reconstruction
+    used for Burlington IRV analyses.
+
+    https://en.wikipedia.org/wiki/Instant-runoff_voting#2009_Burlington_mayoral_election
+    https://electowiki.org/wiki/2009_Burlington,_Vermont_Mayoral_Election_data
+    """
+    name_to_id = {'Kiss': 0, 'Montroll': 1, 'Wright': 2, 'Smith': 3,
+                  'Simpson': 4, 'Write-in': 5}
+    all_names = list(name_to_id)
+    entries = json.loads(
+        (_FIXTURES / 'burlington_2009_inline_ballots.json').read_text())
+    election = []
+    for entry in entries:
+        vote = entry['vote']
+        ranked = sorted(vote.keys(), key=lambda k: -vote[k])
+        for name in all_names:
+            if name not in ranked:
+                ranked.append(name)
+        ballot = [name_to_id[name] for name in ranked]
+        election.extend([ballot] * entry['qty'])
+    return election
 
 
 @pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
@@ -239,6 +354,42 @@ def test_examples(tiebreaker):
                 *28*[[y, o, g, b, r]],
                 ]
     assert irv(election) == r
+
+
+@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
+def test_wikipedia_examples(tiebreaker):
+    """
+    Real elections from the Examples section of the Wikipedia IRV article.
+
+    https://en.wikipedia.org/wiki/Instant-runoff_voting#Examples
+    """
+    assert irv(_irish_1990_election(), tiebreaker) == 0  # Mary Robinson
+
+    assert irv(_prahran_2014_election(), tiebreaker) == 0  # Sam Hibbins
+
+    assert irv(_burlington_2009_election(), tiebreaker) == 0  # Bob Kiss
+
+
+def test_wikipedia_examples_elimination_order():
+    """
+    Elimination sequence matches published IRV counts for Wikipedia examples.
+    """
+    irish = irv_rounds(_irish_1990_election(), 'order', record_rounds=True)
+    assert [r['loser'] for r in irish['rounds']] == [2]  # Austin Currie
+    assert irish['winner'] == 0  # Mary Robinson
+
+    prahran = irv_rounds(_prahran_2014_election(), 'order', record_rounds=True)
+    prahran_losers = [r['loser'] for r in prahran['rounds']]
+    assert prahran_losers[0] == 7  # Menadue first
+    assert prahran_losers[-1] == 2  # Pharaoh last before the final two
+    assert set(prahran_losers) == {7, 4, 1, 3, 6, 2}
+    assert prahran['winner'] == 0  # Sam Hibbins
+
+    burlington = irv_rounds(_burlington_2009_election(), 'order', record_rounds=True)
+    assert [r['loser'] for r in burlington['rounds']] == [
+        4, 5, 3, 1,  # Simpson, Write-in, Smith, Montroll
+    ]
+    assert burlington['winner'] == 0  # Bob Kiss
 
 
 def test_irv_rounds_matches_irv():
