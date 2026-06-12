@@ -12,10 +12,12 @@ _blanket_ranked = [
     lambda e, tb=None: top_n_runoff(e, 4, tb),
     lambda e, tb=None: top_n_runoff(e, 5, tb),
     lambda e, tb=None: irv_primary_top_n_runoff(e, 4, tb),
+    lambda e, tb=None: irv_primary_top_n_runoff(e, 5, tb),
     lambda e, tb=None: top_n_irv(e, 3, tb),
     lambda e, tb=None: top_n_runoff(e, 3, tb),
     lambda e, tb=None: top_n_condorcet(e, 3, tb),
     lambda e, tb=None: top_n_condorcet(e, 4, tb),
+    lambda e, tb=None: top_n_condorcet(e, 5, tb),
 ]
 
 
