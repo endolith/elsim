@@ -311,20 +311,20 @@ def bimodal_electorate(n_voters_each, n_cands_each, dims=2, corr=0.0, disp=1.0,
 
     left_v, left_c = normal_electorate(n_voters_each, n_cands_each, dims=dims,
                                        corr=corr, disp=disp, random_state=rng)
-    left_v = np.asarray(left_v).copy()
-    left_c = np.asarray(left_c).copy()
+    left_v = _np.asarray(left_v).copy()
+    left_c = _np.asarray(left_c).copy()
     left_v[:, 0] -= separation
     left_c[:, 0] -= separation
 
     right_v, right_c = normal_electorate(n_voters_each, n_cands_each, dims=dims,
                                          corr=corr, disp=disp, random_state=rng)
-    right_v = np.asarray(right_v).copy()
-    right_c = np.asarray(right_c).copy()
+    right_v = _np.asarray(right_v).copy()
+    right_c = _np.asarray(right_c).copy()
     right_v[:, 0] += separation
     right_c[:, 0] += separation
 
-    voters = np.vstack((left_v, right_v))
-    cands = np.vstack((left_c, right_c))
+    voters = _np.vstack((left_v, right_v))
+    cands = _np.vstack((left_c, right_c))
 
     return voters, cands
 
