@@ -20,28 +20,29 @@ def _irv_eliminate_until_n_winners_remain(election, tiebreaker, n_winners):
 
     voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
     cand_tallies = np.empty(n_cands, dtype=np.uint)
+    eliminated_mask = np.zeros(n_cands, dtype=bool)
 
     _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
-    eliminated_cands = set(_all_indices(cand_tallies, 0))
-    if eliminated_cands:
-        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
+    eliminated_mask[_all_indices(cand_tallies, 0)] = True
+    if eliminated_mask.any():
+        _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
 
-    while n_cands - len(eliminated_cands) > n_winners:
+    while n_cands - eliminated_mask.sum() > n_winners:
         _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
         cand_tallies_list = cand_tallies.tolist()
         active_tallies = [cand_tallies_list[c] for c in range(n_cands)
-                          if c not in eliminated_cands]
+                          if not eliminated_mask[c]]
         last_place_tally = min(active_tallies)
         last_place_cands = [c for c in range(n_cands)
-                            if c not in eliminated_cands
+                            if not eliminated_mask[c]
                             and cand_tallies_list[c] == last_place_tally]
         cand_to_eliminate = tiebreak(last_place_cands)[0]
         if cand_to_eliminate is None:
             return None
-        eliminated_cands.add(cand_to_eliminate)
-        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
+        eliminated_mask[cand_to_eliminate] = True
+        _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
 
-    return {c for c in range(n_cands) if c not in eliminated_cands}
+    return {c for c in range(n_cands) if not eliminated_mask[c]}
 
 
 def irv(election, tiebreaker=None, *, n_winners=None):
