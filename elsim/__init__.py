@@ -18,3 +18,10 @@ elections by combining their functions in the following order:
 from . import elections, methods, strategies, studies
 
 __version__ = "0.1.3"
+
+__all__ = [
+    'elections',
+    'methods',
+    'strategies',
+    'studies',
+]
