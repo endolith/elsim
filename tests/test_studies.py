@@ -29,6 +29,10 @@ def test_expand_product_scalar_and_list():
     assert got == [{"n_voters": 10, "n_cands": 3}, {"n_voters": 20, "n_cands": 3}]
 
 
+def test_expand_product_empty():
+    assert expand_product() == [{}]
+
+
 def test_expand_product_bytes_scalar():
     assert expand_product(blob=b"ab") == [{"blob": b"ab"}]
 
