@@ -6,6 +6,8 @@ from hypothesis.strategies import integers, lists, permutations
 from elsim.methods import (approval_runoff, irv, irv_primary_top_n_runoff,
                            runoff, top_n_condorcet, top_n_irv, top_n_runoff)
 from elsim.methods.blanket_primary import (_head_to_head_two,
+                                           _primary_top_n_approval,
+                                           _restrict_ballots,
                                            _top_n_from_plurality_tallies)
 
 
@@ -31,7 +33,7 @@ def test_top_n_irv_four_and_five_tennessee(tiebreaker):
 
 
 @pytest.mark.parametrize('tiebreaker', [None, 'random', 'order'])
-def test_top_n_runoff_four_tennessee(tiebreaker):
+def test_top_n_runoff_four_and_five_tennessee(tiebreaker):
     Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
     election = [*42 * [[Memphis, Nashville, Chattanooga, Knoxville]],
                 *26 * [[Nashville, Chattanooga, Knoxville, Memphis]],
@@ -40,10 +42,37 @@ def test_top_n_runoff_four_tennessee(tiebreaker):
                 ]
     assert top_n_runoff(election, 4, tiebreaker) == runoff(
         election, tiebreaker)
+    assert top_n_runoff(election, 5, tiebreaker) == runoff(
+        election, tiebreaker)
 
 
 @pytest.mark.parametrize('tiebreaker', [None, 'random', 'order'])
-def test_irv_primary_runoff_tennessee(tiebreaker):
+def test_top_n_condorcet_tennessee(tiebreaker):
+    Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
+    election = [*42 * [[Memphis, Nashville, Chattanooga, Knoxville]],
+                *26 * [[Nashville, Chattanooga, Knoxville, Memphis]],
+                *15 * [[Chattanooga, Knoxville, Nashville, Memphis]],
+                *17 * [[Knoxville, Chattanooga, Nashville, Memphis]],
+                ]
+    assert top_n_condorcet(election, 4, tiebreaker) == Nashville
+    assert top_n_condorcet(election, 5, tiebreaker) == Nashville
+
+
+@pytest.mark.parametrize('tiebreaker', [None, 'random', 'order'])
+def test_top_n_runoff_primary_narrows_field(tiebreaker):
+    """Top-three primary can change the contingent-vote finalists vs full runoff."""
+    Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
+    election = [*42 * [[Memphis, Nashville, Chattanooga, Knoxville]],
+                *26 * [[Nashville, Chattanooga, Knoxville, Memphis]],
+                *15 * [[Chattanooga, Knoxville, Nashville, Memphis]],
+                *17 * [[Knoxville, Chattanooga, Nashville, Memphis]],
+                ]
+    assert top_n_runoff(election, 3, tiebreaker) == Knoxville
+    assert runoff(election, tiebreaker) == Nashville
+
+
+@pytest.mark.parametrize('tiebreaker', [None, 'random', 'order'])
+def test_irv_primary_runoff_four_and_five_tennessee(tiebreaker):
     Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
     election = [*42 * [[Memphis, Nashville, Chattanooga, Knoxville]],
                 *26 * [[Nashville, Chattanooga, Knoxville, Memphis]],
@@ -52,6 +81,22 @@ def test_irv_primary_runoff_tennessee(tiebreaker):
                 ]
     assert irv_primary_top_n_runoff(election, 4, tiebreaker) == runoff(
         election, tiebreaker)
+    assert irv_primary_top_n_runoff(election, 5, tiebreaker) == runoff(
+        election, tiebreaker)
+
+
+@pytest.mark.parametrize('tiebreaker', [None, 'random', 'order'])
+def test_irv_primary_runoff_narrows_field(tiebreaker):
+    """IRV primary to two or three can pick different finalists than top-two."""
+    Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
+    election = [*42 * [[Memphis, Nashville, Chattanooga, Knoxville]],
+                *26 * [[Nashville, Chattanooga, Knoxville, Memphis]],
+                *15 * [[Chattanooga, Knoxville, Nashville, Memphis]],
+                *17 * [[Knoxville, Chattanooga, Nashville, Memphis]],
+                ]
+    assert irv_primary_top_n_runoff(election, 2, tiebreaker) == Knoxville
+    assert irv_primary_top_n_runoff(election, 3, tiebreaker) == Knoxville
+    assert runoff(election, tiebreaker) == Nashville
 
 
 def test_irv_n_winners_three_cycle():
@@ -84,6 +129,23 @@ def test__top_n_from_plurality_tallies():
     assert _top_n_from_plurality_tallies(np.array([5, 4]), 2, None) == {0, 1}
     assert _top_n_from_plurality_tallies(np.array([9, 4, 2, 1]), 2, None) == {0, 1}
     assert _top_n_from_plurality_tallies(np.array([5, 5, 5, 5]), 2, None) is None
+    assert _top_n_from_plurality_tallies(np.array([5, 5, 5, 5]), 2,
+                                         'order') == {0, 1}
+    assert _top_n_from_plurality_tallies(np.array([9, 4, 4, 1]), 3,
+                                         'order') == {0, 1, 2}
+
+
+def test__primary_top_n_approval():
+    app = np.array([[1, 1, 0], [1, 0, 1], [0, 1, 1]], dtype=np.uint8)
+    assert _primary_top_n_approval(app, 2, 'order') == {0, 1}
+    assert _primary_top_n_approval(app, 3, 'order') == {0, 1, 2}
+
+
+def test__restrict_ballots():
+    election = np.array([[0, 1, 2, 3], [3, 2, 1, 0]])
+    sub, new_to_old = _restrict_ballots(election, {0, 3})
+    assert sub.tolist() == [[0, 1], [1, 0]]
+    assert new_to_old == {0: 0, 1: 3}
 
 
 def test__head_to_head_two():
@@ -206,7 +268,23 @@ def test_blanket_methods_reject_invalid_tiebreaker():
     with pytest.raises(ValueError):
         top_n_condorcet(election, 2, tiebreaker='duel')
     with pytest.raises(ValueError):
+        irv_primary_top_n_runoff(election, 2, tiebreaker='duel')
+    with pytest.raises(ValueError):
         irv(election, tiebreaker='duel', n_winners=2)
+
+
+def test_docstring_examples():
+    A, B, C = 0, 1, 2
+    election = [*6 * [[A, B, C]], *3 * [[B, A, C]], *1 * [[C, B, A]]]
+    assert top_n_irv(election, 2) == 0
+    assert irv_primary_top_n_runoff(election, 2, tiebreaker='order') == 0
+
+    election2 = [[A, B, C], [A, B, C], [B, A, C]]
+    assert top_n_condorcet(election2, 2) == 0
+
+    approvals = [[1, 1, 0], [1, 1, 0], [0, 1, 1]]
+    ranked = [[B, A, C], [B, C, A], [C, B, A]]
+    assert approval_runoff(approvals, ranked) == 1
 
 
 @pytest.mark.parametrize('tiebreaker', ['random', 'order'])
@@ -223,6 +301,33 @@ def test_top_n_irv_winner_in_range(election, tiebreaker):
 def test_top_n_irv_winner_none_tiebreaker(election):
     n_cands = np.shape(election)[1]
     w = top_n_irv(election, min(4, n_cands))
+    assert w in {None} | set(range(n_cands))
+
+
+@pytest.mark.parametrize('method', [top_n_runoff, irv_primary_top_n_runoff])
+@pytest.mark.parametrize('tiebreaker', ['random', 'order'])
+@given(election=complete_ranked_ballots(min_cands=2, max_cands=25,
+                                        min_voters=1, max_voters=100))
+def test_blanket_runoff_variants_winner_in_range(election, method, tiebreaker):
+    n_cands = np.shape(election)[1]
+    w = method(election, min(4, n_cands), tiebreaker)
+    assert w in range(n_cands)
+
+
+@pytest.mark.parametrize('tiebreaker', ['random', 'order'])
+@given(election=complete_ranked_ballots(min_cands=2, max_cands=25,
+                                        min_voters=1, max_voters=100))
+def test_top_n_condorcet_winner_in_range_or_none(election, tiebreaker):
+    n_cands = np.shape(election)[1]
+    w = top_n_condorcet(election, min(4, n_cands), tiebreaker)
+    assert w in {None} | set(range(n_cands))
+
+
+@given(election=complete_ranked_ballots(min_cands=2, max_cands=25,
+                                        min_voters=1, max_voters=100))
+def test_top_n_runoff_winner_none_tiebreaker(election):
+    n_cands = np.shape(election)[1]
+    w = top_n_runoff(election, min(4, n_cands))
     assert w in {None} | set(range(n_cands))
 
 
