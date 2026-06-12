@@ -106,9 +106,10 @@ def runoff(election, tiebreaker=None):
     n_cands = election.shape[1]
     cand_tallies = np.empty(n_cands, dtype=np.uint)
     voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
-    eliminated_cands = set(range(n_cands)) - {finalist_0, finalist_1}
-    if eliminated_cands:
-        _inc_rank_idx(election, voter_top_rank_idx, eliminated_cands)
+    eliminated_mask = np.ones(n_cands, dtype=bool)
+    eliminated_mask[finalist_0] = False
+    eliminated_mask[finalist_1] = False
+    _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
     _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
     finalist_0_tally = cand_tallies[finalist_0]
     finalist_1_tally = cand_tallies[finalist_1]

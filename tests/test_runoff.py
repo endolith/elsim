@@ -6,6 +6,7 @@ from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
 
 from elsim.methods import runoff
+from elsim.methods._common import _inc_rank_idx, _tally_at_rank_idx
 
 
 def collect_random_results(method, election):
@@ -20,6 +21,41 @@ def collect_random_results(method, election):
         assert isinstance(winner, int)
         winners.add(winner)
     return winners
+
+
+def test_docstring_example():
+    """Contingent vote example from runoff() docstring."""
+    A, B, C = 0, 1, 2
+    election = np.array([[A, C, B],
+                         [A, C, B],
+                         [B, C, A],
+                         [B, C, A],
+                         [C, A, B]])
+    assert runoff(election) == A
+
+
+def test_head_to_head_tally_via_irv_helpers():
+    """
+    Second-round tally skips eliminated candidates then counts top preference
+    among the two finalists (same path as IRV).
+    """
+    A, B, C = 0, 1, 2
+    election = np.array([[A, C, B],
+                         [A, C, B],
+                         [B, C, A],
+                         [B, C, A],
+                         [C, A, B]])
+    n_voters, n_cands = election.shape
+    voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
+    cand_tallies = np.empty(n_cands, dtype=np.uint)
+    eliminated_mask = np.ones(n_cands, dtype=bool)
+    eliminated_mask[A] = False
+    eliminated_mask[B] = False
+    _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
+    _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
+    assert cand_tallies[A] == 3
+    assert cand_tallies[B] == 2
+    assert cand_tallies[C] == 0
 
 
 def test_one_round():
