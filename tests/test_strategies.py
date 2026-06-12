@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import assume, given
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import floats, integers, tuples
 from numpy.testing import assert_array_equal
@@ -138,6 +138,33 @@ def test_honest_normed_scores_properties(utilities, max_score):
 
     # Output should be integers
     assert_array_equal(election % 1, 0)
+
+
+@given(utilities=utilities())
+def test_honest_rankings_rows_are_permutations(utilities):
+    assume(utilities.shape[1] <= 255)
+    election = honest_rankings(utilities)
+    assert election.shape == utilities.shape
+    n_cands = utilities.shape[1]
+    for row in election:
+        assert_array_equal(
+            np.bincount(row, minlength=n_cands), np.ones(n_cands, dtype=int)
+        )
+
+
+@given(
+    n_cands=integers(2, 20),
+    n_voters=integers(1, 40),
+)
+def test_vote_for_k_exactly_k_approvals_when_strict_order(n_cands, n_voters):
+    utilities = (
+        np.linspace(0.0, 1.0, n_cands, dtype=np.float64)
+        + np.arange(n_voters, dtype=np.float64)[:, np.newaxis] * 1e-4
+    )
+    for k in (1, n_cands - 1):
+        election = vote_for_k(utilities, k)
+        assert_array_equal(election.sum(axis=1), np.full(n_voters, k))
+        assert set(election.flat) <= {0, 1}
 
 
 if __name__ == "__main__":
