@@ -11,7 +11,7 @@ jobs:
     permissions:
       contents: write  # needed to create release
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0  # full history so git describe can find the previous tag
 
