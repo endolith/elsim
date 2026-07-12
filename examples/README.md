@@ -306,6 +306,38 @@ Source: [distributions_by_dispersion.py](distributions_by_dispersion.py)
 
 Source: [distributions_by_method_2D.py](distributions_by_method_2D.py)
 
+## Center-squeeze collapse animations (2D)
+
+Animated demonstrations of the center-squeeze effect in a two-dimensional
+spatial model. Voters and candidates are both normally distributed (candidate
+spread half the voter spread), and the scripts sample random elections until
+they find a "core collapse" example, then animate the elimination rounds:
+each round shows ballots transferring between candidates, first-choice tallies,
+average favorability (mean normalized utility), and head-to-head wins.
+
+- **IRV** (`collapse_finder_2d_irv.py`): keeps elections where vote-splitting
+  makes IRV eliminate the verified Condorcet winner nearest the electorate's
+  center first and work outward, so only the two farthest candidates survive
+  to the final round.
+- **Total Vote Runoff / Baldwin** (`collapse_finder_2d_tvr.py`): eliminates the
+  lowest Borda-count candidate each round, so the least-representative
+  candidates drop first and support converges inward. Baldwin and Total Vote
+  Runoff satisfy the Condorcet criterion, so the script keeps elections where
+  the geometric-center candidate is verified as the Condorcet winner from the
+  pairwise matrix and is elected by Baldwin.
+- **Both** (`collapse_finder_2d_both.py`): finds a single election satisfying
+  both verified criteria above: IRV squeezes out the Condorcet winner while
+  Baldwin correctly elects it. It renders both animations side by side from
+  the same voters and candidates.
+
+Running a script searches for a qualifying election and writes its frames and
+GIF under `examples/results/` (generated output is git-ignored). Run from the
+repository root, e.g. `python -m examples.collapse_finder_2d_irv`.
+
+Sources: [collapse_finder_2d_irv.py](collapse_finder_2d_irv.py),
+[collapse_finder_2d_tvr.py](collapse_finder_2d_tvr.py),
+[collapse_finder_2d_both.py](collapse_finder_2d_both.py)
+
 ## Tomlinson 2023
 
 Kiran Tomlinson, Johan Ugander, Jon Kleinberg (2023) [Moderation in instant runoff voting](https://arxiv.org/abs/2303.09734)
