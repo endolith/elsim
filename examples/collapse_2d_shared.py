@@ -1,7 +1,9 @@
-"""Geometry helpers for the two-dimensional collapse examples."""
+"""Geometry, palette, and theme helpers for the two-dimensional examples."""
 
+import importlib
 from pathlib import Path
 
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
@@ -10,6 +12,88 @@ from scipy.spatial import Voronoi
 RESULTS_DIR = Path(__file__).resolve().parent / 'results'
 KEY_FRAME_MS = 3000
 TRANSITION_TOTAL_MS = 3000
+
+PALETTE_OPTIONS = {
+    'palettable.cartocolors.qualitative': [
+        'Antique_10', 'Bold_10', 'Pastel_10', 'Prism_10', 'Safe_10', 'Vivid_10',
+    ],
+    'palettable.colorbrewer.qualitative': [
+        'Set3_12', 'Set2_8', 'Set1_9', 'Paired_12', 'Dark2_8', 'Accent_8',
+    ],
+    'palettable.tableau': [
+        'ColorBlind_10', 'GreenOrange_12', 'TableauLight_10', 'TableauMedium_10',
+        'Tableau_10', 'Tableau_20',
+    ],
+    'colorcet': ['glasbey_light', 'glasbey_dark'],
+}
+
+
+def get_palette_colors(name):
+    """Load a named palette as a list of Matplotlib-compatible colors."""
+    for module_path, names in PALETTE_OPTIONS.items():
+        if name in names:
+            break
+    else:
+        raise KeyError(name)
+
+    module = importlib.import_module(module_path)
+    palette = getattr(module, name)
+    if module_path == 'colorcet':
+        return list(palette)
+    return list(palette.mpl_colors)
+
+
+def prepare_palette_and_labels(palette_name, n_cands, dark_background):
+    """Load, optionally adjust, and trim a palette and create labels."""
+    colors = get_palette_colors(palette_name)
+    if not dark_background and palette_name == 'Set1_9' and len(colors) > 5:
+        colors.pop(5)
+    if n_cands > len(colors):
+        raise ValueError(
+            f'n_cands={n_cands} exceeds palette "{palette_name}" size '
+            f'({len(colors)}). Use fewer candidates or a larger palette.'
+        )
+    return colors[:n_cands], 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
+
+
+def _color_to_rgb(color):
+    """Normalize a color to an RGB tuple in the [0, 1] range."""
+    return mcolors.to_rgb(color)
+
+
+def remove_grays(colors, min_saturation=0.12):
+    """Drop colors with saturation below ``min_saturation``."""
+    filtered = []
+    for color in colors:
+        rgb = np.array(_color_to_rgb(color)).reshape(1, 3)
+        if mcolors.rgb_to_hsv(rgb)[0, 1] >= min_saturation:
+            filtered.append(color)
+    return filtered, len(filtered)
+
+
+def get_theme(dark_background):
+    """Return colors for the dark or light rendering theme."""
+    if dark_background:
+        return (
+            'black',
+            'white',
+            'white',
+            'black',
+            'black',
+            'white',
+            (0.98, 0.98, 0.98),
+            '0.15',
+        )
+    return (
+        'white',
+        'black',
+        'gray',
+        'white',
+        'white',
+        'black',
+        (0.12, 0.12, 0.12),
+        '0.88',
+    )
 
 
 def transition_step_ms(n_transfer):

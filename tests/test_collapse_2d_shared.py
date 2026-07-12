@@ -8,6 +8,8 @@ import numpy as np
 
 from examples.collapse_2d_shared import (
     count_wins,
+    get_theme,
+    prepare_palette_and_labels,
     sort_candidates_bell_curve,
     voronoi_plot_2d_axes,
 )
@@ -61,3 +63,13 @@ def test_count_wins_counts_only_strict_pairwise_wins():
     ])
 
     assert count_wins(matrix) == [1, 1, 1]
+
+
+def test_palette_and_theme_helpers_return_rendering_configuration():
+    """Palette labels and theme colors should be ready for shared rendering."""
+    colors, labels = prepare_palette_and_labels('Bold_10', 3, True)
+
+    assert len(colors) == 3
+    assert labels == 'ABC'
+    assert get_theme(True)[-1] == '0.15'
+    assert get_theme(False)[-1] == '0.88'
