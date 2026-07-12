@@ -4,6 +4,7 @@ import importlib
 from pathlib import Path
 
 import matplotlib.colors as mcolors
+import matplotlib.patheffects as PathEffects
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
@@ -120,6 +121,80 @@ def count_wins(matrix):
     ]
 
 
+def plot_wins(ax, wins, colors, labels, edgecolor='black', gap=0.15):
+    """Plot strict head-to-head wins as stacked square blocks."""
+    n_cands = len(wins)
+    block = 1.0 - 2 * gap
+    max_wins = max(wins) if wins else 0
+    for candidate in range(n_cands):
+        for index in range(int(wins[candidate])):
+            ax.bar(
+                candidate,
+                block,
+                bottom=index + gap,
+                width=block,
+                color=colors[candidate],
+                edgecolor=edgecolor,
+                linewidth=1,
+            )
+    ax.set_xticks(range(n_cands))
+    ax.set_xticklabels(list(labels))
+    ax.set_xlim(-0.5, n_cands - 0.5)
+    ax.set_ylim(0, max_wins if max_wins > 0 else 1)
+    ax.set_aspect('equal')
+    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    ax.set_ylabel('')
+
+
+def plot_wins_with_title(ax, wins, colors, labels, fg, gap=0.1):
+    """Plot head-to-head wins and add the standard panel title."""
+    plot_wins(ax, wins, colors, labels, edgecolor=fg, gap=gap)
+    ax.text(
+        0.5,
+        1.04,
+        'Head-to-head wins',
+        transform=ax.transAxes,
+        ha='center',
+        va='center',
+        color=fg,
+    )
+
+
+def plot_favorability_bar(ax, favorability_pct, labels, colors, fg, grid):
+    """Plot mean normalized utility as an average favorability percentage."""
+    bars = ax.bar(
+        range(len(labels)),
+        favorability_pct,
+        tick_label=list(labels),
+        color=colors,
+    )
+    for rect in bars:
+        height = rect.get_height()
+        if height > 0:
+            ax.annotate(
+                f'{height:.0f}',
+                xy=(rect.get_x() + rect.get_width() / 2, height),
+                xytext=(0, 3),
+                textcoords='offset points',
+                ha='center',
+                va='bottom',
+                color=fg,
+            )
+    ax.set_ylim(0, 100)
+    ax.set_ylabel('Mean utility [%]')
+    ax.grid(True, alpha=0.25, axis='y', color=grid)
+    ax.set_axisbelow(True)
+    ax.text(
+        0.5,
+        1.04,
+        'Average favorability',
+        transform=ax.transAxes,
+        ha='center',
+        va='center',
+        color=fg,
+    )
+
+
 def voronoi_plot_2d_axes(ax, points, line_color='white', line_alpha=0.45):
     """Draw a Voronoi diagram on an axis without changing its limits."""
     points = np.asarray(points)
@@ -203,3 +278,130 @@ def sort_candidates_bell_curve(candidates):
     return candidates[
         np.concatenate([left_sorted, center_indices, right_sorted])
     ]
+
+
+def setup_scatter_axis_sigma(ax, voters):
+    """Set square limits and visible ticks in units of voter-distribution σ."""
+    ax.grid(False)
+    ax.set_axisbelow(False)
+    sigma = float(np.std(voters))
+    limit = 1.5 * sigma
+    ax.set_xlim(-limit, limit)
+    ax.set_ylim(-limit, limit)
+    ax.axis('square')
+    tick_positions = [-sigma, 0, sigma]
+    tick_labels = ['−σ', '0', 'σ']
+    ax.set_xticks(tick_positions)
+    ax.set_yticks(tick_positions)
+    ax.set_xticklabels(tick_labels)
+    ax.set_yticklabels(tick_labels)
+
+
+def create_frame_scaffold(
+    voters,
+    candidates,
+    ballots,
+    favorability_pct,
+    wins,
+    colors,
+    labels,
+    eliminated=None,
+    dark_background=True,
+):
+    """Create the common four-panel figure used by collapse animations.
+
+    The returned ``axes['middle']`` is intentionally left empty for the caller
+    to populate with method-specific vote or score data.
+    """
+    eliminated = set() if eliminated is None else set(eliminated)
+    n_cands = len(candidates)
+    active = [candidate for candidate in range(n_cands) if candidate not in eliminated]
+    active_colors = [
+        colors[candidate] if candidate not in eliminated else (0.5, 0.5, 0.5)
+        for candidate in range(n_cands)
+    ]
+    (
+        bg,
+        fg,
+        grid,
+        stroke_fg,
+        legend_bg,
+        legend_fg,
+        voronoi_color,
+        dead_zone_color,
+    ) = get_theme(dark_background)
+
+    fig = plt.figure(figsize=(9, 7.5), facecolor=bg)
+    axes = {
+        'scatter': plt.subplot2grid((6, 3), (0, 0), colspan=2, rowspan=6),
+        'middle': plt.subplot2grid((6, 3), (0, 2), rowspan=2),
+        'favorability': plt.subplot2grid((6, 3), (2, 2), rowspan=2),
+        'wins': plt.subplot2grid((6, 3), (4, 2), rowspan=2),
+    }
+    for axis in axes.values():
+        axis.set_facecolor(bg)
+        axis.tick_params(colors=fg)
+        axis.xaxis.label.set_color(fg)
+        axis.yaxis.label.set_color(fg)
+        for spine in axis.spines.values():
+            spine.set_color(fg)
+
+    voters_kwargs = {'marker': '.', 'alpha': 0.25, 's': 12}
+    candidates_kwargs = {'marker': 'o', 's': 30, 'edgecolors': fg}
+    axes['scatter'].scatter([], [], color=fg, **voters_kwargs, label='Voters')
+    axes['scatter'].scatter(
+        [], [], color=fg, **candidates_kwargs, label='Candidates'
+    )
+    axes['scatter'].legend(
+        loc='lower right',
+        numpoints=1,
+        fontsize='small',
+        labelcolor=legend_fg,
+        facecolor=legend_bg,
+        edgecolor=legend_fg,
+    )
+    setup_scatter_axis_sigma(axes['scatter'], voters)
+    voronoi_plot_2d_axes(
+        axes['scatter'],
+        candidates[active],
+        line_color=voronoi_color,
+        line_alpha=0.45,
+    )
+
+    path_effects = [PathEffects.withStroke(linewidth=3, foreground=stroke_fg)]
+    for candidate in range(n_cands):
+        candidate_voters = voters[ballots == candidate]
+        if len(candidate_voters):
+            axes['scatter'].scatter(
+                candidate_voters[:, 0],
+                candidate_voters[:, 1],
+                color=active_colors[candidate],
+                **voters_kwargs,
+            )
+    if active:
+        axes['scatter'].scatter(
+            candidates[active, 0],
+            candidates[active, 1],
+            color=[active_colors[candidate] for candidate in active],
+            **candidates_kwargs,
+        )
+        for candidate in active:
+            axes['scatter'].annotate(
+                labels[candidate],
+                xy=candidates[candidate],
+                xytext=(0, -15),
+                textcoords='offset points',
+                path_effects=path_effects,
+                color=fg,
+            )
+
+    plot_favorability_bar(
+        axes['favorability'],
+        favorability_pct,
+        labels,
+        active_colors,
+        fg,
+        grid,
+    )
+    plot_wins_with_title(axes['wins'], wins, active_colors, labels, fg)
+    return fig, axes, active_colors, (bg, fg, grid, dead_zone_color)
