@@ -28,6 +28,7 @@ from collapse_2d_shared import (
     disp,
     dark_background,
 )
+# TODO: INPUT_POSITIONS is hardcoded to a local path; use None or project-relative path for portability
 from collapse_finder_2d_irv import simulate_irv_rounds, run_irv_animation
 from collapse_finder_2d_tvr import simulate_tvr_rounds, run_tvr_animation
 
@@ -40,13 +41,13 @@ INPUT_POSITIONS = Path('../elsim3k core collapse/collapse_2d_both_20260308_14132
 def election_to_traces(voters, candidates):
     """
     From (voters, candidates) compute rankings and both traces.
-    Returns (rankings, irv_trace, tvr_trace). Either trace may be None if that method fails.
+    Returns (election, irv_trace, tvr_trace). Either trace may be None if that method fails.
     """
     utilities = normed_dist_utilities(voters, candidates)
-    rankings = np.asarray(honest_rankings(utilities))
-    irv_trace = simulate_irv_rounds(rankings, candidates)
-    tvr_trace = simulate_tvr_rounds(rankings, candidates)
-    return rankings, irv_trace, tvr_trace
+    election = np.asarray(honest_rankings(utilities))
+    irv_trace = simulate_irv_rounds(election, candidates)
+    tvr_trace = simulate_tvr_rounds(election, candidates)
+    return election, irv_trace, tvr_trace
 
 
 def find_both_election(n_voters, n_cands, max_trials, disp=1.0):
@@ -54,52 +55,52 @@ def find_both_election(n_voters, n_cands, max_trials, disp=1.0):
     Sample random 2D elections until one satisfies both IRV center-outward
     and TVR center-winner.
 
-    Returns (trial, voters, candidates, rankings, irv_trace, tvr_trace) or None.
+    Returns (trial, voters, candidates, election, irv_trace, tvr_trace) or None.
     """
     for trial in range(1, max_trials + 1):
         voters, candidates = normal_electorate(n_voters, n_cands, dims=2, disp=disp)
-        candidates[0] = 0.0
+        candidates[0] = 0.0  # Place one candidate at origin; sort_candidates_bell_curve reorders to bell-curve layout
         candidates = sort_candidates_bell_curve(candidates)
-        rankings, irv_trace, tvr_trace = election_to_traces(voters, candidates)
+        election, irv_trace, tvr_trace = election_to_traces(voters, candidates)
         if irv_trace is None or tvr_trace is None:
             continue
-        return trial, voters, candidates, rankings, irv_trace, tvr_trace
+        return trial, voters, candidates, election, irv_trace, tvr_trace
     return None
 
 
 def load_or_find_election():
     """
     Load from INPUT_POSITIONS or search for a new election. Validate both traces.
-    Returns (voters, candidates, rankings, irv_trace, tvr_trace, message).
+    Returns (voters, candidates, election, irv_trace, tvr_trace, message).
     message is a one-line string to print (e.g. "Loaded ..." or "Found ... on trial N").
     """
     if INPUT_POSITIONS is not None:
         data = np.load(INPUT_POSITIONS)
         voters = data['voters']
         candidates = data['candidates']
-        rankings, irv_trace, tvr_trace = election_to_traces(voters, candidates)
+        election, irv_trace, tvr_trace = election_to_traces(voters, candidates)
         if irv_trace is None:
             raise RuntimeError('IRV did not yield center-outward order '
                                f'for {INPUT_POSITIONS}.')
         if tvr_trace is None:
             raise RuntimeError('TVR did not converge to center '
                                f'for {INPUT_POSITIONS}.')
-        return voters, candidates, rankings, irv_trace, tvr_trace, f'Loaded election from {INPUT_POSITIONS}.'
+        return voters, candidates, election, irv_trace, tvr_trace, f'Loaded election from {INPUT_POSITIONS}.'
 
     result = find_both_election(n_voters, n_cands, max_trials, disp=disp)
     if result is None:
         raise RuntimeError('No election found that satisfies both IRV '
                            'center-outward and TVR center-winner. '
                            'Increase max_trials or reduce n_cands.')
-    trial, voters, candidates, rankings, irv_trace, tvr_trace = result
+    trial, voters, candidates, election, irv_trace, tvr_trace = result
     return (
-        voters, candidates, rankings, irv_trace, tvr_trace,
+        voters, candidates, election, irv_trace, tvr_trace,
         f'Found election on trial {trial} (IRV center-outward + TVR center winner).',
     )
 
 
 if __name__ == '__main__':
-    voters, candidates, rankings, irv_trace, tvr_trace, message = load_or_find_election()
+    voters, candidates, election, irv_trace, tvr_trace, message = load_or_find_election()
     print(message)
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -110,7 +111,7 @@ if __name__ == '__main__':
 
     print('Rendering IRV animation...')
     run_irv_animation(
-        voters, candidates, rankings, irv_trace, output_dir / 'irv',
+        voters, candidates, election, irv_trace, output_dir / 'irv',
         palette_name=palette_name,
         n_cands=n_cands,
         n_voters=n_voters,
@@ -119,7 +120,7 @@ if __name__ == '__main__':
     )
     print('Rendering TVR animation...')
     run_tvr_animation(
-        voters, candidates, rankings, tvr_trace, output_dir / 'tvr',
+        voters, candidates, election, tvr_trace, output_dir / 'tvr',
         palette_name=palette_name,
         n_cands=n_cands,
         n_voters=n_voters,
