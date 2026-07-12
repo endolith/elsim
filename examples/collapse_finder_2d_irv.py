@@ -143,7 +143,7 @@ def render_frame(
         eliminated=eliminated,
         dark_background=dark_background,
     )
-    _, fg, grid = theme
+    _, fg, grid, _ = theme
     _plot_votes_panel(
         axes['middle'],
         tallies,

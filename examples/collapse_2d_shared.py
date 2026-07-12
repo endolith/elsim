@@ -268,6 +268,7 @@ def get_theme(dark_background):
             'black',
             'white',
             (0.98, 0.98, 0.98),
+            '0.15',
         )
     return (
         'white',
@@ -277,6 +278,7 @@ def get_theme(dark_background):
         'white',
         'black',
         (0.12, 0.12, 0.12),
+        '0.88',
     )
 
 
@@ -320,9 +322,16 @@ def create_frame_scaffold(
         colors[candidate] if candidate not in eliminated else (0.5, 0.5, 0.5)
         for candidate in range(n_cands)
     ]
-    bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color = get_theme(
-        dark_background
-    )
+    (
+        bg,
+        fg,
+        grid,
+        stroke_fg,
+        legend_bg,
+        legend_fg,
+        voronoi_color,
+        dead_zone_color,
+    ) = get_theme(dark_background)
 
     fig = plt.figure(figsize=(9, 7.5), facecolor=bg)
     axes = {
@@ -401,4 +410,4 @@ def create_frame_scaffold(
         grid,
     )
     plot_wins_with_title(axes['wins'], wins, active_colors, labels, fg)
-    return fig, axes, active_colors, (bg, fg, grid)
+    return fig, axes, active_colors, (bg, fg, grid, dead_zone_color)

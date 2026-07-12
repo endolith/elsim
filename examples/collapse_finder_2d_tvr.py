@@ -81,6 +81,7 @@ def _plot_borda_panel(
     colors,
     fg,
     grid,
+    dead_zone_color,
     title,
 ):
     """Plot average ranks with a dead zone for eliminated rank slots."""
@@ -117,11 +118,6 @@ def _plot_borda_panel(
 
     axis.set_ylim(0, n_cands)
     if dead_height:
-        _, _, _, _, _, _, dead_zone_color = (
-            ('black', 'white', 'white', 'black', 'black', 'white', '0.15')
-            if fg == 'white'
-            else ('white', 'black', 'gray', 'white', 'white', 'black', '0.88')
-        )
         axis.axhspan(0, dead_height, color=dead_zone_color, zorder=0)
     tick_values = list(range(n_cands + 1))
     tick_labels = [
@@ -171,7 +167,7 @@ def render_frame(
         eliminated=eliminated,
         dark_background=dark_background,
     )
-    _, fg, grid = theme
+    _, fg, grid, dead_zone_color = theme
     _plot_borda_panel(
         axes['middle'],
         borda_scores,
@@ -182,6 +178,7 @@ def render_frame(
         active_colors,
         fg,
         grid,
+        dead_zone_color,
         frame_title,
     )
     fig.tight_layout()
