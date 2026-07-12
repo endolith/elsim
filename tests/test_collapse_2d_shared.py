@@ -8,8 +8,10 @@ import numpy as np
 
 from examples.collapse_2d_shared import (
     count_wins,
+    create_frame_scaffold,
     get_theme,
     prepare_palette_and_labels,
+    setup_scatter_axis_sigma,
     sort_candidates_bell_curve,
     voronoi_plot_2d_axes,
 )
@@ -73,3 +75,34 @@ def test_palette_and_theme_helpers_return_rendering_configuration():
     assert labels == 'ABC'
     assert get_theme(True)[-1] == '0.15'
     assert get_theme(False)[-1] == '0.88'
+
+
+def test_scatter_axis_uses_only_visible_sigma_ticks():
+    """Scatter axes should place ticks inside the ±1.5σ plot limits."""
+    fig, axis = plt.subplots()
+    voters = np.array([[-1.0, 0.0], [1.0, 0.0]])
+    setup_scatter_axis_sigma(axis, voters)
+
+    sigma = np.std(voters)
+    np.testing.assert_array_equal(axis.get_xticks(), [-sigma, 0.0, sigma])
+    plt.close(fig)
+
+
+def test_frame_scaffold_builds_common_panels_and_theme():
+    """The scaffold should construct all shared panels for method renderers."""
+    voters = np.array([[-1.0, 0.0], [0.0, 0.0], [1.0, 0.0]])
+    candidates = np.array([[-1.0, 0.0], [0.0, 0.5], [1.0, 0.0]])
+    colors, labels = prepare_palette_and_labels('Bold_10', 3, True)
+    fig, axes, _, theme = create_frame_scaffold(
+        voters,
+        candidates,
+        np.array([0, 1, 2]),
+        np.array([50.0, 60.0, 50.0]),
+        [1, 1, 1],
+        colors,
+        labels,
+    )
+
+    assert set(axes) == {'scatter', 'middle', 'favorability', 'wins'}
+    assert theme[-1] == '0.15'
+    plt.close(fig)
