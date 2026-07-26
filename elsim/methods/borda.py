@@ -12,9 +12,15 @@ def borda(election, tiebreaker=None):
     """
     Find the winner of a ranked ballot election using the Borda count method.
 
+    Borda's original:
+
     A voter's lowest-ranked candidate receives 1 point, second-lowest receives
     2 points, and so on.  All points are summed, and the highest-scoring
     candidate wins. [1]_
+
+    Modern: Lowest-ranked receives 0 points,
+
+    makes no diff for complete ballots but makes a differenc for icnpmlete
 
     Parameters
     ----------
