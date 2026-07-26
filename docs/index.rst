@@ -6,6 +6,7 @@
    :caption: Contents:
 
    examples/index
+   benchmarks
    modules
 
 
