@@ -54,6 +54,13 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 
 ## Code change guidelines
 
+### Documentation
+
+When changing code, update **all** relevant documentation:
+
+- **Code comments and docstrings** — keep them accurate and up-to-date.
+- **`AGENTS.md`** — update this file if the development guidelines change or there is something non-obvious that an agent needs to know in future jobs.
+
 ### Testing
 
 - **Always write or update unit tests** when changing code. New functions/methods need tests; bug fixes need regression tests.
@@ -66,7 +73,7 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 - **Make every commit a small, self-contained, working unit that completes one coherent idea—and nothing else** (i.e., both atomic and logical). Unrelated edits belong in separate commits even when each is small (e.g. a workflow trigger change and a pytest marker are two commits). This includes documentation and tests for that idea—keep them in the same commit as the code they describe, not in a later commit for a different feature, so reviewers can read commit-by-commit and `git revert <commit>` undoes one idea cleanly.
 - **Write comprehensive commit messages.** The subject line is a concise summary; the body must explain the problem being solved, the chosen approach, and any trade-offs. Provide the *context* that makes the diff understandable—why each change exists and what it achieves. Avoid meta-commentary about the commit itself (e.g., "fixing my commit according to instructions"). Keep process discussion in chat.
 - **Use Conventional Commits** (e.g., `feat:`, `fix:`, `docs:`, `test:`, `chore:`) to categorize changes and enable automated changelog generation.
-- **Authorship:** When AI assists with code, the human is author and AI is coauthor. Use `Co-authored-by:` trailer in commit message.
+- **Authorship:** When AI writes code, the AI is author and human is coauthor. Use `Co-authored-by:` trailer in commit message.
 
 ### Comments
 
