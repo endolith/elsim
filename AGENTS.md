@@ -51,9 +51,6 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 - Property-based tests use Hypothesis (`@given` with `lists(permutations(...))` for ballot generation).
 - `tests/test_methods.py` has parametrized cross-cutting tests (unanimity, degenerate cases, invalid tiebreakers) that run against all methods.
 - Coverage omits `tests/` directory (`.coveragerc`).
-- **Always write or update unit tests** when changing code. New functions/methods need tests; bug fixes need regression tests.
-- **Every test function must have a docstring** explaining what behavior it verifies and why. Someone who breaks the test must be able to understand what they broke and what the intended behavior is.
-- Run `pytest` before pushing. Monitor CI until it passes.
 
 ## Code change guidelines
 
@@ -64,6 +61,12 @@ When changing code, update **all** relevant documentation:
 - **Code comments and docstrings** — keep them accurate and up-to-date.
 - **`README.md`** — update if you change something documented there.
 - **`AGENTS.md`** — update this file if the development guidelines change or there is something non-obvious that an agent needs to know in future jobs.
+
+### Testing
+
+- **Always write or update unit tests** when changing code. New functions/methods need tests; bug fixes need regression tests.
+- **Every test function must have a docstring** explaining what behavior it verifies and why. Someone who breaks the test must be able to understand what they broke and what the intended behavior is.
+- Run `pytest` before pushing. Monitor CI until it passes.
 
 ### Commits
 
