@@ -54,6 +54,13 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 
 ## Code change guidelines
 
+### Testing
+
+- **Always write or update unit tests** when changing code. New functions/methods need tests; bug fixes need regression tests.
+- **Every test function must have a docstring** explaining what behavior it verifies and why. Someone who breaks the test must be able to understand what they broke and what the intended behavior is.
+- Run `pytest` before pushing. Monitor CI until it passes.
+
+
 ### Commits
 
 - **Make every commit a small, self-contained, working unit that completes one coherent idea—and nothing else** (i.e., both atomic and logical). Unrelated edits belong in separate commits even when each is small (e.g. a workflow trigger change and a pytest marker are two commits). This includes documentation and tests for that idea—keep them in the same commit as the code they describe, not in a later commit for a different feature, so reviewers can read commit-by-commit and `git revert <commit>` undoes one idea cleanly.
@@ -72,9 +79,3 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 - **Prefer small, reviewable PRs.** Split large efforts into stacked PRs with a clear merge order. Each PR should have one scope; the description should list commits and what each one does so reviewers can read commit-by-commit.
 - Check if there are any Issues related to the change you are making, and if so, mention it in the PR and write `Fixes #…` in the relevant commit message, so that the Issue will be auto-closed on merge.
 - **PR descriptions** should stand alone for a reviewer who has not read the issue or agent chat. Use short sections: **Background** (what should work), **Problem** (what is wrong), **Visible symptoms** (what users or CI observe), **What this PR changes** (scope and non-goals), **Tests** (what was added or updated). Add **Related work** only when stacked PRs or merge order matter. Split unrelated fixes into separate PRs; cross-link siblings when you do.
-
-### Testing
-
-- **Always write or update unit tests** when changing code. New functions/methods need tests; bug fixes need regression tests.
-- **Every test function must have a docstring** explaining what behavior it verifies and why. Someone who breaks the test must be able to understand what they broke and what the intended behavior is.
-- Run `pytest` before pushing. Monitor CI until it passes.
