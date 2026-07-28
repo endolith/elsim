@@ -66,9 +66,9 @@ def test_vote_for_k():
 
 @pytest.mark.parametrize("k", [0, 3, -3, -4, 4])
 def test_invalid_k(k):
+    election = [[0.0, 0.5, 1.0],
+                [1.0, 0.0, 0.1]]
     with pytest.raises(ValueError):
-        election = [[0.0, 0.5, 1.0],
-                    [1.0, 0.0, 0.1]]
         vote_for_k(election, k)
 
 

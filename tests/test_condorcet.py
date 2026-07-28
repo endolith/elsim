@@ -247,9 +247,9 @@ def test_condorcet_from_matrix():
 
 
 def test_invalid():
+    election = [[0, 1],
+                [1, 0]]
     with pytest.raises(TypeError):
-        election = [[0, 1],
-                    [1, 0]]
         condorcet(election, 'random')
 
     with pytest.raises(ValueError):

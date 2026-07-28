@@ -8,9 +8,9 @@ from elsim.methods import (approval, black, borda, combined_approval, coombs,
                                     approval, combined_approval,
                                     utility_winner, score])
 def test_invalid_tiebreaker(method):
+    election = [[0, 1],
+                [1, 0]]
     with pytest.raises(ValueError):
-        election = [[0, 1],
-                    [1, 0]]
         method(election, tiebreaker='duel')
 
 
