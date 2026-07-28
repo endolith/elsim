@@ -38,7 +38,8 @@ for trial in range(n_elections):
     original_c = c
 
     # First remove the least tallied candidates in FPTP primary
-    utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c)
+    utilities, rankings, election, first_preferences, tallies = (
+        calculate_election_data(v, c))
     original_utilities = utilities.sum(axis=0)
     original_utilities /= original_utilities.max()
     original_election = election
@@ -78,7 +79,8 @@ for trial in range(n_elections):
     found_worst_case = False
 
     for round_num in range(n_finalists - 2):  # 3 rounds: 5->4, 4->3, 3->2
-        utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c)
+        utilities, rankings, election, first_preferences, tallies = (
+            calculate_election_data(v, c))
 
         print(f'Final {n_remaining}:')
         print_candidates_and_tallies(c, tallies)
@@ -102,8 +104,10 @@ for trial in range(n_elections):
 
         # If we've reached 2 candidates, we found a worst-case scenario
         if n_remaining == 2:
-            # Recalculate utilities and tallies for the final 2 candidates
-            utilities, rankings, election, first_preferences, tallies = calculate_election_data(v, c)
+            # Recalculate utilities and tallies for final 2 candidates
+            utilities, rankings, election, \
+                first_preferences, tallies = (
+                    calculate_election_data(v, c))
 
             print('Final two:')
             print_candidates_and_tallies(c, tallies)

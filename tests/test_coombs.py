@@ -231,7 +231,8 @@ def test_coombs_rounds_matches_coombs():
                 [B, C, A],
                 [B, C, A],
                 [C, A, B]]
-    assert coombs(election, 'order') == coombs_rounds(election, 'order')['winner']
+    assert (coombs(election, 'order')
+            == coombs_rounds(election, 'order')['winner'])
     traced = coombs_rounds(election, 'order', record_rounds=True)
     assert traced['final_ballots'].shape == (len(election),)
     assert len(traced['final_tallies']) == 3
@@ -262,7 +263,8 @@ def test_coombs_rounds_min_remaining():
                 [B, C, A],
                 [B, C, A],
                 [C, A, B]]
-    result = coombs_rounds(election, 'order', min_remaining=2, record_rounds=True)
+    result = coombs_rounds(
+        election, 'order', min_remaining=2, record_rounds=True)
     assert sorted(np.flatnonzero(~result['eliminated_mask'])) == [A, C]
     assert len(result['rounds']) == 1
     assert result['rounds'][0]['loser'] == B

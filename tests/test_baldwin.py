@@ -39,9 +39,12 @@ def test_strict_majority(tiebreaker):
 
 
 def test_different_from_irv():
-    # Classic 5-voter example where Baldwin (like Coombs) elects C but IRV elects A.
-    # B has the lowest Borda score and is eliminated first; then C wins with majority.
-    # Under IRV, C is eliminated first (fewest first-choice votes) and A wins.
+    # Classic 5-voter example where Baldwin (like Coombs) elects C
+    # but IRV elects A.
+    # B has the lowest Borda score and is eliminated first;
+    # then C wins with majority.
+    # Under IRV, C is eliminated first (fewest first-choice votes)
+    # and A wins.
     A, B, C = 0, 1, 2
     election = [[A, C, B],
                 [A, C, B],
@@ -131,7 +134,8 @@ def test_electowiki_tennessee_example():
 
     traced = baldwin_rounds(election, 'order', record_rounds=True)
     assert [r['loser'] for r in traced['rounds']] == [Knoxville, Memphis]
-    # 1-based Borda among remaining candidates (matches `borda`, not electowiki table)
+    # 1-based Borda among remaining candidates
+    # (matches `borda`, not electowiki table)
     np.testing.assert_array_equal(
         traced['rounds'][0]['borda_before'],
         [226, 294, 273, 207],
@@ -159,7 +163,8 @@ def test_baldwin_rounds_matches_baldwin():
                 [B, C, A],
                 [B, C, A],
                 [C, A, B]]
-    assert baldwin(election, 'order') == baldwin_rounds(election, 'order')['winner']
+    assert (baldwin(election, 'order')
+            == baldwin_rounds(election, 'order')['winner'])
     traced = baldwin_rounds(election, 'order', record_rounds=True)
     assert traced['final_ballots'].shape == (len(election),)
     assert len(traced['final_tallies']) == 3
@@ -173,7 +178,8 @@ def test_baldwin_rounds_matches_baldwin():
 def test_baldwin_rounds_min_remaining():
     # 65 voters, 5 candidates; no candidate reaches majority in either of the
     # first two rounds, so min_remaining=3 stops after exactly 2 eliminations.
-    # Round 1: z (lowest Borda) eliminated; round 2: y (next lowest) eliminated.
+    # Round 1: z (lowest Borda) eliminated;
+    # round 2: y (next lowest) eliminated.
     v, w, x, y, z = 0, 1, 2, 3, 4
     election = [*11*[[v, w, x, y, z]],
                 *12*[[w, x, y, z, v]],
@@ -181,7 +187,8 @@ def test_baldwin_rounds_min_remaining():
                 *14*[[y, w, v, z, x]],
                 *15*[[z, v, x, w, y]],
                 ]
-    result = baldwin_rounds(election, 'order', min_remaining=3, record_rounds=True)
+    result = baldwin_rounds(
+        election, 'order', min_remaining=3, record_rounds=True)
     assert np.sum(~result['eliminated_mask']) == 3
     assert len(result['rounds']) == 2
     assert result['rounds'][0]['loser'] == z

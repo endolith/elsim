@@ -1,7 +1,8 @@
 """
 Shared utilities for RCV collapse analysis examples.
 
-This module provides common functions used across different RCV collapse scenarios:
+This module provides common functions used across different
+RCV collapse scenarios:
 
 Core Utilities:
 - Election data calculation and analysis (utilities, rankings, tallies)
@@ -18,8 +19,10 @@ Helper Functions:
 - Index-to-label conversion for candidate identification
 
 Used by:
-- collapse_finder.py: Demonstration of center-squeeze failure in 3-candidate RCV
-- collapse_finder final five version.py: Search for worst-case scenarios in two-stage FPTP+RCV system
+- collapse_finder.py:
+  Demonstration of center-squeeze failure in 3-candidate RCV
+- collapse_finder final five version.py:
+  Search for worst-case scenarios in two-stage FPTP+RCV system
 """
 
 import matplotlib.pyplot as plt
@@ -105,7 +108,7 @@ def count_wins(matrix):
 
 
 def calculate_election_data(v, c):
-    """Calculate utilities, rankings, election matrix, and first preference tallies."""
+    """Calculate utilities, rankings, election matrix, and tallies."""
     utilities = normed_dist_utilities(v, c)
     rankings = honest_rankings(utilities)
     election = np.asarray(rankings)
@@ -130,7 +133,7 @@ def indices_to_letters(indices, letters=None):
 
 def gaussian(x, mu, sigma):
     """
-    Return a normal distribution pdf with center `mu` and standard deviation `sigma`.
+    Normal distribution pdf with center `mu` and stdev `sigma`.
     """
     return np.exp(-(x-mu)**2/(2*sigma**2))
 
@@ -138,7 +141,8 @@ def gaussian(x, mu, sigma):
 def setup_plot_axes(fig, ax_hist, x_max):
     """Setup common plot axes with consistent styling."""
     # Now define the inset axes
-    ax_fptp = ax_hist.inset_axes([0.08, 0.65, 0.25, 0.3])  # [x, y, width, height]
+    # [x, y, width, height]
+    ax_fptp = ax_hist.inset_axes([0.08, 0.65, 0.25, 0.3])
 
     # Adjust axis parameters for visibility
     for ax in [ax_fptp]:

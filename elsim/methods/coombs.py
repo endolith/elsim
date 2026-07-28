@@ -10,7 +10,8 @@ _tiebreak_map = {'order': _order_tiebreak_elim,
                  None: _no_tiebreak}
 
 
-def coombs_rounds(election, tiebreaker=None, *, min_remaining=1, record_rounds=False):
+def coombs_rounds(election, tiebreaker=None, *, min_remaining=1,
+                  record_rounds=False):
     """
     Run Coombs' method and return per-round elimination data.
 
@@ -75,7 +76,8 @@ def coombs_rounds(election, tiebreaker=None, *, min_remaining=1, record_rounds=F
             break
 
         # If not, eliminate candidate with the most last-place votes
-        _tally_at_rank_idx(cand_bottom_tallies, election, voter_bottom_rank_idx)
+        _tally_at_rank_idx(cand_bottom_tallies, election,
+                           voter_bottom_rank_idx)
         # (tolist makes things 2-4x faster)
         cand_bottom_tallies_list = cand_bottom_tallies.tolist()
         max_cand_bottom_tally = max(cand_bottom_tallies_list)
@@ -87,8 +89,10 @@ def coombs_rounds(election, tiebreaker=None, *, min_remaining=1, record_rounds=F
             return None
 
         if record_rounds:
-            ballots_before = election[np.arange(n_voters), voter_top_rank_idx].copy()
-            affected_voters = np.flatnonzero(ballots_before == cand_to_eliminate)
+            ballots_before = election[np.arange(n_voters),
+                                      voter_top_rank_idx].copy()
+            affected_voters = np.flatnonzero(ballots_before ==
+                                             cand_to_eliminate)
 
         eliminated_mask[cand_to_eliminate] = True
 
@@ -98,7 +102,8 @@ def coombs_rounds(election, tiebreaker=None, *, min_remaining=1, record_rounds=F
         _dec_rank_idx(election, voter_bottom_rank_idx, eliminated_mask)
 
         if record_rounds:
-            ballots_after = election[np.arange(n_voters), voter_top_rank_idx].copy()
+            ballots_after = election[np.arange(n_voters),
+                                     voter_top_rank_idx].copy()
             rounds.append({
                 'loser': cand_to_eliminate,
                 'ballots_before': ballots_before,

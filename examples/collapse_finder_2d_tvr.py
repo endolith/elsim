@@ -8,8 +8,9 @@ satisfies the Condorcet criterion: the center candidate (Condorcet winner) is
 never eliminated and always wins.  The same election that shows IRV's center
 collapse shows TVR's center convergence.
 
-Set INPUT_POSITIONS to the positions.npz path saved by collapse_finder_2d_irv.py
-to reuse that election, or leave None to search for a fresh one.
+Set INPUT_POSITIONS to the positions.npz path saved by
+collapse_finder_2d_irv.py to reuse that election, or leave None
+to search for a fresh one.
 """
 
 from datetime import datetime
@@ -51,7 +52,8 @@ from collapse_2d_shared import (
 from collapse_utils import count_wins
 
 
-# Path to positions.npz from a previous run, or None to search for a fresh election.
+# Path to positions.npz from a previous run,
+# or None to search for a fresh election.
 INPUT_POSITIONS = None
 
 
@@ -78,10 +80,12 @@ def simulate_tvr_rounds(election, candidates):
     dists = np.linalg.norm(candidates, axis=1)
     center = int(np.argmin(dists))
     if winner != center:
-        return None  # TVR didn't converge to center candidate; skip this election
+        # TVR didn't converge to center candidate; skip this election
+        return None
 
     rounds = result['rounds']
-    # final_two: the loser of the last elimination round and the overall winner.
+    # final_two: the loser of the last elimination round
+    # and the overall winner.
     final_two = [rounds[-1]['loser'], winner]
 
     return {
@@ -98,7 +102,8 @@ def find_center_convergent_election(n_voters, n_cands, max_trials, disp=1.0):
     Returns (trial, voters, candidates, rankings, trace).
     """
     for trial in range(1, max_trials + 1):
-        voters, candidates = normal_electorate(n_voters, n_cands, dims=2, disp=disp)
+        voters, candidates = normal_electorate(
+            n_voters, n_cands, dims=2, disp=disp)
         candidates[0] = 0.0
         candidates = sort_candidates_bell_curve(candidates)
         utilities = normed_dist_utilities(voters, candidates)
@@ -109,7 +114,7 @@ def find_center_convergent_election(n_voters, n_cands, max_trials, disp=1.0):
     return None
 
 
-# ── Rendering ─────────────────────────────────────────────────────────────────
+# ── Rendering ─────────────────────────────────────────────────────────
 
 def render_frame(
     voters,
@@ -138,20 +143,23 @@ def render_frame(
         currently being animated out), their scores may be non-zero.  For
         candidates eliminated in a previous round, scores are 0.
     n_borda_active : int
-        The number of candidates whose Borda scores are non-trivially included in
-        borda_scores (i.e. the active-set size when borda_scores was tallied).
-        Used to convert Borda scores to avg_rank values for annotations.
+        The number of candidates whose Borda scores are non-trivially
+        included in borda_scores (i.e. the active-set size when
+        borda_scores was tallied).  Used to convert Borda scores to
+        avg_rank values for annotations.
     """
     if eliminated is None:
         eliminated = set()
 
     n_cands = len(candidates)
-    # Candidates visible on scatter and coloured in bar charts (no loser, no old eliminated).
+    # Candidates visible on scatter and coloured in bar charts
+    # (no loser, no old eliminated).
     remaining = [c for c in range(n_cands) if c not in eliminated]
     active_colors = [colors[n] if n not in eliminated else [0.5, 0.5, 0.5]
                      for n in range(n_cands)]
 
-    bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color, dead_zone_color = get_theme(dark_background)
+    bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color, \
+        dead_zone_color = get_theme(dark_background)
 
     fig = plt.figure(figsize=(9, 7.5), facecolor=bg)
     ax_sc = plt.subplot2grid(shape=(6, 3), loc=(0, 0), colspan=2, rowspan=6)
@@ -167,24 +175,27 @@ def render_frame(
         for spine in ax.spines.values():
             spine.set_color(fg)
 
-    # ── Scatter plot ──────────────────────────────────────────────────────────
+    # ── Scatter plot ──────────────────────────────────────────────────────
     voters_kwargs = {'marker': '.', 'alpha': 0.25, 's': 12}
     cands_kwargs = {'marker': 'o', 's': 30, 'edgecolors': fg}
 
     ax_sc.scatter([], [], color=fg, **voters_kwargs, label='Voters')
     ax_sc.scatter([], [], color=fg, **cands_kwargs, label='Candidates')
     ax_sc.legend(loc='lower right', numpoints=1, fontsize='small',
-                 labelcolor=legend_fg, facecolor=legend_bg, edgecolor=legend_fg)
+                 labelcolor=legend_fg,
+                 facecolor=legend_bg, edgecolor=legend_fg)
     setup_scatter_axis_sigma(ax_sc, voters)
 
-    voronoi_plot_2d_axes(ax_sc, candidates[remaining], line_color=voronoi_color,
-                         line_alpha=0.45)
+    voronoi_plot_2d_axes(
+        ax_sc, candidates[remaining],
+        line_color=voronoi_color, line_alpha=0.45)
 
     path_effects = [PathEffects.withStroke(linewidth=3, foreground=stroke_fg)]
 
-    # Color voters by their current first-choice candidate (the `ballots` array),
-    # exactly like the IRV animation.  Voters whose first choice is in `eliminated`
-    # are shown gray (active_colors handles this since eliminated candidates get gray).
+    # Color voters by their current first-choice candidate
+    # (the `ballots` array), exactly like the IRV animation.
+    # Voters whose first choice is in `eliminated` are shown gray
+    # (active_colors handles this since eliminated get gray).
     for cand in range(len(candidates)):
         cand_voters = voters[ballots == cand]
         if len(cand_voters):
@@ -198,13 +209,16 @@ def render_frame(
                        textcoords='offset points', path_effects=path_effects,
                        color=fg)
 
-    # ── Borda/average-rank bar chart ─────────────────────────────────────────
-    # y-axis is fixed at [0, n_cands-1] with tick labels: 1 (best) at top, n_cands (worst) at bottom.
-    # dead_height = the number of rank slots that no longer exist (= n_cands - n_borda_active).
-    # All bars sit on top of the dead zone: bottom=dead_height, so bars appear to rest on the band.
-    # bar_segment = n_cands - avg_rank - dead_height  (the visible portion above the dead zone).
-    # avg_rank = n_borda_active - borda/n_voters for candidates with active Borda scores.
-    dead_height = n_cands - n_borda_active  # 0 in round 0, grows by 1 per round
+    # ── Borda/average-rank bar chart ─────────────────────────────────────
+    # y-axis fixed at [0, n_cands-1]; tick labels 1 (best) at top.
+    # dead_height = rank slots that no longer exist
+    #   (= n_cands - n_borda_active).
+    # All bars sit on top of the dead zone: bottom=dead_height.
+    # bar_segment = n_cands - avg_rank - dead_height
+    #   (visible portion above the dead zone).
+    # avg_rank = n_borda_active - borda/n_voters
+    #   for candidates with active Borda scores.
+    dead_height = n_cands - n_borda_active  # 0 in round 0
     n_total_voters = len(voters)
     bar_segments = np.zeros(n_cands)
     avg_ranks = np.zeros(n_cands)
@@ -218,11 +232,12 @@ def render_frame(
     bars = ax_bar.bar(range(n_cands), bar_segments, bottom=dead_height,
                       tick_label=list(labels), color=active_colors)
     for c, rect in enumerate(bars):
-        top = rect.get_y() + rect.get_height()  # = dead_height + bar_segments[c]
+        # top = dead_height + bar_segments[c]
+        top = rect.get_y() + rect.get_height()
         # Only annotate surviving candidates (not the loser being faded out).
         if bar_segments[c] > 0 and c in remaining:
-            # When the bar top is within 2 units of the axis top, the label above
-            # would overflow; place it inside the bar instead.
+            # When the bar top is within 2 units of the axis top,
+            # the label above would overflow; place inside instead.
             near_top = top >= n_cands - 2
             ax_bar.annotate(
                 f'{avg_ranks[c]:.1f}',
@@ -238,10 +253,13 @@ def render_frame(
     # Dead zone band: dark shading over the unreachable rank slots.
     if dead_height > 0:
         ax_bar.axhspan(0, dead_height, color=dead_zone_color, zorder=0)
-    # Custom y-ticks: rank labels (1 at top = n_cands-1, n_cands at bottom = 0).
+    # Custom y-ticks: rank labels (1 at top, n_cands at bottom).
     # Suppress labels inside the dead zone.
     tick_vals = list(range(n_cands))
-    tick_labels = ['' if v < dead_height else str(n_cands - v) for v in tick_vals]
+    tick_labels = [
+        '' if v < dead_height else str(n_cands - v)
+        for v in tick_vals
+    ]
     ax_bar.set_yticks(tick_vals)
     ax_bar.set_yticklabels(tick_labels)
     ax_bar.set_ylabel('Avg. rank (1=best)')
@@ -286,13 +304,18 @@ def run_tvr_animation(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    colors, labels = prepare_palette_and_labels(palette_name, n_cands, dark_background)
+    colors, labels = prepare_palette_and_labels(
+        palette_name, n_cands, dark_background)
 
     rounds = trace['rounds']
     winner = trace['winner']
     final_two = trace['final_two']
 
-    np.savez(output_dir / 'positions.npz', voters=voters, candidates=candidates)
+    np.savez(
+        output_dir / 'positions.npz',
+        voters=voters,
+        candidates=candidates,
+    )
 
     utilities = normed_dist_utilities(voters, candidates)
     approval_pct = utilities.mean(axis=0) * 100
@@ -389,7 +412,8 @@ def run_tvr_animation(
                 dark_background=dark_background,
             )
             is_last_transfer = (step == frames_per_transfer - 1)
-            durations.append(KEY_FRAME_MS if is_last_transfer else transfer_step_ms)
+            durations.append(
+                KEY_FRAME_MS if is_last_transfer else transfer_step_ms)
             frame += 1
 
         eliminated.add(loser)
@@ -429,7 +453,9 @@ def run_tvr_animation(
 
 if __name__ == '__main__':
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_dir = RESULTS_DIR / f'collapse_2d_tvr_{timestamp}_nc{n_cands}_nv{n_voters}'
+    output_dir = (
+        RESULTS_DIR
+        / f'collapse_2d_tvr_{timestamp}_nc{n_cands}_nv{n_voters}')
 
     if INPUT_POSITIONS is not None:
         data = np.load(INPUT_POSITIONS)
@@ -440,12 +466,14 @@ if __name__ == '__main__':
         trace = simulate_tvr_rounds(rankings, candidates)
         if trace is None:
             raise RuntimeError(
-                f'TVR did not converge to center candidate for the election in '
-                f'{INPUT_POSITIONS}.  Try a different positions.npz.'
+                f'TVR did not converge to center candidate '
+                f'for the election in {INPUT_POSITIONS}.  '
+                'Try a different positions.npz.'
             )
         print(f'Loaded election from {INPUT_POSITIONS}.')
     else:
-        result = find_center_convergent_election(n_voters, n_cands, max_trials, disp=disp)
+        result = find_center_convergent_election(
+            n_voters, n_cands, max_trials, disp=disp)
         if result is None:
             raise RuntimeError(
                 'No TVR-convergent center election found. '
@@ -454,7 +482,9 @@ if __name__ == '__main__':
         trial, voters, candidates, rankings, trace = result
         print(f'Found TVR-convergent election on trial {trial}.')
 
-    print('TVR elimination order:', ' -> '.join(candidate_name(r['loser']) for r in trace['rounds']))
+    elim_order = ' -> '.join(
+        candidate_name(r['loser']) for r in trace['rounds'])
+    print('TVR elimination order:', elim_order)
     print('TVR winner:', candidate_name(trace['winner']))
 
     run_tvr_animation(
