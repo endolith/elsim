@@ -50,7 +50,8 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'examples/README.md', 'examples/results']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'examples/README.md',
+                    'examples/results']
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -90,11 +91,12 @@ source_suffix = {
 }
 
 
-# So that examples/index gets image paths relative to that page (results/xxx not
-# examples/results/xxx), we include from a copy of the README inside docs/examples/.
-# Paths in that file (./results/) are then relative to the document and resolve
-# correctly. Copy repo examples/README.md and examples/results/ into docs/examples/
-# at build start so the doc and Sphinx can find them.
+# So that examples/index gets image paths relative to that page (results/xxx
+# not examples/results/xxx), we include from a copy of the README inside
+# docs/examples/. Paths in that file (./results/) are then relative to the
+# document and resolve correctly. Copy repo examples/README.md and
+# examples/results/ into docs/examples/ at build start so the doc and Sphinx
+# can find them.
 import os
 import shutil
 
@@ -116,6 +118,7 @@ def prepare_examples_doc(app, config):
 
 def setup(app):
     app.connect('config-inited', prepare_examples_doc)
+
 
 # Add this to enable regular markdown mermaid syntax
 myst_fence_as_directive = ["mermaid"]
