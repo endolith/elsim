@@ -1,9 +1,10 @@
 """
 Shared palette, Voronoi, and theme for 2D collapse finder scripts.
 
-Used by collapse_finder_2d_irv.py, collapse_finder_2d_tvr.py, collapse_finder_2d_both.py,
-and collapse_finder_2d_palette_demo.py.
-Blacklist: Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12 omitted (always bad).
+Used by collapse_finder_2d_irv.py, collapse_finder_2d_tvr.py,
+collapse_finder_2d_both.py, and collapse_finder_2d_palette_demo.py.
+Blacklist: Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12
+omitted (always bad).
 """
 
 import importlib
@@ -18,7 +19,8 @@ from scipy.spatial import Voronoi
 # Default output root for collapse finder scripts (examples/results/).
 RESULTS_DIR = Path(__file__).resolve().parent / 'results'
 
-# Shared animation config for IRV/TVR/both scripts. Override in script if needed.
+# Shared animation config for IRV/TVR/both scripts.
+# Override in script if needed.
 n_voters = 5000
 n_cands = 9
 max_trials = 100_000
@@ -31,17 +33,30 @@ palette_name = 'Bold_10'
 # palette_name = 'Bold_10'
 
 
-# GIF timing: key frames (start, eliminate, last of transition, winner) and transition total.
+# GIF timing: key frames (start, eliminate, last of transition,
+# winner) and transition total.
 KEY_FRAME_MS = 3000
 TRANSITION_TOTAL_MS = 3000
 
 
-# module_path -> list of palette attr names. Uses .mpl_colors except colorcet (hex list).
-# Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12, TrafficLight_9 omitted (always bad).
+# module_path -> list of palette attr names.
+# Uses .mpl_colors except colorcet (hex list).
+# Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12,
+# TrafficLight_9 omitted (always bad).
 PALETTE_OPTIONS = {
-    'palettable.cartocolors.qualitative': ['Antique_10', 'Bold_10', 'Pastel_10', 'Prism_10', 'Safe_10', 'Vivid_10'],
-    'palettable.colorbrewer.qualitative': ['Set3_12', 'Set2_8', 'Set1_9', 'Paired_12', 'Dark2_8', 'Accent_8'],
-    'palettable.tableau': ['ColorBlind_10', 'GreenOrange_12', 'TableauLight_10', 'TableauMedium_10', 'Tableau_10', 'Tableau_20'],
+    'palettable.cartocolors.qualitative': [
+        'Antique_10', 'Bold_10', 'Pastel_10',
+        'Prism_10', 'Safe_10', 'Vivid_10',
+    ],
+    'palettable.colorbrewer.qualitative': [
+        'Set3_12', 'Set2_8', 'Set1_9',
+        'Paired_12', 'Dark2_8', 'Accent_8',
+    ],
+    'palettable.tableau': [
+        'ColorBlind_10', 'GreenOrange_12',
+        'TableauLight_10', 'TableauMedium_10',
+        'Tableau_10', 'Tableau_20',
+    ],
     'colorcet': ['glasbey_light', 'glasbey_dark'],
 }
 
@@ -49,8 +64,9 @@ PALETTE_NAMES = [n for names in PALETTE_OPTIONS.values() for n in names]
 
 
 def transition_step_ms(n_transfer):
-    """Per-frame ms for non-final transfer frames so they total TRANSITION_TOTAL_MS."""
-    return TRANSITION_TOTAL_MS // max(1, n_transfer - 1) if n_transfer > 1 else 0
+    """Per-frame ms so total matches TRANSITION_TOTAL_MS."""
+    return (TRANSITION_TOTAL_MS // max(1, n_transfer - 1)
+            if n_transfer > 1 else 0)
 
 
 def get_palette_colors(name):
@@ -78,10 +94,9 @@ def ceildiv(a, b):
 
 
 def plot_wins(ax, wins, colors, labels, edgecolor='black', gap=0.15):
-    """
-    Plot head-to-head wins as stacked square blocks per candidate.
-    Blocks are square, symmetrically spaced; integer y-ticks. Used by IRV and TVR.
-    """
+    """Plot head-to-head wins as stacked square blocks per candidate.
+    Blocks are square, symmetrically spaced; integer y-ticks.
+    Used by IRV and TVR."""
     n_cands = len(wins)
     block = 1.0 - 2 * gap
     max_w = max(wins) if wins else 0
@@ -100,8 +115,13 @@ def plot_wins(ax, wins, colors, labels, edgecolor='black', gap=0.15):
 
 
 def plot_approval_bar(ax, approval_pct, labels, colors, fg, grid):
-    """Bar chart for approval rating 0–100%. Used by IRV, TVR, and palette_demo."""
-    bars = ax.bar(range(len(labels)), approval_pct, tick_label=list(labels), color=colors)
+    """Bar chart for approval rating 0–100%.
+
+    Used by IRV, TVR, and palette_demo.
+    """
+    bars = ax.bar(
+        range(len(labels)), approval_pct,
+        tick_label=list(labels), color=colors)
     for rect in bars:
         height = rect.get_height()
         if height > 0:
@@ -118,26 +138,35 @@ def plot_approval_bar(ax, approval_pct, labels, colors, fg, grid):
     ax.set_ylabel('Approval [%]')
     ax.grid(True, alpha=0.25, axis='y', color=grid)
     ax.set_axisbelow(True)
-    ax.text(0.5, 1.04, 'Approval rating', transform=ax.transAxes, ha='center', va='center', color=fg)
+    ax.text(0.5, 1.04, 'Approval rating',
+            transform=ax.transAxes,
+            ha='center', va='center', color=fg)
 
 
 def plot_wins_with_title(ax, wins, colors, labels, fg, gap=0.1):
-    """Plot head-to-head wins and set the standard subplot title. Used by IRV, TVR, palette_demo."""
+    """Plot head-to-head wins and set subplot title.
+
+    Used by IRV, TVR, palette_demo.
+    """
     plot_wins(ax, wins, colors, labels, edgecolor=fg, gap=gap)
-    ax.text(0.5, 1.04, 'Head-to-head wins', transform=ax.transAxes, ha='center', va='center', color=fg)
+    ax.text(0.5, 1.04, 'Head-to-head wins',
+            transform=ax.transAxes,
+            ha='center', va='center', color=fg)
 
 
 def prepare_palette_and_labels(palette_name, n_cands, dark_background):
     """
-    Load palette, apply Set1_9 yellow fix for light bg, trim to n_cands, build labels.
-    Returns (colors, labels). Raises ValueError if palette has fewer than n_cands colors.
+    Load palette, apply Set1_9 yellow fix for light bg, trim to n_cands.
+    Build labels. Returns (colors, labels).
+    Raises ValueError if palette too small.
     """
     colors = get_palette_colors(palette_name)
     if not dark_background and palette_name == 'Set1_9' and len(colors) > 5:
         colors.pop(5)
     if n_cands > len(colors):
         raise ValueError(
-            f'n_cands={n_cands} exceeds palette "{palette_name}" size ({len(colors)}). '
+            f'n_cands={n_cands} exceeds palette '
+            f'"{palette_name}" size ({len(colors)}). '
             'Use fewer candidates or a larger palette.'
         )
     colors = colors[:n_cands]
@@ -153,7 +182,10 @@ def _color_to_rgb(c):
 
 
 def remove_grays(colors, min_saturation=0.12):
-    """Drop colors that are effectively gray (low saturation). Returns (filtered_list, n_remaining)."""
+    """Drop colors that are effectively gray (low saturation).
+
+    Returns (filtered_list, n_remaining).
+    """
     out = []
     for c in colors:
         rgb = np.array(_color_to_rgb(c)).reshape(1, 3)
@@ -163,17 +195,24 @@ def remove_grays(colors, min_saturation=0.12):
     return out, len(out)
 
 
-def voronoi_plot_2d_axes(ax, points, line_color='white', line_alpha=0.45):
-    """Draw Voronoi diagram of points on ax (no bounds change). Like elsim2k _plotutils."""
+def voronoi_plot_2d_axes(ax, points, line_color='white',
+                          line_alpha=0.45):
+    """Draw Voronoi diagram of points on ax.
+
+    No bounds change. Like elsim2k _plotutils.
+    """
     points = np.asarray(points)
     if len(points) < 2:
         return
     if len(points) == 2:
         (x1, y1), (x2, y2) = points[0], points[1]
         ylo, yhi = -100, 100
-        xlo = (y2**2 - 2*ylo*y2 - y1**2 + 2*ylo*y1 + x2**2 - x1**2) / (2*x2 - 2*x1)
-        xhi = (y2**2 - 2*yhi*y2 - y1**2 + 2*yhi*y1 + x2**2 - x1**2) / (2*x2 - 2*x1)
-        ax.plot([xlo, xhi], [ylo, yhi], ':', color=line_color, alpha=line_alpha)
+        xlo = ((y2**2 - 2*ylo*y2 - y1**2 + 2*ylo*y1
+                + x2**2 - x1**2) / (2*x2 - 2*x1))
+        xhi = ((y2**2 - 2*yhi*y2 - y1**2 + 2*yhi*y1
+                + x2**2 - x1**2) / (2*x2 - 2*x1))
+        ax.plot([xlo, xhi], [ylo, yhi], ':',
+                color=line_color, alpha=line_alpha)
         return
     vor = Voronoi(points)
     center = points.mean(axis=0)
@@ -224,14 +263,17 @@ def sort_candidates_bell_curve(candidates):
     left_idx = np.where(left_mask)[0]
     right_idx = np.where(right_mask)[0]
 
-    left_sorted = left_idx[np.argsort(dists[left_idx])[::-1]]   # farthest first
-    right_sorted = right_idx[np.argsort(dists[right_idx])]       # nearest first
+    left_sorted = left_idx[
+        np.argsort(dists[left_idx])[::-1]]   # farthest first
+    right_sorted = right_idx[
+        np.argsort(dists[right_idx])]        # nearest first
 
     return candidates[np.concatenate([left_sorted, center_idx, right_sorted])]
 
 
 def get_theme(dark_background):
-    """Return (bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color, dead_zone_color)."""
+    """Return (bg, fg, grid, stroke_fg, legend_bg, legend_fg,
+    voronoi_color, dead_zone_color)."""
     if dark_background:
         return (
             'black', 'white', 'white', 'black', 'black', 'white',
@@ -241,7 +283,9 @@ def get_theme(dark_background):
     return (
         'white', 'black', 'gray', 'white', 'white', 'black',
         (0.12, 0.12, 0.12),
-        '0.88',  # light gray band for TVR rank dead zone (dark band looks wrong on white)
+        # light gray band for TVR rank dead zone
+        # (dark band looks wrong on white bg)
+        '0.88',
     )
 
 

@@ -54,7 +54,8 @@ def _prahran_2014_election():
 
     https://en.wikipedia.org/wiki/Instant-runoff_voting#2014_Prahran_election_(Victoria)
     """
-    Hibbins, Walker, Pharaoh, Goldsmith, Stefanopoulos, NewtonBrown, Gullone, Menadue = range(8)
+    Hibbins, Walker, Pharaoh, Goldsmith, Stefanopoulos, \
+        NewtonBrown, Gullone, Menadue = range(8)
 
     first_prefs = {
         Menadue: 82,
@@ -385,7 +386,8 @@ def test_wikipedia_examples_elimination_order():
     assert set(prahran_losers) == {7, 4, 1, 3, 6, 2}
     assert prahran['winner'] == 0  # Sam Hibbins
 
-    burlington = irv_rounds(_burlington_2009_election(), 'order', record_rounds=True)
+    burlington = irv_rounds(
+        _burlington_2009_election(), 'order', record_rounds=True)
     assert [r['loser'] for r in burlington['rounds']] == [
         4, 5, 3, 1,  # Simpson, Write-in, Smith, Montroll
     ]

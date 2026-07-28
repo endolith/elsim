@@ -1,16 +1,19 @@
 """
 Demonstrate a center-squeeze failure in IRV with three candidates.
 
-This example shows a classic IRV failure mode with 3 candidates at fixed positions:
+This example shows a classic IRV failure mode with 3 candidates
+at fixed positions:
 - Voters rank candidates honestly based on spatial preferences
 - The candidate with the fewest first-preference votes is eliminated
 - The middle candidate (Condorcet winner) gets eliminated first
 
-This demonstrates a fundamental failure of IRV where the Condorcet winner
-(candidate who beats all others head-to-head) gets eliminated due to
-having the fewest first-preference votes, leading to a suboptimal final result.
+This demonstrates a fundamental failure of IRV where the Condorcet
+winner (candidate who beats all others head-to-head) gets eliminated
+due to having the fewest first-preference votes, leading to a
+suboptimal final result.
 
-The example uses fixed candidate positions to clearly illustrate the failure pattern.
+The example uses fixed positions to clearly illustrate the failure
+pattern.
 """
 
 import matplotlib.pyplot as plt
@@ -154,8 +157,9 @@ ax_fptp.set_ylabel('1st rankings [%]')
 
 # def plot_wins(wins, ax, colors='b', gap=0.1):
 #     """
-#     Plot number of wins as discrete blocks stacked on top of each other with symmetrical gaps.
-
+#     Plot number of wins as discrete blocks stacked on top
+#     of each other with symmetrical gaps.
+#
 #     Parameters
 #     ----------
 #     wins : list
@@ -168,24 +172,25 @@ ax_fptp.set_ylabel('1st rankings [%]')
 #         The gap to leave between blocks. Default is 0.2.
 #     """
 #     n_cands = len(wins)
-#     block_height = 1 - gap  # The height of each block, accounting for the gap.
-#     total_height = block_height + gap  # Total height including the gap below each block.
+#     block_height = 1 - gap  # Height of each block
+#     total_height = block_height + gap  # Total height with gap
 #     for n in range(n_cands):
 #         for i in range(int(wins[n])):
-#             # The bottom parameter is adjusted to include the gap below each block.
+#             # The bottom is adjusted to include gap
 #             ax.bar(n, block_height, bottom=i * total_height,
-#                    color=colors if isinstance(colors, str) else colors[n],
+#                    color=colors
+#                    if isinstance(colors, str) else colors[n],
 #                    edgecolor='black', linewidth=1, width=1-gap)
 #     ax.set_xticks(range(n_cands))
 #     ax.set_xticklabels([letters[n] for n in range(n_cands)])
-#     ax.set_xlim(-0.5, n_cands-0.5)  # Set fixed x-axis limits
+#     ax.set_xlim(-0.5, n_cands-0.5)  # Fixed x-axis limits
 #     ax.set_ylabel('Head-to-head wins')
 
 # # Use the function
 # wins = count_wins(original_matrix)
 # plot_wins(wins, ax_wins, colors)
 
-# # To ensure the aspect ratio is set such that blocks are always squares, regardless of the figure dimensions
+# # To ensure blocks are squares regardless of figure dimensions
 # ax_wins.set_aspect('equal', adjustable='datalim')
 
 plt.tight_layout()

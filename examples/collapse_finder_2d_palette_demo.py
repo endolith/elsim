@@ -2,8 +2,11 @@
 Demo each colormap as a static first frame matching the IRV animation layout.
 
 Uses a fixed election (positions.npz) so all palettes are comparable. Layout:
-scatter + votes bar + approval rating + head-to-head wins (same as IRV start frame).
-Saves to examples/results/palette_demo_<timestamp>/{9cand_dark,9cand_white}/<palette>.png.
+scatter + votes bar + approval rating + head-to-head wins
+(same as IRV start frame).
+Saves to
+examples/results/palette_demo_<timestamp>/
+{9cand_dark,9cand_white}/<palette>.png.
 """
 
 from datetime import datetime
@@ -33,16 +36,24 @@ from collapse_2d_shared import (
 from collapse_utils import count_wins
 
 
-INPUT_POSITIONS = Path('../elsim3k core collapse/collapse_2d_both_20260308_141324_nc9_nv5000 great/positions.npz')
+INPUT_POSITIONS = Path(
+    '../elsim3k core collapse/'
+    'collapse_2d_both_20260308_141324_nc9_nv5000 great/positions.npz'
+)
 
 
-def render_first_frame(voters, candidates, ballots, tallies, approval_pct, wins,
-                       colors, labels, output_path, dark_background=True):
-    """Render IRV start frame: same (6,3) layout as collapse_finder_2d_irv (scatter, votes, approval, head-to-head)."""
+def render_first_frame(voters, candidates,
+                       ballots, tallies,
+                       approval_pct, wins,
+                       colors, labels, output_path,
+                       dark_background=True):
+    """Render IRV start frame: same (6,3) layout as collapse_finder_2d_irv
+    (scatter, votes, approval, head-to-head)."""
     n_cands = len(candidates)
     n_voters = len(voters)
 
-    bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color, _ = get_theme(dark_background)
+    bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color, _ = (
+        get_theme(dark_background))
 
     fig = plt.figure(figsize=(9, 7.5), facecolor=bg)
     ax_sc = plt.subplot2grid(shape=(6, 3), loc=(0, 0), colspan=2, rowspan=6)
@@ -64,32 +75,45 @@ def render_first_frame(voters, candidates, ballots, tallies, approval_pct, wins,
 
     ax_sc.scatter([], [], color=fg, **voters_kwargs, label='Voters')
     ax_sc.scatter([], [], color=fg, **cands_kwargs, label='Candidates')
-    ax_sc.legend(loc='lower right', numpoints=1, fontsize='small', labelcolor=legend_fg,
+    ax_sc.legend(loc='lower right', numpoints=1, fontsize='small',
+                 labelcolor=legend_fg,
                  facecolor=legend_bg, edgecolor=legend_fg)
     setup_scatter_axis_sigma(ax_sc, voters)
 
-    voronoi_plot_2d_axes(ax_sc, candidates, line_color=voronoi_color, line_alpha=0.45)
+    voronoi_plot_2d_axes(
+        ax_sc, candidates,
+        line_color=voronoi_color, line_alpha=0.45)
 
     for cand in range(n_cands):
         cand_voters = voters[ballots == cand]
         if len(cand_voters):
-            ax_sc.scatter(cand_voters[:, 0], cand_voters[:, 1], color=colors[cand], **voters_kwargs)
-    ax_sc.scatter(candidates[:, 0], candidates[:, 1], color=colors, **cands_kwargs)
+            ax_sc.scatter(
+                cand_voters[:, 0], cand_voters[:, 1],
+                color=colors[cand], **voters_kwargs)
+    ax_sc.scatter(candidates[:, 0], candidates[:, 1],
+                  color=colors, **cands_kwargs)
     for cand, pos in enumerate(candidates):
         ax_sc.annotate(labels[cand], xy=pos, xytext=(0, -15),
-                       textcoords='offset points', path_effects=path_effects, color=fg)
+                       textcoords='offset points',
+                       path_effects=path_effects, color=fg)
 
-    bars = ax_bar.bar(range(n_cands), tallies / n_voters * 100, tick_label=list(labels), color=colors)
+    bars = ax_bar.bar(
+        range(n_cands), tallies / n_voters * 100,
+        tick_label=list(labels), color=colors)
     for rect in bars:
         height = rect.get_height()
         if height > 0:
-            ax_bar.annotate(f'{height:.0f}', xy=(rect.get_x() + rect.get_width() / 2, height),
-                            xytext=(0, 3), textcoords='offset points', ha='center', va='bottom', color=fg)
+            ax_bar.annotate(
+                f'{height:.0f}',
+                xy=(rect.get_x() + rect.get_width() / 2, height),
+                xytext=(0, 3), textcoords='offset points',
+                ha='center', va='bottom', color=fg)
     ax_bar.set_ylim(0, 100)
     ax_bar.set_ylabel('Votes [%]')
     ax_bar.grid(True, alpha=0.25, axis='y', color=grid)
     ax_bar.set_axisbelow(True)
-    ax_bar.text(0.5, 1.04, 'IRV start', transform=ax_bar.transAxes, ha='center', va='center', color=fg)
+    ax_bar.text(0.5, 1.04, 'IRV start', transform=ax_bar.transAxes,
+                ha='center', va='center', color=fg)
 
     plot_approval_bar(ax_score, approval_pct, labels, colors, fg, grid)
     plot_wins_with_title(ax_wins, wins, colors, labels, fg, gap=0.1)
@@ -100,7 +124,8 @@ def render_first_frame(voters, candidates, ballots, tallies, approval_pct, wins,
 
 
 def get_colors_for_bg(palette_name, n_cands, dark_background):
-    """Get color list for this background. Returns (colors, n_after_grays) or (None, 0)."""
+    """Get color list for this background.
+    Returns (colors, n_after_grays) or (None, 0)."""
     raw = get_palette_colors(palette_name)
     if not dark_background and palette_name == 'Set1_9' and len(raw) > 5:
         c = list(raw)
@@ -132,7 +157,8 @@ if __name__ == '__main__':
     for sub in ('9cand_dark', '9cand_white'):
         (output_base / sub).mkdir(parents=True, exist_ok=True)
 
-    print(f'Loaded election from {INPUT_POSITIONS} ({n_cands} candidates, {n_voters} voters).')
+    print(f'Loaded election from {INPUT_POSITIONS} '
+          f'({n_cands} candidates, {n_voters} voters).')
     print('Palette sizes (original -> after removing grays):')
     for pname in PALETTE_NAMES:
         try:

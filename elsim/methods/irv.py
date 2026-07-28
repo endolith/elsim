@@ -9,7 +9,8 @@ _tiebreak_map = {'order': _order_tiebreak_elim,
                  None: _no_tiebreak}
 
 
-def irv_rounds(election, tiebreaker=None, *, min_remaining=1, record_rounds=False):
+def irv_rounds(election, tiebreaker=None, *, min_remaining=1,
+               record_rounds=False):
     """
     Run instant-runoff voting and return per-round elimination data.
 
@@ -91,14 +92,17 @@ def irv_rounds(election, tiebreaker=None, *, min_remaining=1, record_rounds=Fals
             return None
 
         if record_rounds:
-            ballots_before = election[np.arange(n_voters), voter_top_rank_idx].copy()
-            affected_voters = np.flatnonzero(ballots_before == cand_to_eliminate)
+            ballots_before = election[np.arange(n_voters),
+                                      voter_top_rank_idx].copy()
+            affected_voters = np.flatnonzero(ballots_before ==
+                                             cand_to_eliminate)
 
         eliminated_mask[cand_to_eliminate] = True
         _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
 
         if record_rounds:
-            ballots_after = election[np.arange(n_voters), voter_top_rank_idx].copy()
+            ballots_after = election[np.arange(n_voters),
+                                     voter_top_rank_idx].copy()
             rounds.append({
                 'loser': cand_to_eliminate,
                 'ballots_before': ballots_before,

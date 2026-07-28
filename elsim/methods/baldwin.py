@@ -12,7 +12,8 @@ _tiebreak_map = {'order': _order_tiebreak_elim,
 # TODO: Should this be njitted?
 def _compute_borda_scores(election, eliminated_mask):
     """
-    Borda scores for non-eliminated candidates as if eliminated were never on the ballot.
+    Borda scores for non-eliminated candidates as if eliminated
+    were never on the ballot.
 
     Scoring among remaining candidates matches `borda`: ``n_remaining`` points
     for 1st place, 1 for last place.  Eliminated candidates receive score 0.
@@ -41,9 +42,11 @@ def _compute_borda_scores(election, eliminated_mask):
     return scores
 
 
-def baldwin_rounds(election, tiebreaker=None, *, min_remaining=1, record_rounds=False):
+def baldwin_rounds(election, tiebreaker=None, *, min_remaining=1,
+                   record_rounds=False):
     """
-    Run Baldwin's method (Total Vote Runoff) and return per-round elimination data.
+    Run Baldwin's method (Total Vote Runoff) and return per-round
+    elimination data.
 
     Baldwin's method re-tallies Borda scores each round among remaining
     candidates only and eliminates the lowest scorer.  A candidate with a

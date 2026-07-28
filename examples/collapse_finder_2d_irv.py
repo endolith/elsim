@@ -84,14 +84,15 @@ def simulate_irv_rounds(election, candidates):
 
 
 def find_center_outward_election(n_voters, n_cands, max_trials, disp=1.0):
-    """Sample random 2D elections until the strict center-outward pattern appears.
+    """Sample random 2D elections until strict center-outward pattern appears.
 
     Returns (trial, voters, candidates, rankings, trace).
     rankings is the full honest-rankings ballot matrix (n_voters × n_cands),
     returned so callers don't need to recompute it.
     """
     for trial in range(1, max_trials + 1):
-        voters, candidates = normal_electorate(n_voters, n_cands, dims=2, disp=disp)
+        voters, candidates = normal_electorate(
+            n_voters, n_cands, dims=2, disp=disp)
         candidates[0] = 0.0  # Always one candidate exactly at the center
         candidates = sort_candidates_bell_curve(candidates)
         utilities = normed_dist_utilities(voters, candidates)
@@ -128,9 +129,13 @@ def render_frame(
 
     n_cands = len(candidates)
     n_voters = len(voters)
-    active_colors = [colors[n] if n not in eliminated else [0.5, 0.5, 0.5] for n in range(n_cands)]
+    active_colors = [
+        colors[n] if n not in eliminated else [0.5, 0.5, 0.5]
+        for n in range(n_cands)
+    ]
 
-    bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color, _ = get_theme(dark_background)
+    bg, fg, grid, stroke_fg, legend_bg, legend_fg, voronoi_color, _ = (
+        get_theme(dark_background))
 
     fig = plt.figure(figsize=(9, 7.5), facecolor=bg)
     ax_sc = plt.subplot2grid(shape=(6, 3), loc=(0, 0), colspan=2, rowspan=6)
@@ -151,27 +156,36 @@ def render_frame(
 
     ax_sc.scatter([], [], color=fg, **voters_kwargs, label='Voters')
     ax_sc.scatter([], [], color=fg, **cands_kwargs, label='Candidates')
-    ax_sc.legend(loc='lower right', numpoints=1, fontsize='small', labelcolor=legend_fg,
+    ax_sc.legend(loc='lower right', numpoints=1, fontsize='small',
+                 labelcolor=legend_fg,
                  facecolor=legend_bg, edgecolor=legend_fg)
     setup_scatter_axis_sigma(ax_sc, voters)
 
     remaining = [c for c in range(n_cands) if c not in eliminated]
-    voronoi_plot_2d_axes(ax_sc, candidates[remaining], line_color=voronoi_color, line_alpha=0.45)
+    voronoi_plot_2d_axes(
+        ax_sc, candidates[remaining],
+        line_color=voronoi_color, line_alpha=0.45)
 
     path_effects = [PathEffects.withStroke(linewidth=3, foreground=stroke_fg)]
 
     for cand in range(n_cands):
         cand_voters = voters[ballots == cand]
         if len(cand_voters):
-            ax_sc.scatter(cand_voters[:, 0], cand_voters[:, 1], color=active_colors[cand], **voters_kwargs)
+            ax_sc.scatter(
+                cand_voters[:, 0], cand_voters[:, 1],
+                color=active_colors[cand], **voters_kwargs)
 
     ax_sc.scatter(candidates[remaining, 0], candidates[remaining, 1],
                   color=[active_colors[c] for c in remaining], **cands_kwargs)
     for cand in remaining:
-        ax_sc.annotate(labels[cand], xy=candidates[cand], xytext=(0, -15),
-                       textcoords='offset points', path_effects=path_effects, color=fg)
+        ax_sc.annotate(labels[cand], xy=candidates[cand],
+                       xytext=(0, -15),
+                       textcoords='offset points',
+                       path_effects=path_effects, color=fg)
 
-    bars = ax_bar.bar(range(n_cands), tallies / n_voters * 100, tick_label=list(labels), color=active_colors)
+    bars = ax_bar.bar(
+        range(n_cands), tallies / n_voters * 100,
+        tick_label=list(labels), color=active_colors)
     for rect in bars:
         height = rect.get_height()
         if height > 0:
@@ -189,7 +203,8 @@ def render_frame(
     ax_bar.set_ylabel('Votes [%]')
     ax_bar.grid(True, alpha=0.25, axis='y', color=grid)
     ax_bar.set_axisbelow(True)
-    ax_bar.text(0.5, 1.04, frame_title, transform=ax_bar.transAxes, ha='center', va='center', color=fg)
+    ax_bar.text(0.5, 1.04, frame_title, transform=ax_bar.transAxes,
+                ha='center', va='center', color=fg)
 
     plot_approval_bar(ax_score, approval_pct, labels, active_colors, fg, grid)
     plot_wins_with_title(ax_wins, wins, active_colors, labels, fg, gap=0.1)
@@ -214,7 +229,8 @@ def run_irv_animation(
 ):
     """Render IRV center-outward animation and save frames + GIF to output_dir.
 
-    output_dir is created if needed. Caller can pass n_cands/n_voters for labels
+    output_dir is created if needed.
+    Caller can pass n_cands/n_voters for labels
     (defaults from candidates/voters shape).
     """
     n_cands = len(candidates) if n_cands is None else n_cands
@@ -228,12 +244,17 @@ def run_irv_animation(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    colors, labels = prepare_palette_and_labels(palette_name, n_cands, dark_background)
+    colors, labels = prepare_palette_and_labels(
+        palette_name, n_cands, dark_background)
 
     rounds = trace['rounds']
     final_two = trace['final_two']
 
-    np.savez(output_dir / 'positions.npz', voters=voters, candidates=candidates)
+    np.savez(
+        output_dir / 'positions.npz',
+        voters=voters,
+        candidates=candidates,
+    )
 
     utilities = normed_dist_utilities(voters, candidates)
     approval_pct = utilities.mean(axis=0) * 100
@@ -315,7 +336,8 @@ def run_irv_animation(
                 dark_background=dark_background,
             )
             is_last_transfer = (step == frames_per_transfer - 1)
-            durations.append(KEY_FRAME_MS if is_last_transfer else transfer_step_ms)
+            durations.append(
+                KEY_FRAME_MS if is_last_transfer else transfer_step_ms)
             frame += 1
 
         eliminated.add(loser)
@@ -327,7 +349,9 @@ def run_irv_animation(
         tallies=trace['final_tallies'],
         colors=colors,
         labels=labels,
-        frame_title=f'Final two: {candidate_name(final_two[0])} vs {candidate_name(final_two[1])}',
+        frame_title=(
+            f'Final two: {candidate_name(final_two[0])} '
+            f'vs {candidate_name(final_two[1])}'),
         output_path=output_dir / f'{frame:04d}.png',
         approval_pct=approval_pct,
         wins=wins,
@@ -354,16 +378,25 @@ def run_irv_animation(
 
 if __name__ == '__main__':
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_dir = RESULTS_DIR / f'collapse_2d_irv_{timestamp}_nc{n_cands}_nv{n_voters}'
+    output_dir = (
+        RESULTS_DIR
+        / f'collapse_2d_irv_{timestamp}_nc{n_cands}_nv{n_voters}')
 
-    result = find_center_outward_election(n_voters, n_cands, max_trials, disp=disp)
+    result = find_center_outward_election(
+        n_voters, n_cands, max_trials, disp=disp)
     if result is None:
-        raise RuntimeError('No strict center-outward collapse found. Increase max_trials or reduce n_cands.')
+        raise RuntimeError(
+            'No strict center-outward collapse found. '
+            'Increase max_trials or reduce n_cands.')
 
     trial, voters, candidates, rankings, trace = result
     print(f'Found strict center-outward IRV collapse on trial {trial}.')
-    print('Elimination order:', ' -> '.join(candidate_name(r['loser']) for r in trace['rounds']))
-    print('Final two:', candidate_name(trace['final_two'][0]), candidate_name(trace['final_two'][1]))
+    elim_order = ' -> '.join(
+        candidate_name(r['loser']) for r in trace['rounds'])
+    print('Elimination order:', elim_order)
+    print('Final two:',
+          candidate_name(trace['final_two'][0]),
+          candidate_name(trace['final_two'][1]))
 
     run_irv_animation(
         voters, candidates, rankings, trace, output_dir,
