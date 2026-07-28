@@ -11,7 +11,8 @@ try:
 
     numba_enabled = True
 except ImportError:
-    warnings.warn('Numba not installed, Condorcet code will run slower')
+    warnings.warn('Numba not installed, Condorcet code will run slower',
+                  stacklevel=2)
 
     def njit(*args, **kwargs):
         """
