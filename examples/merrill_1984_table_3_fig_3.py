@@ -49,7 +49,7 @@ utility_sums = {key: Counter() for key in (ranked_methods.keys() |
 
 start_time = time.monotonic()
 
-for iteration in range(n_elections):
+for _iteration in range(n_elections):
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
 

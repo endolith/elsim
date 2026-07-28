@@ -72,7 +72,7 @@ for disp, corr, D in conditions:
 
     utility_sums = Counter()
 
-    for iteration in range(n_elections):
+    for _iteration in range(n_elections):
         v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                  disp=disp)
 

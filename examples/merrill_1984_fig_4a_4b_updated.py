@@ -78,7 +78,7 @@ rated_methods = {'SU max': utility_winner,
                           tiebreaker),
                  }
 
-for fig, disp, ymin in (('4.a', 1.0, 55),
+for fig, disp, _ymin in (('4.a', 1.0, 55),
                         ('4.b', 0.5, 0)):
 
     utility_sums = {key: Counter() for key in (ranked_methods.keys() |
@@ -86,7 +86,7 @@ for fig, disp, ymin in (('4.a', 1.0, 55),
                                                {'SU max', 'RW'})}
     start_time = time.monotonic()
 
-    for iteration in range(n_elections):
+    for _iteration in range(n_elections):
         for n_cands in n_cands_list:
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp)

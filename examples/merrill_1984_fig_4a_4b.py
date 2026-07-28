@@ -95,7 +95,7 @@ for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
                                                {'SU max', 'RW'})}
     start_time = time.monotonic()
 
-    for iteration in range(n_elections):
+    for _iteration in range(n_elections):
         for n_cands in n_cands_list:
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp)

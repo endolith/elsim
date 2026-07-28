@@ -76,7 +76,7 @@ def coombs(election, tiebreaker=None):
 
     eliminated_mask = np.zeros(n_cands, dtype=bool)
 
-    for round_ in range(n_cands):
+    for _round in range(n_cands):
         _tally_at_rank_idx(cand_top_tallies, election, voter_top_rank_idx)
 
         # (tolist makes things 2-4x faster)
