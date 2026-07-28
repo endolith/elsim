@@ -17,5 +17,8 @@ ignore = ["PT011"]
 [lint.isort]
 known-first-party = ["elsim"]
 
+[lint.per-file-ignores]
+"docs/conf.py" = ["E402"]
+
 [lint.mccabe]
 max-complexity = 10
