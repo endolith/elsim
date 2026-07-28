@@ -95,7 +95,6 @@ When changing code, update **all** relevant documentation:
 - **Write comprehensive commit messages.** The subject line is a concise summary; the body must explain the problem being solved, the chosen approach, and any trade-offs. Provide the *context* that makes the diff understandable—why each change exists and what it achieves. Avoid meta-commentary about the commit itself (e.g., "fixing my commit according to instructions"). Keep process discussion in chat.
 - **Use Conventional Commits** (e.g., `feat:`, `fix:`, `docs:`, `test:`, `chore:`) to categorize changes and enable automated changelog generation.
 - **Authorship:** When AI writes code, the AI is author and human is coauthor. Use `Co-authored-by:` trailer in commit message.
-- **Do not commit unless explicitly asked.**
 
 ### Comments
 
