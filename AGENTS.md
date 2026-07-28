@@ -2,12 +2,7 @@
 
 ## Overview
 
-`elsim` is a pure Python library for simulating elections: generate
-voter-candidate utilities, convert them to ballots with strategic rules, and
-count them with different voting methods. It is used to reproduce published
-voting-theory results (Merrill 1984, Weber 1977, etc.). No servers, databases,
-or services required. Runtime deps are NumPy and SciPy; Numba is an optional
-speedup. `README.md` is the human-facing intro.
+`elsim` is a pure Python library for simulating elections: generate voter-candidate utilities, convert them to ballots with strategic rules, and count them with different voting methods. It is used to reproduce published voting-theory results (Merrill 1984, Weber 1977, etc.). No servers, databases, or services required. Runtime deps are NumPy and SciPy; Numba is an optional speedup. `README.md` is the human-facing intro.
 
 ## Quick commands
 
@@ -34,8 +29,7 @@ pytest --cov=./ --cov-report html
 python examples/<script>.py
 ```
 
-Optional: `pre-commit install` sets up local hooks mirroring the CI lint gates
-(config in `.pre-commit-config.yaml`). CI is the source of truth.
+Optional: `pre-commit install` sets up local hooks mirroring the CI lint gates (config in `.pre-commit-config.yaml`). CI is the source of truth.
 
 ## Architecture
 
@@ -76,13 +70,8 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 
 ## Caveats
 
-- When Numba is not installed, importing `elsim` emits `UserWarning: Numba
-  not installed, … code will run slower`. This is expected and harmless.
-- The first `@njit` call (especially `prange`-based Condorcet methods)
-  triggers a compile that can take >1 s. Hypothesis deadlines are relaxed
-  in CI (see Testing notes), and fixtures in tests amortize the cost by
-  pre-warming the JIT. Do not add a second Hypothesis test that compiles
-  the same function — reuse the existing fixture instead.
+- When Numba is not installed, importing `elsim` emits `UserWarning: Numba not installed, … code will run slower`. This is expected and harmless.
+- The first `@njit` call (especially `prange`-based Condorcet methods) triggers a compile that can take >1 s. Hypothesis deadlines are relaxed in CI (see Testing notes), and fixtures in tests amortize the cost by pre-warming the JIT. Do not add a second Hypothesis test that compiles the same function — reuse the existing fixture instead.
 
 ## Code change guidelines
 
