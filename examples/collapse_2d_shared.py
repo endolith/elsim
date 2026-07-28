@@ -71,7 +71,7 @@ def transition_step_ms(n_transfer):
 
 def get_palette_colors(name):
     """Load palette as list of colors (mpl tuples or hex)."""
-    for mod_path, names in PALETTE_OPTIONS.items():
+    for mod_path, names in PALETTE_OPTIONS.items():  # noqa: B007
         if name in names:
             break
     else:
