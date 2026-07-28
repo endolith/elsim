@@ -1,26 +1,37 @@
 # AGENTS.md
 
+## Overview
+
+`elsim` is a Python library for simulating elections: generate voter-candidate
+utilities, convert them to ballots with strategic rules, and count them with
+different voting methods. It is used to reproduce published voting-theory
+results (Merrill 1984, Weber 1977, etc.). Runtime deps are NumPy and SciPy;
+Numba is an optional speedup. `README.md` is the human-facing intro.
+
 ## Quick commands
 
 ```sh
 # Install dev dependencies (editable)
 pip install -e ".[test,fast]"
 
-# Run full test suite (includes doctests)
+# Run full test suite (includes doctests; see addopts in pyproject.toml)
 pytest
 
 # Run a single test file
 pytest tests/test_irv.py
 
-# Lint (blocking — same as CI)
+# Lint (blocking — same gate as CI)
 ruff check . --select=E9,F63,F7,F82
 
-# Lint (full, informational)
+# Lint (full ruleset from ruff.toml; informational)
 ruff check .
 
 # Coverage report
 pytest --cov=./ --cov-report html
 ```
+
+Optional: `pre-commit install` sets up local hooks mirroring the CI lint gates
+(config in `.pre-commit-config.yaml`). CI is the source of truth.
 
 ## Architecture
 
@@ -28,21 +39,28 @@ Three-step pipeline: `elections` → `strategies` → `methods`.
 
 - `elsim/elections.py` — generates voter-candidate utility/ranking matrices (spatial models, impartial culture, etc.)
 - `elsim/strategies.py` — converts utilities to ballots (honest rankings, scores, approval strategies)
-- `elsim/methods/` — one file per voting method (IRV, Borda, STAR, etc.), each exporting a function named after the method (e.g. `irv()`, `borda()`, `star()`)  Winner-only functions return `int | None`.
+- `elsim/methods/` — one file per voting method (IRV, Borda, STAR, etc.), each exporting a function named after the method (e.g. `irv()`, `borda()`, `star()`). Winner-only functions return `int | None` (`None` on unresolved ties).
 
-Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers, tally primitives, tiebreak logic). Not part of the public API. Example scripts may have their own local utility modules, but these are not imported by the library. Don't allow dependencies, utility functions, plotting helpers, etc. to be visible in the public interface.
+Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers, tally primitives, tiebreak logic). Not part of the public API.
+
+## Boundaries
+
+- **Never** add utility functions, plotting helpers, or analysis helpers to the public interface. `elsim/methods/__init__.py` exports voting-method functions only.
+- **Never** import example-script utilities from the library. Example scripts may have their own local utility modules; the library does not depend on them.
+- **Never** hand-edit generated artifacts: `docs/_autosummary/`, `htmlcov/`, `examples/results/`, coverage output. The Sphinx site builds from README + docstrings; edit those sources instead.
+- **Ask first** before adding dependencies. Runtime deps are NumPy and SciPy only; Numba must stay optional (it doesn't support every platform).
 
 ## Key conventions
 
-- **Docstrings:** numpydoc format. Doctests are run via `pytest --doctest-modules` — keep them correct.
-- **Numpy alias:** Source modules import numpy as `_np`; tests use `np`.
+- **Docstrings:** numpydoc format. Doctests run as part of the test suite (`--doctest-modules`) — keep them correct and deterministic (pass `random_state` in examples).
+- **Numpy alias:** `elsim/elections.py` and `elsim/strategies.py` import numpy as `_np` to keep it out of the public namespace. `elsim/methods/` modules use plain `np`; exports are pinned by `__all__` in `__init__.py`, so it doesn't leak. Either way, numpy must not appear in the public interface.
 - **Numba:** Soft dependency. Performance paths use `@njit(cache=True, nogil=True)`. If Numba is absent, a no-op `njit` decorator is used. Check `elsim.methods._common.numba_enabled` for the flag.
 - **Random state:** All public functions accept `random_state=None|int|Generator` and use `np.random.default_rng()`.
 - **Tiebreakers:** Most methods accept `tiebreaker=None` (returns `None` on ties), `'random'`, or `'order'`.
 - **Data types:** Candidates are 0-indexed integer IDs. Ballots are numpy arrays (`uint8` where possible). Rows = voters.
 - **Line length:** 79 characters (PEP8).
 - **Target Python:** 3.8+ (`ruff.toml` target-version).
-- **Internal helper prefix:** Private functions in source modules use `_` prefix (e.g. `_tally_at_rank_idx`, `_get_tiebreak`). Doctests are exempt from this rule.
+- **Internal helper prefix:** Private functions in source modules use `_` prefix (e.g. `_tally_at_rank_idx`, `_get_tiebreak`).
 
 ## Testing notes
 
@@ -74,6 +92,7 @@ When changing code, update **all** relevant documentation:
 - **Write comprehensive commit messages.** The subject line is a concise summary; the body must explain the problem being solved, the chosen approach, and any trade-offs. Provide the *context* that makes the diff understandable—why each change exists and what it achieves. Avoid meta-commentary about the commit itself (e.g., "fixing my commit according to instructions"). Keep process discussion in chat.
 - **Use Conventional Commits** (e.g., `feat:`, `fix:`, `docs:`, `test:`, `chore:`) to categorize changes and enable automated changelog generation.
 - **Authorship:** When AI writes code, the AI is author and human is coauthor. Use `Co-authored-by:` trailer in commit message.
+- **Do not commit unless explicitly asked.**
 
 ### Comments
 
@@ -86,3 +105,11 @@ When changing code, update **all** relevant documentation:
 - **Prefer small, reviewable PRs.** Split large efforts into stacked PRs with a clear merge order. Each PR should have one scope; the description should list commits and what each one does so reviewers can read commit-by-commit.
 - Check if there are any Issues related to the change you are making, and if so, mention it in the PR and write `Fixes #…` in the relevant commit message, so that the Issue will be auto-closed on merge.
 - **PR descriptions** should stand alone for a reviewer who has not read the issue or agent chat. Use short sections: **Background** (what should work), **Problem** (what is wrong), **Visible symptoms** (what users or CI observe), **What this PR changes** (scope and non-goals), **Tests** (what was added or updated). Add **Related work** only when stacked PRs or merge order matter. Split unrelated fixes into separate PRs; cross-link siblings when you do.
+
+## Done checklist
+
+- [ ] `pytest` passes locally
+- [ ] Blocking lint passes (`ruff check . --select=E9,F63,F7,F82`)
+- [ ] New logic has tests with docstrings
+- [ ] Affected docs updated (docstrings, README, AGENTS.md)
+- [ ] CI is green (monitor until it passes)
