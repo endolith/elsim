@@ -19,6 +19,7 @@ known-first-party = ["elsim"]
 
 [lint.per-file-ignores]
 "docs/conf.py" = ["E402"]
+"tests/test_star.py" = ["F841"]
 
 [lint.mccabe]
 max-complexity = 10
