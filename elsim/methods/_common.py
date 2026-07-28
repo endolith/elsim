@@ -198,4 +198,4 @@ def _get_tiebreak(tiebreaker, tiebreak_map):
     try:
         return tiebreak_map[tiebreaker]
     except KeyError:
-        raise ValueError(f'Tiebreaker {tiebreaker} not understood')
+        raise ValueError(f'Tiebreaker {tiebreaker} not understood') from None
