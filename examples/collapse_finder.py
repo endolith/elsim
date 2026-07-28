@@ -184,7 +184,7 @@ pos = original_c[:, 0]
 # from palettable.cartocolors.qualitative import Bold_9 as cmap
 # from palettable.cartocolors.qualitative import Vivid_9 as cmap
 # from palettable.cartocolors.qualitative import Antique_9 as cmap
-from palettable.cartocolors.qualitative import Prism_9 as cmap  # noqa: E402
+from palettable.cartocolors.qualitative import Prism_9 as cmap
 # from palettable.cartocolors.qualitative import Pastel_9 as cmap
 
 
