@@ -37,7 +37,7 @@ from elsim.strategies import (approval_optimal, honest_normed_scores,
                               honest_rankings, vote_for_k)
 
 try:
-    import ehtplot.color  # Creates afmhot_u colormap
+    import ehtplot.color  # noqa: F401  # Creates afmhot_u colormap
 except ValueError:  # https://github.com/liamedeiros/ehtplot/pull/6
     pass
 
