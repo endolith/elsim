@@ -2,7 +2,7 @@
 
 ## Overview
 
-`elsim` is a pure Python library for simulating elections: generate voter-candidate utilities, convert them to ballots with strategic rules, and count them with different voting methods. It is used to reproduce published voting-theory results (Merrill 1984, Weber 1977, etc.). No servers, databases, or services required. Runtime deps are NumPy and SciPy; Numba is an optional speedup. `README.md` is the human-facing intro.
+`elsim` is a pure Python library for simulating elections: generate voter-candidate utilities, convert them to ballots with strategic rules, and count them with different voting methods. It is used to reproduce published voting-theory results (Merrill 1984, Weber 1977, etc.). No servers, databases, or services required. Runtime deps are NumPy and SciPy; Numba is an optional speedup.
 
 ## Quick commands
 
