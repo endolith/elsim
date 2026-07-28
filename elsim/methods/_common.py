@@ -11,7 +11,8 @@ try:
 
     numba_enabled = True
 except ImportError:
-    warnings.warn('Numba not installed, Condorcet code will run slower')
+    warnings.warn('Numba not installed, Condorcet code will run slower',
+                  stacklevel=2)
 
     def njit(*args, **kwargs):
         """
@@ -197,4 +198,4 @@ def _get_tiebreak(tiebreaker, tiebreak_map):
     try:
         return tiebreak_map[tiebreaker]
     except KeyError:
-        raise ValueError(f'Tiebreaker {tiebreaker} not understood')
+        raise ValueError(f'Tiebreaker {tiebreaker} not understood') from None

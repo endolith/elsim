@@ -37,7 +37,7 @@ from elsim.strategies import (approval_optimal, honest_normed_scores,
                               honest_rankings, vote_for_k)
 
 try:
-    import ehtplot.color  # Creates afmhot_u colormap
+    import ehtplot.color  # noqa: F401  # Creates afmhot_u colormap
 except ValueError:  # https://github.com/liamedeiros/ehtplot/pull/6
     pass
 
@@ -72,7 +72,7 @@ def human_format(num):
 
 def simulate_batch(n_cands):
     winners = defaultdict(list)
-    for iteration in range(batch_size):
+    for _iteration in range(batch_size):
         v, c = normal_electorate(n_voters, n_cands, dims=dims, disp=disp)
 
         # Contrived candidate at exact center
@@ -155,7 +155,7 @@ title = f'{human_format(n_elections)} 2D elections, '
 title += f'{human_format(n_voters)} voters, '
 title += f'{human_format(n_cands)} candidates'
 if cand_dist == 'normal':
-    title += f', both Gaussian'
+    title += ', both Gaussian'
 title += f', {disp:.1f} relative dispersion'
 
 # Load from .pkl file if it exists

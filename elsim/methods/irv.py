@@ -89,7 +89,7 @@ def irv(election, tiebreaker=None):
     eliminated_mask[_all_indices(cand_tallies, 0)] = True
     _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
 
-    for round_ in range(n_cands):
+    for _round in range(n_cands):
         _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
 
         # (tolist makes things 2-4x faster)

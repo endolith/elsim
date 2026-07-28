@@ -212,7 +212,7 @@ if __name__ == '__main__':
 
     table = {}
     m_cands_list = (2, 3, 4, 5, 6, 10, 1e30)
-    for m in m_cands_list:
+    for _m in m_cands_list:
         for name, method in (('Standard', eff_standard),
                              ('Vote-for-half', eff_vote_for_half),
                              ('Best Vote-for-or-against-k',

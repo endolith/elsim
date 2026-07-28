@@ -114,7 +114,7 @@ for result in results:
 
 plt.figure(f'Effectiveness, {n_voters} voters, {n_elections} elections')
 plt.title('The Effectiveness of Several Voting Systems')
-for name, method in (('Standard', eff_standard),
+for _name, method in (('Standard', eff_standard),
                      ('Vote-for-1', lambda m: eff_vote_for_k(m, 1)),
                      ('Vote-for-2', lambda m: eff_vote_for_k(m, 2)),
                      ('Vote-for-3', lambda m: eff_vote_for_k(m, 3)),

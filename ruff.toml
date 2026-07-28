@@ -5,19 +5,21 @@ line-length = 79
 select = [
     "E",
     "F",
-    "I",
-    "N",
     "UP",
     "B",
-    "T20",
     "PT",
     "RUF100",
     "RUF012",
     "C901",
 ]
+ignore = ["PT011"]
 
 [lint.isort]
 known-first-party = ["elsim"]
+
+[lint.per-file-ignores]
+"docs/conf.py" = ["E402"]
+"tests/test_star.py" = ["F841"]
 
 [lint.mccabe]
 max-complexity = 10

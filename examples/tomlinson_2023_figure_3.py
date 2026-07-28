@@ -46,7 +46,7 @@ def human_format(num):
 
 def simulate_batch(n_cands):
     winners = defaultdict(list)
-    for iteration in range(batch_size):
+    for _iteration in range(batch_size):
 
         # "voters and candidates come from the uniform distribution on [0, 1]"
         v = np.random.uniform(0, 1, n_voters)

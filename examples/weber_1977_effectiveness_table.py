@@ -47,7 +47,7 @@ utility_sums = {key: Counter() for key in (ranked_methods.keys() |
 
 start_time = time.monotonic()
 
-for iteration in range(n_elections):
+for _iteration in range(n_elections):
     for n_cands in n_cands_list:
         utilities = random_utilities(n_voters, n_cands)
 
@@ -69,7 +69,7 @@ print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
 plt.figure(f'Effectiveness, {n_voters} voters, {n_elections} elections')
 plt.title('The Effectiveness of Several Voting Systems')
-for name, method in (('Standard', eff_standard),
+for _name, method in (('Standard', eff_standard),
                      ('Vote-for-half', eff_vote_for_half),
                      ('Borda', eff_borda)):
     plt.plot(n_cands_list, method(np.array(n_cands_list))*100, ':', lw=0.8)
