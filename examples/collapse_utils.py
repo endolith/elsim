@@ -25,7 +25,6 @@ Used by:
   Search for worst-case scenarios in two-stage FPTP+RCV system
 """
 
-import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
 

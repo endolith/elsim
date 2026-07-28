@@ -78,7 +78,7 @@ for trial in range(n_elections):
     n_remaining = n_finalists
     found_worst_case = False
 
-    for round_num in range(n_finalists - 2):  # 3 rounds: 5->4, 4->3, 3->2
+    for _round_num in range(n_finalists - 2):  # 3 rounds: 5->4, 4->3, 3->2
         utilities, rankings, election, first_preferences, tallies = (
             calculate_election_data(v, c))
 
@@ -119,7 +119,7 @@ for trial in range(n_elections):
     if found_worst_case:
         break
 
-print(f'\nOriginal candidate positions:')
+print('\nOriginal candidate positions:')
 np.set_printoptions(precision=2, suppress=True)
 print(original_c.T[0])
 print()
