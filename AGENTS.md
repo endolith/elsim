@@ -37,7 +37,7 @@ Three-step pipeline: `elections` → `strategies` → `methods`.
 
 - `elsim/elections.py` — generates voter-candidate utility/ranking matrices (spatial models, impartial culture, etc.)
 - `elsim/strategies.py` — converts utilities to ballots (honest rankings, scores, approval strategies)
-- `elsim/methods/` — one file per voting method (IRV, Borda, STAR, etc.), each exporting a function named after the method (e.g. `irv()`, `borda()`, `star()`). Winner-only functions return `int | None` (`None` on unresolved ties).
+- `elsim/methods/` — one file per voting method (IRV, Borda, STAR, etc.), each exporting a function named after the method (e.g. `irv()`, `borda()`, `star()`), and sometimes a `*_rounds()` function for detailed round tracing. Winner-only functions return `int | None` (`None` on unresolved ties).
 
 Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers, tally primitives, tiebreak logic). Not part of the public API.
 
