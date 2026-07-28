@@ -20,4 +20,4 @@ repos:
       - id: ruff
         alias: ruff-full-report
         name: ruff (full ruleset from ruff.toml; informational only)
-        args: ["--exit-zero"]
+        args: ["--exit-zero", "--output-format=github"]
