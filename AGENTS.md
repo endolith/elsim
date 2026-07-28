@@ -2,11 +2,12 @@
 
 ## Overview
 
-`elsim` is a Python library for simulating elections: generate voter-candidate
-utilities, convert them to ballots with strategic rules, and count them with
-different voting methods. It is used to reproduce published voting-theory
-results (Merrill 1984, Weber 1977, etc.). Runtime deps are NumPy and SciPy;
-Numba is an optional speedup. `README.md` is the human-facing intro.
+`elsim` is a pure Python library for simulating elections: generate
+voter-candidate utilities, convert them to ballots with strategic rules, and
+count them with different voting methods. It is used to reproduce published
+voting-theory results (Merrill 1984, Weber 1977, etc.). No servers, databases,
+or services required. Runtime deps are NumPy and SciPy; Numba is an optional
+speedup. `README.md` is the human-facing intro.
 
 ## Quick commands
 
@@ -28,6 +29,9 @@ ruff check .
 
 # Coverage report
 pytest --cov=./ --cov-report html
+
+# Run an example script (needs `pip install -e ".[examples]"`)
+python examples/<script>.py
 ```
 
 Optional: `pre-commit install` sets up local hooks mirroring the CI lint gates
@@ -69,6 +73,16 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 - Property-based tests use Hypothesis (`@given` with `lists(permutations(...))` for ballot generation).
 - `tests/test_methods.py` has parametrized cross-cutting tests (unanimity, degenerate cases, invalid tiebreakers) that run against all methods.
 - Coverage omits `tests/` directory (`.coveragerc`).
+
+## Caveats
+
+- When Numba is not installed, importing `elsim` emits `UserWarning: Numba
+  not installed, … code will run slower`. This is expected and harmless.
+- The first `@njit` call (especially `prange`-based Condorcet methods)
+  triggers a compile that can take >1 s. Hypothesis deadlines are relaxed
+  in CI (see Testing notes), and fixtures in tests amortize the cost by
+  pre-warming the JIT. Do not add a second Hypothesis test that compiles
+  the same function — reuse the existing fixture instead.
 
 ## Code change guidelines
 
