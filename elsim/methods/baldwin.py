@@ -12,14 +12,14 @@ _tiebreak_map = {'order': _order_tiebreak_elim,
 # TODO: Should this be njitted?
 def _compute_borda_scores(election, eliminated_mask):
     """
-    Borda scores for non-eliminated candidates as if eliminated
+    Total votes for non-eliminated candidates as if eliminated
     were never on the ballot.
 
-    Uses the standard convention for Total Vote Runoff (and for
-    Baldwin's original method): ``n_remaining - 1`` points for 1st
-    place, 0 for last place.  The same results are produced by the
-    `borda` function (1-based) for complete ballots -- a constant
-    shift of ``n_voters`` points per candidate.
+    Uses the TVR convention (also used in Baldwin's original method):
+    ``n_remaining - 1`` points for 1st place, 0 for last place.
+    This ranks candidates the same as the 1-based `borda` scoring for
+    complete ballots -- only a constant shift of ``n_voters`` points
+    per candidate.
 
     Parameters
     ----------
@@ -31,7 +31,7 @@ def _compute_borda_scores(election, eliminated_mask):
     Returns
     -------
     scores : ndarray of float, length n_cands
-        Borda scores; eliminated candidates have score 0.
+        Total votes; eliminated candidates have score 0.
     """
     n_remaining = int(np.sum(~eliminated_mask))
     scores = np.zeros(election.shape[1], dtype=float)
@@ -51,15 +51,16 @@ def baldwin_rounds(election, tiebreaker=None, *, min_remaining=1,
     Run Baldwin's method (Total Vote Runoff) and return per-round
     elimination data.
 
-    Baldwin's method re-tallies Borda scores each round among remaining
+    Baldwin's method re-tallies total votes each round among remaining
     candidates only and eliminates the lowest scorer.  A candidate with a
     majority of first-preference votes wins immediately.
 
-    Borda scores use the 0-based TVR convention: ``n - 1`` points for
-    1st place, 0 for last place among remaining candidates.  The
-    original 1-based convention (``n`` points for 1st, 1 for last)
-    produces identical elimination orders and winners for complete
-    ballots. [1]_ [2]_
+    Total votes follow the TVR convention (also used in the original
+    Baldwin method): ``n - 1`` points for 1st place, 0 for last place
+    among remaining candidates.  This is the same ranking as the 1-based
+    `borda` scoring (``n`` points for 1st, 1 for last) for complete
+    ballots -- only a constant shift of ``n_voters`` per candidate -- so
+    elimination orders and winners are identical. [1]_ [2]_
 
     Parameters
     ----------
@@ -74,7 +75,7 @@ def baldwin_rounds(election, tiebreaker=None, *, min_remaining=1,
         A majority of first-preference votes ends the count early regardless.
     record_rounds : bool, optional
         If True (default False), each round entry in ``rounds`` includes
-        Borda snapshots and promoted-voter data for animation.
+        Total-vote snapshots and promoted-voter data for animation.
 
     Returns
     -------
@@ -88,8 +89,10 @@ def baldwin_rounds(election, tiebreaker=None, *, min_remaining=1,
         rounds : list of dict
             One entry per elimination round.  With ``record_rounds=True``,
             each dict has ``loser``, ``borda_before``, ``borda_after``,
-            ``promoted_per_voter``.  Without ``record_rounds``, each dict
-            has only ``loser``.
+            ``promoted_per_voter``.  ``borda_before``/``borda_after`` hold
+            the total-vote tallies (TVR convention) before and after
+            elimination.  Without ``record_rounds``, each dict has only
+            ``loser``.
         eliminated_mask : ndarray of bool
             Final elimination state.
         final_ballots : ndarray
@@ -181,13 +184,13 @@ def baldwin(election, tiebreaker=None):
     """
     Find the winner of an election using Baldwin's method (Total Vote Runoff).
 
-    Borda scores are re-tallied each round among remaining candidates only
-    (0-based: ``n - 1`` points for 1st place, 0 for last), and the
+    Total votes are re-tallied each round among remaining candidates only
+    (TVR convention: ``n - 1`` points for 1st place, 0 for last), and the
     candidate with the lowest score is eliminated.  If any candidate has a
     majority of first-preference votes at any point, they win
     immediately. [1]_
 
-    See `baldwin_rounds` for details on the 0-based scoring convention.
+    See `baldwin_rounds` for details on the scoring convention.
 
     Parameters
     ----------
