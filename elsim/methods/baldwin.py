@@ -15,8 +15,11 @@ def _compute_borda_scores(election, eliminated_mask):
     Borda scores for non-eliminated candidates as if eliminated
     were never on the ballot.
 
-    Scoring among remaining candidates matches `borda`: ``n_remaining`` points
-    for 1st place, 1 for last place.  Eliminated candidates receive score 0.
+    Uses the standard convention for Total Vote Runoff (and for
+    Baldwin's original method): ``n_remaining - 1`` points for 1st
+    place, 0 for last place.  The same results are produced by the
+    `borda` function (1-based) for complete ballots -- a constant
+    shift of ``n_voters`` points per candidate.
 
     Parameters
     ----------
@@ -37,7 +40,7 @@ def _compute_borda_scores(election, eliminated_mask):
         for cand_id in ballot:
             if eliminated_mask[cand_id]:
                 continue
-            scores[cand_id] += (n_remaining - pos)
+            scores[cand_id] += (n_remaining - 1 - pos)
             pos += 1
     return scores
 
@@ -51,6 +54,12 @@ def baldwin_rounds(election, tiebreaker=None, *, min_remaining=1,
     Baldwin's method re-tallies Borda scores each round among remaining
     candidates only and eliminates the lowest scorer.  A candidate with a
     majority of first-preference votes wins immediately.
+
+    Borda scores use the 0-based TVR convention: ``n - 1`` points for
+    1st place, 0 for last place among remaining candidates.  The
+    original 1-based convention (``n`` points for 1st, 1 for last)
+    produces identical elimination orders and winners for complete
+    ballots. [1]_ [2]_
 
     Parameters
     ----------
@@ -121,7 +130,8 @@ def baldwin_rounds(election, tiebreaker=None, *, min_remaining=1,
 
         if record_rounds:
             # For each voter: the active candidates ranked below the loser.
-            # When the loser is removed, each of these gains +1 Borda point.
+            # When the loser is removed, each of these moves up one rank,
+            # gaining +1 Borda point.
             promoted_per_voter = []
             for ballot in election:
                 promoted = []
@@ -171,10 +181,13 @@ def baldwin(election, tiebreaker=None):
     """
     Find the winner of an election using Baldwin's method (Total Vote Runoff).
 
-    Borda scores are re-tallied each round among remaining candidates only,
-    and the candidate with the lowest score is eliminated.  If any candidate
-    has a majority of first-preference votes at any point, they win
+    Borda scores are re-tallied each round among remaining candidates only
+    (0-based: ``n - 1`` points for 1st place, 0 for last), and the
+    candidate with the lowest score is eliminated.  If any candidate has a
+    majority of first-preference votes at any point, they win
     immediately. [1]_
+
+    See `baldwin_rounds` for details on the 0-based scoring convention.
 
     Parameters
     ----------
@@ -195,6 +208,10 @@ def baldwin(election, tiebreaker=None):
     References
     ----------
     .. [1] :wikipedia:`Nanson's method#Baldwin method`
+    .. [2] Richard B. L. Foley, "Total Vote Runoff: A
+           Majority-Maximizing Form of Ranked Choice Voting",
+           *SSRN* 4328946, 2023.
+           https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4328946
 
     Examples
     --------

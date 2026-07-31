@@ -84,10 +84,13 @@ def test_electowiki_notes_example():
 
     25 A>B>C, 40 B>C>A, 35 C>A>B.
 
-    > Borda scores are A 185, B 205, C 210. A beats B beats C beats A, so
-    > there is no Condorcet winner, and so A, the Borda loser, is eliminated.
-    > Since B beats C, B wins. Note that this is a different result than
-    > Black's method, which would elect C.
+    > Borda scores are A 185, B 205, C 210 (1-based).  A beats B beats C
+    > beats A, so there is no Condorcet winner, and so A, the Borda loser,
+    > is eliminated.  Since B beats C, B wins. Note that this is a different
+    > result than Black's method, which would elect C.
+
+    Our implementation uses the 0-based TVR convention, so scores are
+    shifted by ``n_voters`` (100) per candidate: A=85, B=105, C=110.
     """
     A, B, C = 0, 1, 2
     election = [*25*[[A, B, C]],
@@ -97,7 +100,7 @@ def test_electowiki_notes_example():
     traced = baldwin_rounds(election, 'order', record_rounds=True)
     assert traced['rounds'][0]['loser'] == A
     np.testing.assert_array_equal(
-        traced['rounds'][0]['borda_before'], [185, 205, 210],
+        traced['rounds'][0]['borda_before'], [85, 105, 110],
     )
     assert baldwin(election, 'order') == B
 
@@ -112,18 +115,17 @@ def test_electowiki_tennessee_example():
     https://electowiki.org/wiki/Baldwin%27s_method#Example
 
     Electowiki's worked table uses 0-based points (3, 2, 1, 0 among four
-    candidates), which contradicts its Notes example and standard Borda as
-    implemented in `borda` (1-based: 4, 3, 2, 1).  Baldwin retallies using
-    the same convention as `borda`; elimination order and winner match
-    electowiki.
+    candidates), which matches the TVR convention used here.  The main
+    `borda` function uses 1-based (4, 3, 2, 1); elimination order and
+    winner are the same either way for complete ballots.
 
-    Round 1: Knoxville has the fewest points and is eliminated.
-    Round 2: Memphis has the fewest points and is eliminated.
+    With the TVR convention:
+
+    Round 1: Knoxville has the fewest points (107) and is eliminated.
+    Round 2: Memphis has the fewest points (84) and is eliminated.
     Round 3: Nashville beats Chattanooga.
 
-    > This leaves us with Nashville and Chattanooga. Nashville has 42+26
-    > points, giving it 68 points, while Chattanooga has 17+15 points giving
-    > it 32. This makes Nashville the winner.
+    The per-round scores shown in the example below are 0-based.
     """
     Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
     election = [*42*[[Memphis, Nashville, Chattanooga, Knoxville]],
@@ -134,15 +136,14 @@ def test_electowiki_tennessee_example():
 
     traced = baldwin_rounds(election, 'order', record_rounds=True)
     assert [r['loser'] for r in traced['rounds']] == [Knoxville, Memphis]
-    # 1-based Borda among remaining candidates
-    # (matches `borda`, not electowiki table)
+    # 0-based Borda among remaining candidates (TVR convention)
     np.testing.assert_array_equal(
         traced['rounds'][0]['borda_before'],
-        [226, 294, 273, 207],
+        [126, 194, 173, 107],
     )
     np.testing.assert_array_equal(
         traced['rounds'][1]['borda_before'],
-        [184, 226, 190, 0],
+        [84, 126, 90, 0],
     )
     assert baldwin(election, 'order') == Nashville
 
