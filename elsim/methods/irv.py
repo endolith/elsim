@@ -11,6 +11,7 @@ from elsim.methods._common import (
     _order_tiebreak_elim,
     _random_tiebreak,
     _tally_at_rank_idx,
+    _validate_stop_at,
 )
 
 _tiebreak_map = {'order': _order_tiebreak_elim,
@@ -59,17 +60,6 @@ class IRVResult:
     active_candidates: np.ndarray
     final_choices: np.ndarray
     final_tallies: np.ndarray
-
-
-def _validate_stop_at(stop_at, n_cands):
-    """Validate and return the requested number of remaining candidates."""
-    if isinstance(stop_at, bool) or not isinstance(stop_at, (int, np.integer)):
-        raise TypeError('stop_at must be an integer')
-    if not 1 <= stop_at <= n_cands:
-        raise ValueError(
-            f'stop_at must be between 1 and {n_cands}, inclusive'
-        )
-    return int(stop_at)
 
 
 def _run_irv(election, tiebreaker, stop_at, record_rounds):

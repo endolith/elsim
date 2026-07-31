@@ -11,8 +11,9 @@ try:
 
     numba_enabled = True
 except ImportError:
-    warnings.warn('Numba not installed, Condorcet code will run slower',
-                  stacklevel=2)
+    warnings.warn(
+        'Numba not installed, Condorcet code will run slower', stacklevel=2
+    )
 
     def njit(*args, **kwargs):
         """
@@ -199,3 +200,16 @@ def _get_tiebreak(tiebreaker, tiebreak_map):
         return tiebreak_map[tiebreaker]
     except KeyError:
         raise ValueError(f'Tiebreaker {tiebreaker} not understood') from None
+
+
+def _validate_stop_at(stop_at, n_cands):
+    """
+    Validate an elimination count's requested number of survivors.
+    """
+    if isinstance(stop_at, bool) or not isinstance(stop_at, (int, np.integer)):
+        raise TypeError('stop_at must be an integer')
+    if not 1 <= stop_at <= n_cands:
+        raise ValueError(
+            f'stop_at must be between 1 and {n_cands}, inclusive'
+        )
+    return int(stop_at)
