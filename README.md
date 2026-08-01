@@ -124,6 +124,10 @@ flowchart LR
     Matrix -- <code>condorcet_from_matrix</code> --> Winner
     ranked_ballots -- <code>condorcet</code> --> Winner
 
+    %% baldwin.py
+    ranked_ballots -- <code>baldwin</code> --> Winner
+    ranked_ballots -- <code>total_vote_runoff</code> --> Winner
+
     %% black.py
     ranked_ballots -- <code>black</code> --> Winner
 
