@@ -8,15 +8,14 @@ Table 4) or by ``(method, n_cands)`` via nested counters.
 
 from __future__ import annotations
 
-import random
-from typing import Callable, Mapping, Optional
+from collections.abc import Callable, Mapping
 
 import numpy as np
 
 from elsim.methods import utility_winner
 
-RankedMethod = Callable[..., Optional[int]]
-RatedMethod = Callable[..., Optional[int]]
+RankedMethod = Callable[..., int | None]
+RatedMethod = Callable[..., int | None]
 
 
 def spatial_random_reference_utility_updates(
@@ -26,16 +25,19 @@ def spatial_random_reference_utility_updates(
     rated_methods: Mapping[str, RatedMethod],
     *,
     tiebreaker: str = "random",
+    random_state=None,
 ) -> dict[str, float]:
     """
-    Total utility (summed over voters) for each method winner plus random baseline.
+    Total utility (summed over voters) for each winner plus random baseline.
 
-    Matches the Merrill (1984) spatial social-utility-efficiency figures: pick
-    ``RW`` with ``random.randint``, accumulate rated and ranked method winners,
-    and use the same per-winner column sum as ``utilities.sum(axis=0)[w]``.
+    Matches the Merrill (1984) spatial social-utility-efficiency figures:
+    pick ``RW`` with a supplied generator, accumulate rated and ranked method
+    winners, and use the same per-winner column sum as
+    ``utilities.sum(axis=0)[w]``.
     """
     n_cands = utilities.shape[1]
-    rw = random.randint(0, n_cands - 1)
+    rng = np.random.default_rng(random_state)
+    rw = int(rng.integers(0, n_cands))
     out: dict[str, float] = {"RW": float(utilities.sum(axis=0)[rw])}
 
     for name, fn in rated_methods.items():
@@ -97,7 +99,7 @@ def ranked_rated_utility_updates(
     *,
     tiebreaker: str = "random",
 ) -> dict[str, float]:
-    """Per-election utility totals for ranked and rated methods only (no UW/RW)."""
+    """Per-election utility totals for ranked and rated methods only."""
     out: dict[str, float] = {}
     for name, fn in rated_methods.items():
         w = fn(utilities, tiebreaker=tiebreaker)
