@@ -21,6 +21,10 @@ from .social_utility import (
     ranked_rated_utility_updates,
     spatial_random_reference_utility_updates,
 )
+from .spatial_normal import (
+    accumulate_spatial_condorcet_by_ncands,
+    accumulate_spatial_sue_by_ncands,
+)
 
 __all__ = [
     "JoblibBackend",
@@ -35,4 +39,6 @@ __all__ = [
     "spatial_random_reference_utility_updates",
     "random_society_utility_updates",
     "ranked_rated_utility_updates",
+    "accumulate_spatial_condorcet_by_ncands",
+    "accumulate_spatial_sue_by_ncands",
 ]
