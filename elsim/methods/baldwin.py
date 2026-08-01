@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from typing import Optional, Tuple
+
 import numpy as np
 
 from elsim.methods._common import (
@@ -8,6 +11,7 @@ from elsim.methods._common import (
     _order_tiebreak_elim,
     _random_tiebreak,
     _tally_at_rank_idx,
+    _validate_stop_at,
 )
 
 _tiebreak_map = {
@@ -15,6 +19,50 @@ _tiebreak_map = {
     'random': _random_tiebreak,
     None: _no_tiebreak,
 }
+
+
+@dataclass(frozen=True)
+class BaldwinRound:
+    """
+    One Baldwin elimination and the resulting score changes.
+
+    Attributes
+    ----------
+    eliminated : int
+        Candidate with the lowest Borda score in this round.
+    borda_before, borda_after : ndarray
+        Borda scores immediately before and after the elimination. The
+        project-wide convention gives the last active candidate one point.
+    higher_ranked_candidates : tuple of ndarray
+        For each voter, active candidates ranked above the eliminated
+        candidate. Each loses one Borda point when the active field shrinks.
+    first_tallies_before, first_tallies_after : ndarray
+        First-choice tallies immediately before and after the elimination.
+    transferred_voters : ndarray
+        Indices of voters whose first choice was the eliminated candidate.
+    transferred_to : ndarray
+        New first-choice candidate for each voter in ``transferred_voters``.
+    """
+
+    eliminated: int
+    borda_before: np.ndarray
+    borda_after: np.ndarray
+    higher_ranked_candidates: Tuple[np.ndarray, ...]
+    first_tallies_before: np.ndarray
+    first_tallies_after: np.ndarray
+    transferred_voters: np.ndarray
+    transferred_to: np.ndarray
+
+
+@dataclass(frozen=True)
+class BaldwinResult:
+    """Result and round trace from Baldwin or Total Vote Runoff counting."""
+
+    winner: Optional[int]
+    rounds: Tuple[BaldwinRound, ...]
+    active_candidates: np.ndarray
+    final_choices: np.ndarray
+    final_tallies: np.ndarray
 
 
 def _borda_scores(election, eliminated_mask):
@@ -31,56 +79,125 @@ def _borda_scores(election, eliminated_mask):
     return scores
 
 
-def _run_baldwin(election, tiebreaker):
-    """Run Baldwin's lowest-Borda count with its majority stopping rule.
+def _higher_ranked_candidates(election, eliminated_mask, eliminated):
+    """Return each voter's active candidates above the round loser."""
+    higher_per_voter = []
+    for ballot in election:
+        active_ballot = ballot[~eliminated_mask[ballot]]
+        eliminated_rank = int(np.flatnonzero(
+            active_ballot == eliminated
+        )[0])
+        higher_per_voter.append(
+            active_ballot[:eliminated_rank].copy()
+        )
+    return tuple(higher_per_voter)
 
-    Repeatedly eliminate the active candidate with the lowest Borda score,
-    recomputing scores among the remaining candidates, until one candidate
-    remains or a candidate holds a first-choice majority. A majority
-    candidate is the Condorcet winner and necessarily wins.
-    """
+
+def _run_baldwin(
+    election,
+    tiebreaker,
+    stop_at,
+    record_rounds,
+):
+    """Run Baldwin's lowest-Borda count with its majority stopping rule."""
     election = np.asarray(election)
     n_voters, n_cands = election.shape
+    stop_at = _validate_stop_at(stop_at, n_cands)
     tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
     voter_top_rank_idx = np.zeros(n_voters, dtype=np.intp)
     cand_top_tallies = np.empty(n_cands, dtype=np.uint)
     eliminated_mask = np.zeros(n_cands, dtype=bool)
+    rounds = []
+    winner = None
 
-    while np.count_nonzero(~eliminated_mask) > 1:
-        _tally_at_rank_idx(cand_top_tallies, election, voter_top_rank_idx)
+    while np.count_nonzero(~eliminated_mask) > stop_at:
+        _tally_at_rank_idx(
+            cand_top_tallies, election, voter_top_rank_idx
+        )
         cand_top_tallies_list = cand_top_tallies.tolist()
 
         max_cand_top_tally = max(cand_top_tallies_list)
         if max_cand_top_tally > n_voters / 2:
-            return cand_top_tallies_list.index(max_cand_top_tally)
+            winner = cand_top_tallies_list.index(max_cand_top_tally)
+            break
 
-        borda_scores = _borda_scores(election, eliminated_mask)
-        active_scores = borda_scores[~eliminated_mask]
+        borda_before = _borda_scores(election, eliminated_mask)
+        active_scores = borda_before[~eliminated_mask]
         lowest_score = int(active_scores.min())
         low_scorers = [
             candidate
-            for candidate in _all_indices(borda_scores.tolist(), lowest_score)
+            for candidate in _all_indices(
+                borda_before.tolist(), lowest_score
+            )
             if not eliminated_mask[candidate]
         ]
         cand_to_eliminate = tiebreak(low_scorers)[0]
         if cand_to_eliminate is None:
             return None
 
+        if record_rounds:
+            choices_before = election[
+                np.arange(n_voters), voter_top_rank_idx
+            ].copy()
+            first_tallies_before = cand_top_tallies.copy()
+            higher_ranked_candidates = _higher_ranked_candidates(
+                election, eliminated_mask, cand_to_eliminate
+            )
+
         eliminated_mask[cand_to_eliminate] = True
         _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
 
-    return int(np.flatnonzero(~eliminated_mask)[0])
+        if record_rounds:
+            choices_after = election[
+                np.arange(n_voters), voter_top_rank_idx
+            ].copy()
+            _tally_at_rank_idx(
+                cand_top_tallies, election, voter_top_rank_idx
+            )
+            transferred_voters = np.flatnonzero(
+                choices_before == cand_to_eliminate
+            )
+            rounds.append(
+                BaldwinRound(
+                    eliminated=int(cand_to_eliminate),
+                    borda_before=borda_before,
+                    borda_after=_borda_scores(
+                        election, eliminated_mask
+                    ),
+                    higher_ranked_candidates=higher_ranked_candidates,
+                    first_tallies_before=first_tallies_before,
+                    first_tallies_after=cand_top_tallies.copy(),
+                    transferred_voters=transferred_voters,
+                    transferred_to=choices_after[transferred_voters],
+                )
+            )
+
+    active_candidates = np.flatnonzero(~eliminated_mask)
+    if winner is None and active_candidates.size == 1:
+        winner = int(active_candidates[0])
+
+    _tally_at_rank_idx(cand_top_tallies, election, voter_top_rank_idx)
+    final_choices = election[
+        np.arange(n_voters), voter_top_rank_idx
+    ].copy()
+    return BaldwinResult(
+        winner=winner,
+        rounds=tuple(rounds),
+        active_candidates=active_candidates,
+        final_choices=final_choices,
+        final_tallies=cand_top_tallies.copy(),
+    )
 
 
-def baldwin(election, tiebreaker=None):
+def baldwin_rounds(election, tiebreaker=None, *, stop_at=1):
     """
-    Find the winner using Baldwin's iterative Borda elimination method.
+    Run Baldwin's method and record each Borda elimination.
 
-    Baldwin repeatedly eliminates the lowest-Borda candidate, recomputing
-    scores among the remaining candidates, until one remains or a candidate
-    obtains a first-choice majority. Because a Condorcet winner always has an
-    above-average Borda score, it can never be the lowest-scoring candidate
-    and is never eliminated, so Baldwin satisfies the Condorcet criterion.
+    Baldwin's method repeatedly eliminates the candidate with the lowest Borda
+    score, recalculating scores among the remaining candidates, until one
+    candidate remains or a candidate obtains a first-choice majority. A
+    first-choice-majority candidate is the Condorcet winner and necessarily
+    wins.
 
     Parameters
     ----------
@@ -90,16 +207,82 @@ def baldwin(election, tiebreaker=None):
     tiebreaker : {'random', 'order', None}, optional
         If an elimination tie occurs, ``'random'`` chooses randomly,
         ``'order'`` eliminates the highest-ID tied candidate, and the default
-        of ``None`` returns ``None``.
+        returns ``None``.
+    stop_at : int, optional
+        Stop before eliminating below this number of active candidates. The
+        default of 1 runs the ordinary Baldwin count to a winner.
+
+    Returns
+    -------
+    result : {BaldwinResult, None}
+        The count result and score trace, or ``None`` for an unbroken
+        elimination tie.
+
+    References
+    ----------
+    .. [1] :wikipedia:`Nanson's method#Baldwin method`
+    """
+    return _run_baldwin(
+        election,
+        tiebreaker=tiebreaker,
+        stop_at=stop_at,
+        record_rounds=True,
+    )
+
+
+def total_vote_runoff_rounds(election, tiebreaker=None, *, stop_at=1):
+    """
+    Run Total Vote Runoff and record each Baldwin Borda elimination.
+
+    Total Vote Runoff, the name used by Foley and Maskin (2022), uses the same
+    lowest-Borda elimination and first-choice-majority stopping rule as
+    Baldwin's method. This function exposes the same count under the TVR name.
+
+    Parameters
+    ----------
+    election : array_like
+        A collection of complete ranked ballots. See `borda` for the ballot
+        format.
+    tiebreaker : {'random', 'order', None}, optional
+        Tie-breaking rule; see `baldwin_rounds`.
+    stop_at : int, optional
+        Stop before eliminating below this number of active candidates.
+
+    Returns
+    -------
+    result : {BaldwinResult, None}
+        The count result and score trace, or ``None`` for an unbroken
+        elimination tie.
+
+    References
+    ----------
+    .. [1] Edward B. Foley, "Total Vote Runoff & Baldwin's method",
+       Election Law Blog, 2022.
+    """
+    return baldwin_rounds(election, tiebreaker=tiebreaker, stop_at=stop_at)
+
+
+def baldwin(election, tiebreaker=None):
+    """
+    Find the winner using Baldwin's iterative Borda elimination method.
+
+    Baldwin repeatedly eliminates the lowest-Borda candidate, recomputing
+    scores among the remaining candidates, until one remains or a candidate
+    obtains a first-choice majority. A majority candidate is the Condorcet
+    winner and necessarily wins.
+
+    Parameters
+    ----------
+    election : array_like
+        A collection of complete ranked ballots. See `borda` for the ballot
+        format.
+    tiebreaker : {'random', 'order', None}, optional
+        Tie-breaking rule; see `baldwin_rounds`.
 
     Returns
     -------
     winner : {int, None}
         Candidate ID of the winner, or ``None`` for an unbroken tie.
-
-    References
-    ----------
-    .. [1] :wikipedia:`Nanson's method#Baldwin method`
 
     Examples
     --------
@@ -112,7 +295,17 @@ def baldwin(election, tiebreaker=None):
     >>> baldwin(election)
     2
     """
-    return _run_baldwin(election, tiebreaker)
+    result = _run_baldwin(
+        election,
+        tiebreaker=tiebreaker,
+        stop_at=1,
+        record_rounds=False,
+    )
+    if result is None:
+        return None
+    if result.winner is not None:
+        return result.winner
+    raise RuntimeError("Bug in Baldwin's calculation")
 
 
 def total_vote_runoff(election, tiebreaker=None):
@@ -121,8 +314,7 @@ def total_vote_runoff(election, tiebreaker=None):
 
     Total Vote Runoff, the name used by Foley and Maskin (2022), is the same
     lowest-Borda count as Baldwin's method, including its first-choice-
-    majority stopping rule, and therefore also satisfies the Condorcet
-    criterion.
+    majority stopping rule.
 
     Parameters
     ----------
@@ -130,16 +322,11 @@ def total_vote_runoff(election, tiebreaker=None):
         A collection of complete ranked ballots. See `borda` for the ballot
         format.
     tiebreaker : {'random', 'order', None}, optional
-        Tie-breaking rule; see `baldwin`.
+        Tie-breaking rule; see `baldwin_rounds`.
 
     Returns
     -------
     winner : {int, None}
         Candidate ID of the winner, or ``None`` for an unbroken tie.
-
-    References
-    ----------
-    .. [1] Edward B. Foley, "Total Vote Runoff & Baldwin's method",
-       Election Law Blog, 2022.
     """
     return baldwin(election, tiebreaker=tiebreaker)
