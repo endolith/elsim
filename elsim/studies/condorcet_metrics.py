@@ -8,22 +8,48 @@ so driver loops can ``counter.update(...)`` in one line.
 from __future__ import annotations
 
 from collections import Counter
-from typing import Callable, Mapping, Optional
+from collections.abc import Callable, Mapping
 
 import numpy as np
 
-from elsim.methods import approval, black, borda, condorcet, coombs, fptp, irv, runoff, utility_winner
+from elsim.methods import (approval, black, borda, condorcet, coombs,
+                           fptp, irv, runoff, utility_winner)
 from elsim.strategies import approval_optimal
 
-RankedMethod = Callable[..., Optional[int]]
-RatedMethod = Callable[..., Optional[int]]
+RankedMethod = Callable[..., int | None]
+RatedMethod = Callable[..., int | None]
 
 
-def _approval_at_optimal(utilities: np.ndarray, tiebreaker: str) -> Optional[int]:  # noqa: UP045
+def approval_at_optimal(
+    utilities: np.ndarray,
+    tiebreaker: str | None = "random",
+) -> int | None:
+    """
+    Rated-method helper: build an optimal approval ballot, then apply approval.
+
+    Intended for use in a ``rated_methods`` mapping passed to
+    :func:`tally_condorcet_agreement` or the spatial sweep helpers, so scripts
+    stay declarative without repeating lambdas.
+
+    Parameters
+    ----------
+    utilities : array_like
+        Two-dimensional utilities with shape ``(n_voters, n_cands)``.
+    tiebreaker : {'random', 'order', None}, optional
+        Passed through to :func:`elsim.methods.approval`.
+
+    Returns
+    -------
+    int or None
+        Winning candidate ID, or ``None`` for an unresolved tie.
+    """
     return approval(approval_optimal(utilities), tiebreaker)
 
 
-def merrill_1984_comparison_methods() -> tuple[dict[str, RankedMethod], dict[str, RatedMethod]]:
+def merrill_1984_comparison_methods() -> tuple[
+    dict[str, RankedMethod],
+    dict[str, RatedMethod],
+]:
     """
     Voting methods compared in Merrill (1984) Condorcet-efficiency tables.
 
@@ -44,7 +70,7 @@ def merrill_1984_comparison_methods() -> tuple[dict[str, RankedMethod], dict[str
     }
     rated_methods: dict[str, RatedMethod] = {
         "SU max": utility_winner,
-        "Approval": _approval_at_optimal,
+        "Approval": approval_at_optimal,
     }
     return ranked_methods, rated_methods
 
@@ -58,7 +84,8 @@ def tally_condorcet_agreement(
     tiebreaker: str = "random",
 ) -> Counter:
     """
-    Count whether each method agrees with the Condorcet winner for one election.
+    Count whether each method agrees with the Condorcet winner for one
+    election.
 
     If there is no Condorcet winner, returns an empty counter.
 
@@ -69,14 +96,15 @@ def tally_condorcet_agreement(
     utilities : array_like
         Utilities aligned with ``rankings``, shape ``(n_voters, n_cands)``.
     ranked_methods, rated_methods
-        Name to callable maps, same shapes as :func:`merrill_1984_comparison_methods`.
+        Name to callable maps, same shapes as
+        :func:`merrill_1984_comparison_methods`.
     tiebreaker : str, optional
         Passed through to each method callable.
 
     Returns
     -------
     collections.Counter
-        Includes key ``\"CW\"`` when a Condorcet winner exists, plus one key per
+        Includes key ``"CW"`` when a Condorcet winner exists, plus one key per
         supplied method name when that method's winner matches the Condorcet
         winner.
     """
