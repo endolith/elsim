@@ -19,7 +19,14 @@ RankedMethod = Callable[..., Optional[int]]
 RatedMethod = Callable[..., Optional[int]]
 
 
-def _approval_at_optimal(utilities: np.ndarray, tiebreaker: str) -> Optional[int]:  # noqa: UP045
+def approval_at_optimal(utilities: np.ndarray, tiebreaker: str = "random") -> Optional[int]:  # noqa: UP045
+    """
+    Rated-method helper: build an optimal approval ballot, then apply :func:`elsim.methods.approval`.
+
+    Intended for use in a ``rated_methods`` mapping passed to
+    :func:`tally_condorcet_agreement` or the spatial sweep helpers, so scripts
+    stay declarative without repeating lambdas.
+    """
     return approval(approval_optimal(utilities), tiebreaker)
 
 
@@ -44,7 +51,7 @@ def merrill_1984_comparison_methods() -> tuple[dict[str, RankedMethod], dict[str
     }
     rated_methods: dict[str, RatedMethod] = {
         "SU max": utility_winner,
-        "Approval": _approval_at_optimal,
+        "Approval": approval_at_optimal,
     }
     return ranked_methods, rated_methods
 
@@ -76,7 +83,7 @@ def tally_condorcet_agreement(
     Returns
     -------
     collections.Counter
-        Includes key ``\"CW\"`` when a Condorcet winner exists, plus one key per
+        Includes key ``"CW"`` when a Condorcet winner exists, plus one key per
         supplied method name when that method's winner matches the Condorcet
         winner.
     """
