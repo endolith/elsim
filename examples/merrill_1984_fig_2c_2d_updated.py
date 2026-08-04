@@ -45,11 +45,11 @@ discrepancies, as great as 7%. This may just be random variation from not
 running as many simulations, however the Coombs results are consistently
 high.
 """
-import time
 from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
@@ -64,6 +64,11 @@ n_cands_list = (2, 3, 4, 5, 6, 7)
 corr = 0.5
 D = 2
 
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 100
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
+
 ranked_methods = {'Plurality': fptp, 'Top-2 Runoff': runoff, 'Hare RCV': irv,
                   'Borda': borda, 'Coombs': coombs, 'Condorcet RCV': black}
 
@@ -76,14 +81,12 @@ rated_methods = {'SU max': utility_winner,
                      star(honest_normed_scores(utilities, 5), tiebreaker),
                  }
 
-for fig, disp, ymin in (('2.c', 1.0, 50),
-                        ('2.d', 0.5, 0)):
 
+def simulate_batch(disp):
+    """Run one batch of elections and return the partial tallies."""
     condorcet_winner_count = {key: Counter() for key in (
         ranked_methods.keys() | rated_methods.keys() | {'CW'})}
-    start_time = time.monotonic()
-
-    for _iteration in range(n_elections):
+    for _iteration in range(batch_size):
         for n_cands in n_cands_list:
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp)
@@ -104,9 +107,22 @@ for fig, disp, ymin in (('2.c', 1.0, 50),
                     if method(utilities, tiebreaker='random') == CW:
                         condorcet_winner_count[name][n_cands] += 1
 
-    elapsed_time = time.monotonic() - start_time
-    print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
-          '\n')
+    return condorcet_winner_count
+
+
+for fig, disp, ymin in (('2.c', 1.0, 50),
+                        ('2.d', 0.5, 0)):
+
+    jobs = [delayed(simulate_batch)(disp)] * n_batches
+    print(f'{len(jobs)} tasks total:')
+    results = Parallel(n_jobs=-3, verbose=5, backend='loky')(jobs)
+
+    # Aggregate results
+    condorcet_winner_count = {key: Counter() for key in (
+        ranked_methods.keys() | rated_methods.keys() | {'CW'})}
+    for result in results:
+        for method, counter in result.items():
+            condorcet_winner_count[method].update(counter)
 
     plt.figure(f'Figure {fig}. {n_voters} voters, {n_elections} elections',
                figsize=(8, 6.5))

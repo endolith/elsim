@@ -2,6 +2,16 @@
 
 These are some example scripts to demonstrate the various simulations that can be done, and to verify the simulator by reproducing results of already-published works.
 
+## Parallel Monte Carlo
+
+Most scripts that run many elections use [joblib](https://joblib.readthedocs.io/) to parallelize embarrassingly parallel simulation loops. The usual pattern is:
+
+- **`batch_size = 100`** — each worker runs this many elections before returning, which cuts down on scheduling overhead.
+- **`Parallel(n_jobs=-3, verbose=5, backend='loky')`** — use all but two CPU cores, print progress, and pin the loky backend so each worker draws elections with its own RNG state (fork-based backends would duplicate the shared RNG across workers).
+- **Aggregation** — workers return partial `Counter` or `defaultdict` results that the main process merges (order does not matter).
+
+These are Monte Carlo verification scripts: they do not fix a global random seed, so exact counts differ from run to run; each worker draws elections independently.
+
 ## Wikipedia
 
 ### Likelihood of a Condorcet cycle

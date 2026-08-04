@@ -44,12 +44,12 @@ The general trend is similar to Merrill's, but there are significant
 discrepancies.  It is smoother, so maybe the original just had lower number of
 simulations.
 """
-import time
 from collections import Counter
 from random import randint
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
@@ -63,6 +63,11 @@ n_voters = 201
 n_cands_list = (2, 3, 4, 5, 6, 7)
 corr = 0.5
 D = 2
+
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 100
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
 
 ranked_methods = {'Plurality': fptp, 'Top-2 Runoff': runoff, 'Hare RCV': irv,
                   'Borda': borda, 'Coombs': coombs, 'Condorcet RCV': black}
@@ -78,15 +83,13 @@ rated_methods = {'SU max': utility_winner,
                           tiebreaker),
                  }
 
-for fig, disp, _ymin in (('4.a', 1.0, 55),
-                        ('4.b', 0.5, 0)):
 
+def simulate_batch(disp):
+    """Run one batch of elections and return the partial tallies."""
     utility_sums = {key: Counter() for key in (ranked_methods.keys() |
                                                rated_methods.keys() |
                                                {'SU max', 'RW'})}
-    start_time = time.monotonic()
-
-    for _iteration in range(n_elections):
+    for _iteration in range(batch_size):
         for n_cands in n_cands_list:
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp)
@@ -105,9 +108,23 @@ for fig, disp, _ymin in (('4.a', 1.0, 55),
                 winner = method(rankings, tiebreaker='random')
                 utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
 
-    elapsed_time = time.monotonic() - start_time
-    print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
-          '\n')
+    return utility_sums
+
+
+for fig, disp, _ymin in (('4.a', 1.0, 55),
+                        ('4.b', 0.5, 0)):
+
+    jobs = [delayed(simulate_batch)(disp)] * n_batches
+    print(f'{len(jobs)} tasks total:')
+    results = Parallel(n_jobs=-3, verbose=5, backend='loky')(jobs)
+
+    # Aggregate results
+    utility_sums = {key: Counter() for key in (ranked_methods.keys() |
+                                               rated_methods.keys() |
+                                               {'SU max', 'RW'})}
+    for result in results:
+        for method, counter in result.items():
+            utility_sums[method].update(counter)
 
     plt.figure(f'Figure {fig}. {n_voters} voters, {n_elections} elections',
                figsize=(8, 6.5))
