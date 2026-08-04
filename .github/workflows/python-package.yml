@@ -92,3 +92,28 @@ jobs:
           flags: ${{ contains(matrix.extras, 'fast') && 'numba' || 'no-numba' }}
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  smoke-test-examples:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install package with example dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[test]"
+          pip install joblib matplotlib tabulate
+
+      - name: Run example tests
+        env:
+          MPLBACKEND: Agg
+        run: pytest tests/test_examples.py -m slow

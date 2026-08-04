@@ -75,5 +75,8 @@ Documentation = "https://endolith.github.io/elsim/"
 path = "elsim/__init__.py"
 
 [tool.pytest.ini_options]
-addopts = "--doctest-modules --ignore=examples --cov --cov-report html --tb=short"
+addopts = "--doctest-modules --ignore=examples --cov --cov-report html --tb=short -m 'not slow'"
 doctest_optionflags = ["ELLIPSIS"]
+markers = [
+    "slow: run the example scripts in full; excluded by default (pytest -m slow)",
+]
