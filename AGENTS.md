@@ -8,7 +8,7 @@
 
 ```sh
 # Install dev dependencies (editable)
-pip install -e ".[test,fast]"
+pip install -e '.[test,fast]'
 
 # Run full test suite (includes doctests; see addopts in pyproject.toml)
 pytest
@@ -25,8 +25,8 @@ ruff check .
 # Coverage report
 pytest --cov=./ --cov-report html
 
-# Run an example script (needs `pip install -e ".[examples]"`)
-python examples/<script>.py
+# Run an example script
+pip install -e '.[examples]'; python examples/<script>.py
 ```
 
 Optional: `pre-commit install` sets up local hooks mirroring the CI lint gates (config in `.pre-commit-config.yaml`). CI is the source of truth.
@@ -71,7 +71,7 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 ## Caveats
 
 - When Numba is not installed, importing `elsim` emits `UserWarning: Numba not installed, … code will run slower`. This is expected and harmless.
-- The first `@njit` call (especially `prange`-based Condorcet methods) triggers a compile that can take >1 s. Hypothesis deadlines are relaxed in CI (see Testing notes), and fixtures in tests amortize the cost by pre-warming the JIT. Do not add a second Hypothesis test that compiles the same function — reuse the existing fixture instead.
+- The first `@njit` call (especially `prange`-based Condorcet methods) triggers a compile that can take >1 s. In CI, Hypothesis deadlines are relaxed to 5000 ms (configured in `tests/conftest.py`). Locally, deterministic (non-Hypothesis) test functions run first and warm the JIT, so Hypothesis tests that follow inherit the compiled code and stay under the deadline. When adding a Hypothesis test for a method, place it after an existing deterministic test that calls the same @njit function — do not add a second Hypothesis test as the first caller.
 
 ## Code change guidelines
 
@@ -105,6 +105,7 @@ When changing code, update **all** relevant documentation:
 
 ### PRs and Issues
 
+- **CodeRabbit reviews each PR first** (automated code review). Address all CodeRabbit comments before flagging the PR for human review.
 - All changes must be submitted as PRs so they can be revised independently.
 - **Rework an existing PR in place.** When asked to rebase or fix a PR, modify the PR's actual head branch and force-push with `--force-with-lease`—don't create a new parallel branch and point people at it. First push a backup of the head branch to the remote (e.g. `git push origin <head-branch>:backup/<head-branch>`) and confirm the backup ref exists, so the original is recoverable even if the local environment is lost; only then rewrite the branch. If anything goes wrong, restore from the backup.
 - **Prefer small, reviewable PRs.** Split large efforts into stacked PRs with a clear merge order. Each PR should have one scope; the description should list commits and what each one does so reviewers can read commit-by-commit.
