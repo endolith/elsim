@@ -1,18 +1,17 @@
 """
 Run the example simulation scripts in full and check their results.
 
-Each script is executed as a whole (``runpy``) and its computed ``table`` is
-read directly, rather than parsing printed output.  These tests are slow, so
-they are marked "slow" and skipped by default (run with ``pytest -m slow``),
-and they require the optional ``examples`` dependencies (joblib and
-matplotlib).  Reference values and tolerances are described at
+Each script is executed as a whole (in a subprocess) and its computed
+``table`` is read directly, rather than parsing printed output.  These tests
+are slow, so they are marked "slow" and skipped by default (run with
+``pytest -m slow``), and they require the optional ``examples`` dependencies
+(joblib and matplotlib).  Reference values and tolerances are described at
 ``REFERENCE_VALUES``.
 """
-import contextlib
-import io
 import os
 import pathlib
-import runpy
+import pickle
+import subprocess
 import sys
 
 import numpy as np
@@ -25,10 +24,6 @@ pytest.importorskip('matplotlib')
 pytest.importorskip('tabulate')
 
 EXAMPLES = pathlib.Path(__file__).resolve().parent.parent / 'examples'
-
-# Some example scripts import sibling modules from the examples directory
-# (e.g. weber_1977_expressions).
-sys.path.insert(0, str(EXAMPLES))
 
 ALL_SCRIPTS = [
     'merrill_1984_fig_2c_2d.py',
@@ -125,16 +120,23 @@ TOLERANCES = {
 }
 
 
-def _run(name):
-    """Run an example script in full; return its module globals."""
-    with contextlib.redirect_stdout(io.StringIO()), \
-            contextlib.redirect_stderr(io.StringIO()):
-        return runpy.run_path(str(EXAMPLES / name))
+def _run(name, tmp_path):
+    """Run an example script in full (subprocess); return its ``table``."""
+    script = (EXAMPLES / name).read_text()
+    out = tmp_path / 'table.pkl'
+    script += (f'\nimport pickle\n'
+               f'pickle.dump(table, open({str(out)!r}, "wb"))\n')
+    variant = tmp_path / name
+    variant.write_text(script)
+    env = {**os.environ, 'MPLBACKEND': 'Agg', 'PYTHONPATH': str(EXAMPLES)}
+    subprocess.run([sys.executable, str(variant)], env=env,
+                   capture_output=True, timeout=1200, check=True)
+    with open(out, 'rb') as f:
+        return pickle.load(f)
 
 
-def _table_rows(ns):
+def _table_rows(table):
     """Return an example script's ``table`` as {label: np.array}."""
-    table = ns['table']
     if isinstance(table, dict):
         return {k: np.asarray(v, dtype=float) for k, v in table.items()}
     return {row[0]: np.asarray(row[1:], dtype=float) for row in table}
@@ -142,8 +144,12 @@ def _table_rows(ns):
 
 @pytest.mark.slow
 @pytest.mark.parametrize('name', ALL_SCRIPTS)
-def test_example(name):
-    table = _table_rows(_run(name))
+def test_example(name, tmp_path):
+    table = _table_rows(_run(name, tmp_path))
+    assert table, f'{name}: produced an empty table'
     for method, expected in REFERENCE_VALUES.get(name, {}).items():
-        got = table[method][:len(expected)]
-        np.testing.assert_allclose(got, expected, atol=TOLERANCES[name])
+        assert len(table[method]) == len(expected), (
+            f'{name}: row {method!r} has {len(table[method])} values, '
+            f'expected {len(expected)}')
+        np.testing.assert_allclose(table[method], expected,
+                                   atol=TOLERANCES[name])
