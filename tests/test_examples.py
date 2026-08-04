@@ -144,6 +144,10 @@ def _table_rows(ns):
 @pytest.mark.parametrize('name', ALL_SCRIPTS)
 def test_example(name):
     table = _table_rows(_run(name))
+    assert table, f'{name}: produced an empty table'
     for method, expected in REFERENCE_VALUES.get(name, {}).items():
-        got = table[method][:len(expected)]
-        np.testing.assert_allclose(got, expected, atol=TOLERANCES[name])
+        assert len(table[method]) == len(expected), (
+            f'{name}: row {method!r} has {len(table[method])} values, '
+            f'expected {len(expected)}')
+        np.testing.assert_allclose(table[method], expected,
+                                   atol=TOLERANCES[name])
