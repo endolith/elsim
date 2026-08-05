@@ -87,6 +87,8 @@ merrill_fig_2d = {
     'Plurality': {2: 100.0, 3: 51.3,  4: 36.2,  5: 21.0,  7: 7.8},
 }
 
+table = {}
+
 for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
                               ('2.d', 0.5, 0, merrill_fig_2d)):
 
@@ -134,7 +136,7 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
     # Restart color cycle, so result colors match
     plt.gca().set_prop_cycle(None)
 
-    table = []
+    table[fig] = []
 
     # Of those elections with CW, likelihood that method chooses CW
     x_cw, y_cw = zip(*sorted(condorcet_winner_count['CW'].items()))
@@ -143,9 +145,10 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
         x, y = zip(*sorted(condorcet_winner_count[method].items()))
         CE = np.array(y)/y_cw
         plt.plot(x, CE*100, '-', label=method)
-        table.append([method, *CE*100])
+        table[fig].append([method, *CE*100])
 
-    print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
+    print(tabulate(table[fig], ["Method", *x], tablefmt="pipe",
+                   floatfmt='.1f'))
     print()
 
     plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
@@ -155,3 +158,32 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
     plt.ylim(ymin, 102)
     plt.xlim(1.8, 7.2)
     plt.show()
+
+# Regression reference from the "Results with 500_000 elections" tables in the
+# docstring, ordered by n_cands_list.  These sims do not reproduce Merrill's
+# published figures exactly (discrepancies up to ~7%, see issue #88), so this
+# is only a regression guard against breaking the current close-enough output
+# until that discrepancy is fixed.
+reference_table = {
+    '2.c': {
+        'Black': (100.0, 100.0, 100.0, 100.0, 100.0, 100.0),
+        'Coombs': (100.0, 99.4, 98.6, 97.8, 96.9, 96.0),
+        'Borda': (100.0, 91.4, 89.2, 87.1, 85.7, 84.6),
+        'Approval': (100.0, 85.9, 79.8, 73.9, 70.1, 66.8),
+        'Hare': (100.0, 94.1, 86.6, 78.9, 71.7, 65.2),
+        'Runoff': (100.0, 94.1, 87.1, 79.7, 72.8, 66.1),
+        'Plurality': (100.0, 80.6, 67.6, 57.4, 49.3, 42.6),
+    },
+    '2.d': {
+        'Black': (100.0, 100.0, 100.0, 100.0, 100.0, 100.0),
+        'Coombs': (100.0, 98.2, 95.9, 93.4, 90.9, 88.4),
+        'Borda': (100.0, 89.2, 86.3, 83.8, 82.1, 80.8),
+        'Approval': (100.0, 84.0, 76.9, 71.5, 67.8, 64.7),
+        'Hare': (100.0, 72.2, 50.3, 35.8, 26.0, 19.7),
+        'Runoff': (100.0, 72.2, 50.6, 35.3, 24.4, 16.9),
+        'Plurality': (100.0, 55.9, 34.7, 21.5, 13.5, 8.5),
+    },
+}
+
+# Absolute tolerance (percentage points) for test_examples.py
+tolerance = 5.0
