@@ -73,3 +73,18 @@ for method in ('Standard', 'Borda', 'Approval'):
 
 print(tabulate(table, 'keys', showindex=n_voters_list,
                tablefmt="pipe", floatfmt='.4f'))
+
+# Reference values from Weber's published Table 4, ordered by n_voters_list.
+# This script reproduces them within tolerance, so test_examples.py checks the
+# computed table against these.
+reference_table = {
+    'Standard': (1.2500, 1.8333, 2.3889, 2.9167, 5.5975, 8.2245,
+                 10.8328, 13.4328, 16.0190),
+    'Borda': (1.2917, 1.8750, 2.4236, 2.9765, 5.6706, 8.3206,
+              10.9472, 13.5588, 16.1597),
+    'Approval': (1.2917, 1.8646, 2.4213, 2.9726, 5.6719, 8.3245,
+                 10.9531, 13.5662, 16.1684),
+}
+
+# Absolute tolerance (utility units) for test_examples.py
+tolerance = 0.2

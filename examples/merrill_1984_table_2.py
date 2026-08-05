@@ -124,3 +124,23 @@ for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
 table.append(['CW', *(y_cw / n_elections * 100)])
 
 print(tabulate(table, header, tablefmt="pipe", floatfmt='.1f'))
+
+# Regression reference from the "Typical result" table in the docstring,
+# ordered by `conditions`.  The published Merrill (1984) Table 2 is not
+# reproduced (some values are off by up to ~5 pp; see issue #88), so this is
+# only a regression guard against breaking the current close-enough output
+# until that discrepancy is fixed.
+reference_table = {
+    'Plurality': (57.5, 65.8, 62.2, 78.4, 21.7, 24.4, 27.2, 41.3),
+    'Runoff': (80.1, 87.3, 81.6, 93.6, 35.4, 42.2, 41.5, 61.5),
+    'Hare': (79.2, 86.7, 84.0, 95.4, 35.9, 46.8, 41.0, 69.9),
+    'Approval': (73.8, 77.8, 76.9, 85.4, 71.5, 76.4, 73.8, 82.7),
+    'Borda': (87.1, 89.3, 88.2, 92.3, 83.7, 86.3, 85.2, 89.4),
+    'Coombs': (97.8, 97.3, 97.9, 98.2, 93.5, 92.3, 93.8, 94.5),
+    'Black': (100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0),
+    'SU max': (82.9, 85.8, 85.3, 90.8, 78.1, 81.5, 80.8, 87.1),
+    'CW': (99.7, 99.7, 99.7, 99.6, 98.9, 98.6, 98.7, 98.5),
+}
+
+# Absolute tolerance (percentage points) for test_examples.py
+tolerance = 3.0

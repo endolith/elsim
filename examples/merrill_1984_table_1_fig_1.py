@@ -84,8 +84,10 @@ for _iteration in range(n_elections):
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
-# Plot Merrill's results as dotted lines for comparison
-merrill_table_1 = {
+# Reference values from Merrill's published Table 1, used to plot his results
+# as dotted lines for comparison.  This script reproduces them within ~2 pp,
+# so test_examples.py checks the computed table against these.
+reference_table = {
     'Plurality': {2: 100.0, 3:  79.1, 4:  69.4, 5:  62.1, 7:  52.0, 10:  42.6},
     'Runoff':    {2: 100.0, 3:  96.2, 4:  90.1, 5:  83.6, 7:  73.5, 10:  61.3},
     'Hare':      {2: 100.0, 3:  96.2, 4:  92.7, 5:  89.1, 7:  84.8, 10:  77.9},
@@ -97,11 +99,14 @@ merrill_table_1 = {
     'CW':        {2: 100.0, 3:  91.6, 4:  83.4, 5:  75.8, 7:  64.3, 10:  52.5},
 }
 
+# Absolute tolerance (percentage points) for test_examples.py
+tolerance = 3.5
+
 plt.figure(f'Figure 1. {n_voters} voters, {n_elections} elections')
 plt.title('Figure 1: Condorcet Efficiencies for a Random Society')
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
-    x, y = zip(*sorted(merrill_table_1[method].items()))
+    x, y = zip(*sorted(reference_table[method].items()))
     plt.plot(x, y, ':', lw=0.8)
 
 # Restart color cycle, so result colors match

@@ -76,6 +76,8 @@ rated_methods = {'SU max': utility_winner,
                      star(honest_normed_scores(utilities, 5), tiebreaker),
                  }
 
+table = {}
+
 for fig, disp, ymin in (('2.c', 1.0, 50),
                         ('2.d', 0.5, 0)):
 
@@ -113,7 +115,7 @@ for fig, disp, ymin in (('2.c', 1.0, 50),
     plt.title(f'Figure {fig}: Condorcet Efficiency under Spatial-Model '
               f'Assumptions [Disp: {disp}]')
 
-    table = []
+    table[fig] = []
 
     # Of those elections with CW, likelihood that method chooses CW
     x_cw, y_cw = zip(*sorted(condorcet_winner_count['CW'].items()))
@@ -122,9 +124,10 @@ for fig, disp, ymin in (('2.c', 1.0, 50),
         x, y = zip(*sorted(condorcet_winner_count[method].items()))
         CE = np.array(y)/y_cw
         plt.plot(x, CE*100, '-', label=method)
-        table.append([method, *CE*100])
+        table[fig].append([method, *CE*100])
 
-    print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
+    print(tabulate(table[fig], ["Method", *x], tablefmt="pipe",
+                   floatfmt='.1f'))
     print()
 
     plt.legend()
@@ -133,3 +136,36 @@ for fig, disp, ymin in (('2.c', 1.0, 50),
     plt.ylim(ymin, 102)
     plt.xlim(1.8, 7.2)
     plt.show()
+
+# Regression reference from the "Results with 100_000 elections" tables in the
+# docstring, ordered by n_cands_list.  These sims do not reproduce Merrill's
+# published figures exactly (discrepancies up to ~7%, see issue #88), so this
+# is only a regression guard against breaking the current close-enough output
+# until that discrepancy is fixed.
+reference_table = {
+    '2.c': {
+        'Condorcet RCV': (100.0, 100.0, 100.0, 100.0, 100.0, 100.0),
+        'Coombs': (100.0, 99.4, 98.6, 97.8, 96.9, 96.0),
+        'STAR': (100.0, 97.8, 94.7, 92.1, 89.9, 88.0),
+        'Borda': (100.0, 91.4, 89.2, 87.1, 85.8, 84.8),
+        'Score': (100.0, 88.7, 84.6, 82.7, 81.3, 79.9),
+        'Approval (opt.)': (100.0, 86.0, 79.7, 73.9, 70.5, 67.0),
+        'Hare RCV': (100.0, 94.1, 86.6, 79.0, 71.3, 65.1),
+        'Top-2 Runoff': (100.0, 94.1, 87.1, 79.9, 72.8, 65.9),
+        'Plurality': (100.0, 80.6, 67.8, 57.3, 49.1, 42.7),
+    },
+    '2.d': {
+        'Condorcet RCV': (100.0, 100.0, 100.0, 100.0, 100.0, 100.0),
+        'Coombs': (100.0, 98.3, 95.7, 93.4, 90.8, 88.5),
+        'STAR': (100.0, 96.5, 91.5, 87.2, 83.1, 79.8),
+        'Borda': (100.0, 89.2, 86.4, 83.9, 82.2, 80.7),
+        'Score': (100.0, 86.2, 80.5, 77.4, 74.5, 72.1),
+        'Approval (opt.)': (100.0, 83.7, 76.9, 71.6, 67.6, 64.6),
+        'Hare RCV': (100.0, 72.4, 50.4, 35.6, 26.2, 19.8),
+        'Top-2 Runoff': (100.0, 72.4, 50.5, 35.3, 24.5, 17.1),
+        'Plurality': (100.0, 56.3, 34.8, 21.5, 13.5, 8.6),
+    },
+}
+
+# Absolute tolerance (percentage points) for test_examples.py
+tolerance = 5.0
