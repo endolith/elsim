@@ -50,7 +50,7 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 
 ## Key conventions
 
-- **Docstrings:** numpydoc format. Doctests run as part of the test suite (`--doctest-modules`) — keep them correct and deterministic (pass `random_state` in examples).
+- **Docstrings:** numpydoc format for public API docstrings in `elsim/` (they build the Sphinx site). Test and example docstrings do not need numpydoc `Parameters`/`Returns` sections — a plain prose docstring is fine. Doctests run as part of the test suite (`--doctest-modules`) — keep them correct and deterministic (pass `random_state` in examples).
 - **Numpy alias:** `elsim/elections.py` and `elsim/strategies.py` import numpy as `_np` to keep it out of the public namespace. `elsim/methods/` modules use plain `np`; exports are pinned by `__all__` in `__init__.py`, so it doesn't leak. Either way, numpy and the like must not appear in the public interface.
 - **Numba:** Soft dependency. Performance paths use `@njit(cache=True, nogil=True)`. If Numba is absent, a no-op `njit` decorator is used. Check `elsim.methods._common.numba_enabled` for the flag.
 - **Random state:** All public functions accept `random_state=None|int|Generator` and use `np.random.default_rng()`.
