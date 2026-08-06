@@ -57,12 +57,12 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 - **Tiebreakers:** Most methods accept `tiebreaker=None` (returns `None` on ties), `'random'`, or `'order'`.
 - **Data types:** Candidates are 0-indexed integer IDs. Ballots are numpy arrays (`uint8` where possible). Rows = voters.
 - **Line length:** 79 characters (PEP8).
-- **Target Python:** 3.8+ (`ruff.toml` target-version).
+- **Target Python:** 3.10+ (`ruff.toml` target-version).
 - **Internal helper prefix:** Private functions in source modules use `_` prefix (e.g. `_tally_at_rank_idx`, `_get_tiebreak`).
 
 ## Testing notes
 
-- CI tests across Python 3.8–3.14, with and without Numba.
+- CI tests across Python 3.10–3.14, with and without Numba.
 - When Numba is installed, Hypothesis deadline is relaxed to 5000ms (configured in `tests/conftest.py`).
 - Property-based tests use Hypothesis (`@given` with `lists(permutations(...))` for ballot generation).
 - `tests/test_methods.py` has parametrized cross-cutting tests (unanimity, degenerate cases, invalid tiebreakers) that run against all methods.
