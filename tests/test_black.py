@@ -3,7 +3,7 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
 
-from elsim.methods import black
+from elsim.methods import black, borda, condorcet
 
 
 @pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
@@ -148,6 +148,17 @@ def test_legit_winner_none(election):
     winner = black(election)
     assert isinstance(winner, (int, type(None)))
     assert winner in set(range(n_cands)) | {None}
+
+
+@given(election=complete_ranked_ballots(min_cands=2, max_cands=20,
+                                        min_voters=1, max_voters=80))
+def test_black_equals_condorcet_or_borda(election):
+    election = np.asarray(election)
+    cw = condorcet(election)
+    if cw is not None:
+        assert black(election) == cw
+    else:
+        assert black(election) == borda(election)
 
 
 if __name__ == "__main__":
