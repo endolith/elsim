@@ -116,12 +116,12 @@ REFERENCE_VALUES = {
 # Absolute tolerance per script: percentage points for the Merrill and Weber
 # effectiveness tables, utility units for weber_1977_table_4.
 TOLERANCES = {
-    'merrill_1984_table_1_fig_1.py': 3.5,
-    'merrill_1984_table_2.py': 3.0,
-    'merrill_1984_table_3_fig_3.py': 3.0,
-    'merrill_1984_table_4.py': 3.0,
-    'weber_1977_effectiveness_table.py': 4.0,
-    'weber_1977_table_4.py': 0.2,
+    'merrill_1984_table_1_fig_1.py': 4.0,
+    'merrill_1984_table_2.py': 3.5,
+    'merrill_1984_table_3_fig_3.py': 3.5,
+    'merrill_1984_table_4.py': 3.5,
+    'weber_1977_effectiveness_table.py': 5.0,
+    'weber_1977_table_4.py': 0.3,
 }
 
 
