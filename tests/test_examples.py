@@ -145,6 +145,14 @@ def _table_rows(table):
 @pytest.mark.slow
 @pytest.mark.parametrize('name', ALL_SCRIPTS)
 def test_example(name, tmp_path):
+    """Run an example script in a subprocess and check its ``table``.
+
+    The script is run to completion and its computed ``table`` is compared
+    against ``REFERENCE_VALUES`` within ``TOLERANCES``.  A non-empty table
+    and equal-length rows are asserted first, so a script that silently
+    truncates its output fails with a clear message rather than an opaque
+    array mismatch.
+    """
     table = _table_rows(_run(name, tmp_path))
     assert table, f'{name}: produced an empty table'
     for method, expected in REFERENCE_VALUES.get(name, {}).items():
