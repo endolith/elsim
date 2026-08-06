@@ -5,6 +5,7 @@ These take collections of ballots (elections) as inputs and return the winner
 according to the rules of that method.
 """
 from elsim.methods.approval import approval, combined_approval
+from elsim.methods.baldwin import baldwin, total_vote_runoff
 from elsim.methods.black import black
 from elsim.methods.borda import borda
 from elsim.methods.condorcet import (condorcet, condorcet_from_matrix,
@@ -19,6 +20,7 @@ from elsim.methods.utility_winner import utility_winner
 
 __all__ = [
     'approval',
+    'baldwin',
     'black',
     'borda',
     'combined_approval',
@@ -33,5 +35,6 @@ __all__ = [
     'sntv',
     'score',
     'star',
+    'total_vote_runoff',
     'utility_winner',
 ]
