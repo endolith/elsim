@@ -19,7 +19,7 @@ pytest tests/test_irv.py
 # Lint (blocking — same gate as CI)
 ruff check . --select=E9,F63,F7,F82
 
-# Lint (full ruleset from ruff.toml; informational)
+# Lint (full ruleset from ruff.toml; informational, but failures should be mentioned)
 ruff check .
 
 # Coverage report
@@ -51,7 +51,7 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 ## Key conventions
 
 - **Docstrings:** numpydoc format. Doctests run as part of the test suite (`--doctest-modules`) — keep them correct and deterministic (pass `random_state` in examples).
-- **Numpy alias:** `elsim/elections.py` and `elsim/strategies.py` import numpy as `_np` to keep it out of the public namespace. `elsim/methods/` modules use plain `np`; exports are pinned by `__all__` in `__init__.py`, so it doesn't leak. Either way, numpy must not appear in the public interface.
+- **Numpy alias:** `elsim/elections.py` and `elsim/strategies.py` import numpy as `_np` to keep it out of the public namespace. `elsim/methods/` modules use plain `np`; exports are pinned by `__all__` in `__init__.py`, so it doesn't leak. Either way, numpy and the like must not appear in the public interface.
 - **Numba:** Soft dependency. Performance paths use `@njit(cache=True, nogil=True)`. If Numba is absent, a no-op `njit` decorator is used. Check `elsim.methods._common.numba_enabled` for the flag.
 - **Random state:** All public functions accept `random_state=None|int|Generator` and use `np.random.default_rng()`.
 - **Tiebreakers:** Most methods accept `tiebreaker=None` (returns `None` on ties), `'random'`, or `'order'`.
@@ -96,7 +96,7 @@ When changing code, update **all** relevant documentation:
 - **Never commit agent-generated scratch files.** AI assistants sometimes write summary/status notes into the repo (e.g. `*_summary.md`, session notes, chat dumps); these are not part of the codebase and must not be committed. If one is accidentally committed in an unmerged branch, remove it from history with `git rebase -i` rather than adding a "delete file" commit that leaves an add-then-delete pair.
 - **Write comprehensive commit messages.** The subject line is a concise summary; the body must explain the problem being solved, the chosen approach, and any trade-offs. Provide the *context* that makes the diff understandable—why each change exists and what it achieves. Avoid meta-commentary about the commit itself (e.g., "fixing my commit according to instructions"). Keep process discussion in chat.
 - **Use Conventional Commits** (e.g., `feat:`, `fix:`, `docs:`, `test:`, `chore:`) to categorize changes and enable automated changelog generation.
-- **Authorship:** When AI writes code, the AI is author and human is coauthor. Use `Co-authored-by:` trailer in commit message.
+- **Authorship:** In this repo, the human is author and AI is coauthor. Use `Co-authored-by:` trailer in commit message.
 
 ### Comments
 
@@ -109,7 +109,7 @@ When changing code, update **all** relevant documentation:
 - All changes must be submitted as PRs so they can be revised independently.
 - **Rework an existing PR in place.** When asked to rebase or fix a PR, modify the PR's actual head branch and force-push with `--force-with-lease`—don't create a new parallel branch and point people at it. First push a backup of the head branch to the remote (e.g. `git push origin <head-branch>:backup/<head-branch>`) and confirm the backup ref exists, so the original is recoverable even if the local environment is lost; only then rewrite the branch. If anything goes wrong, restore from the backup.
 - **Prefer small, reviewable PRs.** Split large efforts into stacked PRs with a clear merge order. Each PR should have one scope; the description should list commits and what each one does so reviewers can read commit-by-commit.
-- **Don't expand a PR's scope because a reviewer pointed something out.** Reviewer comments may flag pre-existing or out-of-scope issues; if a comment isn't about code this PR changed, fix it in its own PR and rebase on top of that, rather than scope-creeping the PR under review.
+- **Don't expand a PR's scope just because a reviewer pointed something out.** Reviewer comments may flag pre-existing or out-of-scope issues; if a comment isn't about code this PR changed, fix it in its own PR and rebase on top of that, rather than scope-creeping the PR under review.
 - Check if there are any Issues related to the change you are making, and if so, mention it in the PR and write `Fixes #…` in the relevant commit message, so that the Issue will be auto-closed on merge.
 - **PR descriptions** should stand alone for a reviewer who has not read the issue or agent chat. Use short sections: **Background** (what should work), **Problem** (what is wrong), **Visible symptoms** (what users or CI observe), **What this PR changes** (scope and non-goals), **Tests** (what was added or updated). Add **Related work** only when stacked PRs or merge order matter. Split unrelated fixes into separate PRs; cross-link siblings when you do.
 
