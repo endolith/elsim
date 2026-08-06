@@ -95,14 +95,26 @@ def _is_nested(table):
 def _assert_close(name, got, expected, tolerance):
     """Check one computed row against its reference and report clear errors."""
     assert got, f'{name}: produced an empty table'
+    assert set(got) == set(expected), (
+        f'{name}: computed methods {sorted(got)} do not match reference '
+        f'methods {sorted(expected)}')
     for method, expected_row in expected.items():
-        assert method in got, (
-            f'{name}: computed table is missing row {method!r}')
         assert len(got[method]) == len(expected_row), (
             f'{name}: row {method!r} has {len(got[method])} values, '
             f'expected {len(expected_row)}')
         np.testing.assert_allclose(got[method], expected_row,
                                    atol=tolerance)
+
+
+def _check_nested(name, table, reference_table, tolerance):
+    """Check a figure script's computed ``table`` against its reference."""
+    assert set(table) == set(reference_table), (
+        f'{name}: computed figures {sorted(table)} do not match '
+        f'reference figures {sorted(reference_table)}')
+    for fig, rows in table.items():
+        got = _method_values(rows)
+        expected = _reference_values(reference_table[fig])
+        _assert_close(f'{name} ({fig})', got, expected, tolerance)
 
 
 @pytest.mark.slow
@@ -112,11 +124,72 @@ def test_example(name, tmp_path):
     ``reference_table``/``tolerance`` defined in the script itself."""
     table, reference_table, tolerance = _run(name, tmp_path)
     if _is_nested(table):
-        for fig, rows in table.items():
-            got = _method_values(rows)
-            expected = _reference_values(reference_table[fig])
-            _assert_close(f'{name} ({fig})', got, expected, tolerance)
+        _check_nested(name, table, reference_table, tolerance)
     else:
         got = _method_values(table)
         expected = _reference_values(reference_table)
         _assert_close(name, got, expected, tolerance)
+
+
+def test_assert_close_rejects_extra_method():
+    """A computed method with no reference row must fail the test.
+
+    Previously only missing methods were caught; an extra method could be
+    silently ignored.
+    """
+    got = {'A': np.array([1.0]), 'B': np.array([1.0])}
+    with pytest.raises(AssertionError):
+        _assert_close('x', got, {'A': np.array([1.0])}, 0.1)
+
+
+def test_assert_close_rejects_missing_method():
+    """A reference method absent from the computed table must fail."""
+    got = {'A': np.array([1.0])}
+    with pytest.raises(AssertionError):
+        _assert_close('x', got, {'A': np.array([1.0]),
+                                 'B': np.array([2.0])}, 0.1)
+
+
+def test_assert_close_rejects_wrong_length():
+    """A row with the wrong number of values must fail with a clear message."""
+    got = {'A': np.array([1.0])}
+    with pytest.raises(AssertionError, match='has 1 values'):
+        _assert_close('x', got, {'A': np.array([1.0, 2.0])}, 0.1)
+
+
+def test_assert_close_rejects_different_values():
+    """Values differing beyond ``tolerance`` must fail."""
+    got = {'A': np.array([1.0])}
+    with pytest.raises(AssertionError):
+        _assert_close('x', got, {'A': np.array([2.0])}, 0.1)
+
+
+def test_assert_close_rejects_empty_table():
+    """An empty computed table must fail."""
+    with pytest.raises(AssertionError, match='empty table'):
+        _assert_close('x', {}, {'A': np.array([1.0])}, 0.1)
+
+
+def test_check_nested_rejects_missing_figure():
+    """A reference figure absent from the computed table must fail.
+
+    Without this check a missing figure would be silently ignored.
+    """
+    table = {'2.c': [['A', 1.0]]}
+    reference = {'2.c': {'A': np.array([1.0])},
+                 '2.d': {'A': np.array([1.0])}}
+    with pytest.raises(AssertionError, match='computed figures'):
+        _check_nested('x', table, reference, 0.1)
+
+
+def test_check_nested_rejects_empty_nested_table():
+    """An empty nested table must fail rather than pass vacuously."""
+    with pytest.raises(AssertionError, match='computed figures'):
+        _check_nested('x', {}, {'2.c': {'A': np.array([1.0])}}, 0.1)
+
+
+def test_check_nested_passes_matching_figures():
+    """A nested table matching its reference must pass."""
+    table = {'2.c': [['A', 1.0]]}
+    reference = {'2.c': {'A': np.array([1.0])}}
+    _check_nested('x', table, reference, 0.1)
