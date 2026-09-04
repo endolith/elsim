@@ -145,6 +145,12 @@ def test_cav_basic(tiebreaker):
     assert combined_approval(election, tiebreaker) == 1  # Nashville
 
 
+def test_combined_approval_balanced_opposing_ballots_tie():
+    election = np.array([[1, -1], [-1, 1]], dtype=np.int8)
+    assert combined_approval(election) is None
+    assert combined_approval(election, tiebreaker='order') == 0
+
+
 def combined_approval_ballots(min_cands=1, max_cands=25, min_voters=1,
                               max_voters=100):
     """

@@ -100,6 +100,25 @@ def test_legit_winner_no_tiebreaker(election):
     assert winner in set(range(n_cands)) | {None}
 
 
+@given(
+    utilities=arrays(
+        np.float64,
+        tuples(integers(1, 25), integers(2, 12)),
+        elements=floats(0, 1, allow_nan=False, allow_infinity=False),
+    ),
+)
+def test_utility_winner_matches_argmax_of_column_sums(utilities):
+    winner = utility_winner(utilities, tiebreaker='order')
+    totals = utilities.sum(axis=0)
+    assert winner == int(np.argmax(totals))
+
+
+def test_utility_winner_two_way_tie_no_tiebreaker():
+    utilities = [[1.0, 0.0], [0.0, 1.0]]
+    assert utility_winner(utilities) is None
+    assert utility_winner(utilities, tiebreaker='order') == 0
+
+
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime
