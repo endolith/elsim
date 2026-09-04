@@ -3,8 +3,9 @@ import pytest
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_less)
 
-from elsim.elections import (impartial_culture, normal_electorate,
-                             normed_dist_utilities, random_utilities)
+from elsim.elections import (bimodal_electorate, impartial_culture,
+                             normal_electorate, normed_dist_utilities,
+                             random_utilities)
 
 
 def test_random_utilities():
@@ -125,8 +126,18 @@ def test_random_state(func):
     assert_array_equal(c, f)
 
 
+def test_bimodal_electorate():
+    rng = np.random.default_rng(42)
+    v, c = bimodal_electorate(500, 4, dims=1, disp=0.5, separation=0.5,
+                              random_state=rng)
+    assert v.shape == (1000, 1)
+    assert c.shape == (8, 1)
+    assert np.mean(v[:500]) < np.mean(v[500:])
+    assert np.mean(c[:4]) < np.mean(c[4:])
+
+
 @pytest.mark.parametrize("func", [random_utilities, impartial_culture,
-                                  normal_electorate])
+                                  normal_electorate, bimodal_electorate])
 def test_invalid_random_state(func):
     with pytest.raises(ValueError):
         func(5, 5, random_state='bananas')
