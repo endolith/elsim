@@ -45,6 +45,8 @@ from tabulate import tabulate
 from elsim.elections import impartial_culture
 from elsim.methods import condorcet
 
+from plot_uncertainty import binomial_proportion_ci_errors_percent
+
 # Probability That There Is No Majority Winner
 niemi_table = [.0000, .0000, .0877, .1755, .2513, .3152, .3692, .4151, .4545,
                .4887, .5187, .5452, .5687, .5898, .6087, .6259, .6416, .6559,
@@ -90,9 +92,21 @@ x, y = zip(*niemi_table.items())
 plt.plot(x, y, label='Niemi')
 
 x, y = zip(*sorted(condorcet_paradox_counts.items()))
-y = np.asarray(y) / n_elections  # Percent likelihood of paradox
-plt.plot(x, y, '.', label='Simulation')
+k = np.asarray(y)
+y_pct = k / n_elections * 100  # Percent likelihood of paradox
+el, eh = binomial_proportion_ci_errors_percent(k, n_elections)
+plt.errorbar(x, y_pct, yerr=[el, eh], fmt='.', label='Simulation',
+             capsize=2, elinewidth=0.8, markersize=6)
 
+plt.figtext(
+    0.99,
+    0.01,
+    'Simulation error bars: 95% exact (Clopper–Pearson) CI '
+    f'(binomial; {n_elections:,} elections per point)',
+    fontsize=7,
+    ha='right',
+    va='bottom',
+)
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
