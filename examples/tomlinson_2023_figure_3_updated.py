@@ -64,53 +64,56 @@ def simulate_batch(n_cands):
             c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
             c = np.atleast_2d(c).T
 
+        # Center each election on the voter median so Condorcet-style winners
+        # match the "nearest median" benchmark (issue #22).
+        ref = np.median(v[:, 0])
+
         # FPTP voting method
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
         winner = fptp(rankings, tiebreaker='random')
-        winners['First Past The Post / Plurality'].append(c[winner][0])
+        winners['First Past The Post / Plurality'].append(c[winner][0] - ref)
 
         # Top-two runoff
         utilities = normed_dist_utilities(v, c)
         rankings = honest_rankings(utilities)
         winner = runoff(rankings, tiebreaker='random')
         winners['Top-Two Runoff/Primary / Two-Round System / '
-                'Contingent Vote'].append(c[winner][0])
+                'Contingent Vote'].append(c[winner][0] - ref)
 
         # Instant-runoff
         winner = irv(rankings, tiebreaker='random')
         winners['Ranked-Choice Voting (Hare) / '
-                'Alternative Vote / Instant-Runoff'].append(c[winner][0])
+                'Alternative Vote / Instant-Runoff'].append(c[winner][0] - ref)
 
         # Approval voting
         winner = approval(approval_optimal(utilities), tiebreaker='random')
-        winners['Approval Voting ("optimal" strategy)'].append(c[winner][0])
+        winners['Approval Voting ("optimal" strategy)'].append(c[winner][0] - ref)
 
         # Approval voting
         winner = approval(vote_for_k(utilities, vote_for), tiebreaker='random')
         winners[f'Approval Voting "(Vote-for-{vote_for}"'
-                ' strategy)'].append(c[winner][0])
+                ' strategy)'].append(c[winner][0] - ref)
 
         # STAR voting
         ballots = honest_normed_scores(utilities)
         winner = star(ballots, tiebreaker='random')
-        winners['STAR Voting'].append(c[winner][0])
+        winners['STAR Voting'].append(c[winner][0] - ref)
 
         # Borda count
         winner = borda(rankings, tiebreaker='random')
-        winners['Borda count'].append(c[winner][0])
+        winners['Borda count'].append(c[winner][0] - ref)
 
         # Coombs method
         winner = coombs(rankings, tiebreaker='random')
-        winners["Coombs' method"].append(c[winner][0])
+        winners["Coombs' method"].append(c[winner][0] - ref)
 
         # Condorcet RCV
         winner = black(rankings, tiebreaker='random')
-        winners['Condorcet Ranked-Choice Voting (Black)'].append(c[winner][0])
+        winners['Condorcet Ranked-Choice Voting (Black)'].append(c[winner][0] - ref)
 
-        # Ideal winner method.  Votes don't matter at all; pick the center.
-        winner = np.argmin(abs(c))
-        winners['Best possible winner (nearest center)'].append(c[winner][0])
+        winner = int(np.argmin(np.abs(c[:, 0] - ref)))
+        winners['Best possible winner (nearest voter median)'].append(c[winner][0] - ref)
 
     return winners
 
