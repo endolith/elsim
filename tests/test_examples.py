@@ -5,8 +5,12 @@ Each script is executed as a whole (in a subprocess) and its computed
 ``table`` is read directly, rather than parsing printed output.  These tests
 are slow, so they are marked "slow" and skipped by default (run with
 ``pytest -m slow``), and they require the optional ``examples`` dependencies
-(joblib and matplotlib).  Reference values and tolerances are described at
-``REFERENCE_VALUES``.
+(joblib and matplotlib).
+
+Each example script that has expected output defines ``reference_table`` (the
+values to check its computed ``table`` against) and ``tolerance`` (the
+absolute tolerance for the comparison), so the script doubles as a test.  See
+issue #91.
 """
 import os
 import pathlib
@@ -38,94 +42,13 @@ ALL_SCRIPTS = [
     'weber_1977_table_4.py',
 ]
 
-# Reference results for the example scripts.
-#
-# For merrill_1984_table_1, merrill_1984_table_3, weber_1977_effectiveness
-# and weber_1977_table_4 the scripts reproduce the published tables within
-# ~2 pp, so the reference values are taken from the papers.
-#
-# merrill_1984_table_2 and merrill_1984_table_4 do not match the published
-# tables (unresolved discrepancies of up to ~5 pp and ~9 pp), so those two are
-# checked against the "Typical result" tables in their docstrings instead.
-# weber_1977_effectiveness_table's last row (255 candidates) is taken from its
-# docstring too, because the paper only gives the m -> infinity limit there.
-#
-# Values are keyed by method and appear in the same order as the script's
-# columns (n_cands, n_voters, or condition).
-REFERENCE_VALUES = {
-    'merrill_1984_table_1_fig_1.py': {
-        'Plurality': (100.0, 79.1, 69.4, 62.1, 52.0, 42.6),
-        'Runoff': (100.0, 96.2, 90.1, 83.6, 73.5, 61.3),
-        'Hare': (100.0, 96.2, 92.7, 89.1, 84.8, 77.9),
-        'Approval': (100.0, 76.0, 69.8, 67.1, 63.7, 61.3),
-        'Borda': (100.0, 90.8, 87.3, 86.2, 85.3, 84.3),
-        'Coombs': (100.0, 96.3, 93.4, 90.2, 86.1, 81.1),
-        'Black': (100.0, 100.0, 100.0, 100.0, 100.0, 100.0),
-        'SU max': (100.0, 84.4, 80.2, 77.9, 77.2, 77.8),
-        'CW': (100.0, 91.6, 83.4, 75.8, 64.3, 52.5),
-    },
-    'merrill_1984_table_2.py': {
-        'Plurality': (57.5, 65.8, 62.2, 78.4, 21.7, 24.4, 27.2, 41.3),
-        'Runoff': (80.1, 87.3, 81.6, 93.6, 35.4, 42.2, 41.5, 61.5),
-        'Hare': (79.2, 86.7, 84.0, 95.4, 35.9, 46.8, 41.0, 69.9),
-        'Approval': (73.8, 77.8, 76.9, 85.4, 71.5, 76.4, 73.8, 82.7),
-        'Borda': (87.1, 89.3, 88.2, 92.3, 83.7, 86.3, 85.2, 89.4),
-        'Coombs': (97.8, 97.3, 97.9, 98.2, 93.5, 92.3, 93.8, 94.5),
-        'Black': (100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0),
-        'SU max': (82.9, 85.8, 85.3, 90.8, 78.1, 81.5, 80.8, 87.1),
-        'CW': (99.7, 99.7, 99.7, 99.6, 98.9, 98.6, 98.7, 98.5),
-    },
-    'merrill_1984_table_3_fig_3.py': {
-        'Plurality': (100.0, 83.0, 75.0, 69.2, 62.8, 53.3),
-        'Runoff': (100.0, 89.5, 83.8, 80.5, 75.6, 67.6),
-        'Hare': (100.0, 89.5, 84.7, 82.4, 80.5, 74.9),
-        'Approval': (100.0, 95.4, 91.1, 89.1, 87.8, 87.0),
-        'Borda': (100.0, 94.8, 94.1, 94.4, 95.4, 95.9),
-        'Coombs': (100.0, 89.7, 86.7, 85.1, 83.1, 82.4),
-        'Black': (100.0, 93.1, 91.9, 92.0, 93.1, 94.3),
-    },
-    'merrill_1984_table_4.py': {
-        'Plurality': (72.1, 79.1, 80.4, 92.4, 4.0, 6.3, 25.2, 52.9),
-        'Runoff': (90.5, 94.2, 92.0, 97.5, 36.6, 43.6, 53.3, 75.3),
-        'Hare': (91.7, 94.7, 94.3, 98.4, 46.4, 57.7, 58.7, 83.6),
-        'Approval': (96.2, 97.0, 96.8, 98.5, 95.6, 96.8, 95.8, 98.0),
-        'Borda': (97.8, 98.6, 98.3, 99.4, 96.6, 97.7, 97.4, 99.0),
-        'Coombs': (97.0, 97.5, 97.7, 98.7, 94.0, 94.3, 95.0, 96.7),
-        'Black': (97.3, 97.8, 98.0, 99.0, 95.5, 96.1, 96.5, 98.0),
-    },
-    'weber_1977_effectiveness_table.py': {
-        'Standard': (81.65, 75.00, 69.28, 64.55, 60.61, 49.79, 12.78),
-        'Vote-for-half': (81.65, 75.00, 80.00, 79.06, 81.32, 82.99, 86.37),
-        'Borda': (81.65, 86.60, 89.44, 91.29, 92.58, 95.35, 99.80),
-    },
-    'weber_1977_table_4.py': {
-        'Standard': (1.2500, 1.8333, 2.3889, 2.9167, 5.5975, 8.2245,
-                     10.8328, 13.4328, 16.0190),
-        'Borda': (1.2917, 1.8750, 2.4236, 2.9765, 5.6706, 8.3206,
-                  10.9472, 13.5588, 16.1597),
-        'Approval': (1.2917, 1.8646, 2.4213, 2.9726, 5.6719, 8.3245,
-                     10.9531, 13.5662, 16.1684),
-    },
-}
-
-# Absolute tolerance per script: percentage points for the Merrill and Weber
-# effectiveness tables, utility units for weber_1977_table_4.
-TOLERANCES = {
-    'merrill_1984_table_1_fig_1.py': 4.0,
-    'merrill_1984_table_2.py': 3.5,
-    'merrill_1984_table_3_fig_3.py': 3.5,
-    'merrill_1984_table_4.py': 3.5,
-    'weber_1977_effectiveness_table.py': 5.0,
-    'weber_1977_table_4.py': 0.3,
-}
-
-
 def _run(name, tmp_path):
-    """Run an example script in full (subprocess); return its ``table``."""
+    """Run an example script in full (subprocess); return its globals."""
     script = (EXAMPLES / name).read_text()
-    out = tmp_path / 'table.pkl'
+    out = tmp_path / 'result.pkl'
     script += (f'\nimport pickle\n'
-               f'pickle.dump(table, open({str(out)!r}, "wb"))\n')
+               f'pickle.dump((table, reference_table, tolerance), '
+               f'open({str(out)!r}, "wb"))\n')
     variant = tmp_path / name
     variant.write_text(script)
     env = {**os.environ, 'MPLBACKEND': 'Agg', 'PYTHONPATH': str(EXAMPLES)}
@@ -135,29 +58,138 @@ def _run(name, tmp_path):
         return pickle.load(f)
 
 
-def _table_rows(table):
-    """Return an example script's ``table`` as {label: np.array}."""
-    if isinstance(table, dict):
-        return {k: np.asarray(v, dtype=float) for k, v in table.items()}
-    return {row[0]: np.asarray(row[1:], dtype=float) for row in table}
+def _method_values(rows):
+    """Return an example script's ``table``/``reference_table`` rows as
+    {method: np.array}.
+
+    ``rows`` is either a list of [method, *values] rows (Merrill-style
+    tables) or a dict mapping method to values (Weber-style tables).
+    """
+    if isinstance(rows, dict):
+        return {k: np.asarray(v, dtype=float) for k, v in rows.items()}
+    return {row[0]: np.asarray(row[1:], dtype=float) for row in rows}
+
+
+def _reference_values(reference):
+    """Return an example script's ``reference_table`` as {method: np.array}.
+
+    Values may be plain sequences in column order, or dicts keyed by column
+    label (sorted by key into column order, e.g. ``merrill_table_1``).
+    """
+    out = {}
+    for method, values in reference.items():
+        if isinstance(values, dict):
+            out[method] = np.asarray(
+                [v for _, v in sorted(values.items())], dtype=float)
+        else:
+            out[method] = np.asarray(values, dtype=float)
+    return out
+
+
+def _is_nested(table):
+    """True if ``table`` is a figure script's dict of {fig: [rows]}."""
+    return isinstance(table, dict) and all(
+        isinstance(v, list) for v in table.values())
+
+
+def _assert_close(name, got, expected, tolerance):
+    """Check one computed row against its reference and report clear errors."""
+    assert got, f'{name}: produced an empty table'
+    assert set(got) == set(expected), (
+        f'{name}: computed methods {sorted(got)} do not match reference '
+        f'methods {sorted(expected)}')
+    for method, expected_row in expected.items():
+        assert len(got[method]) == len(expected_row), (
+            f'{name}: row {method!r} has {len(got[method])} values, '
+            f'expected {len(expected_row)}')
+        np.testing.assert_allclose(got[method], expected_row,
+                                   atol=tolerance)
+
+
+def _check_nested(name, table, reference_table, tolerance):
+    """Check a figure script's computed ``table`` against its reference."""
+    assert set(table) == set(reference_table), (
+        f'{name}: computed figures {sorted(table)} do not match '
+        f'reference figures {sorted(reference_table)}')
+    for fig, rows in table.items():
+        got = _method_values(rows)
+        expected = _reference_values(reference_table[fig])
+        _assert_close(f'{name} ({fig})', got, expected, tolerance)
 
 
 @pytest.mark.slow
 @pytest.mark.parametrize('name', ALL_SCRIPTS)
 def test_example(name, tmp_path):
-    """Run an example script in a subprocess and check its ``table``.
+    """Run each example script and check its ``table`` against the
+    ``reference_table``/``tolerance`` defined in the script itself."""
+    table, reference_table, tolerance = _run(name, tmp_path)
+    if _is_nested(table):
+        _check_nested(name, table, reference_table, tolerance)
+    else:
+        got = _method_values(table)
+        expected = _reference_values(reference_table)
+        _assert_close(name, got, expected, tolerance)
 
-    The script is run to completion and its computed ``table`` is compared
-    against ``REFERENCE_VALUES`` within ``TOLERANCES``.  A non-empty table
-    and equal-length rows are asserted first, so a script that silently
-    truncates its output fails with a clear message rather than an opaque
-    array mismatch.
+
+def test_assert_close_rejects_extra_method():
+    """A computed method with no reference row must fail the test.
+
+    Previously only missing methods were caught; an extra method could be
+    silently ignored.
     """
-    table = _table_rows(_run(name, tmp_path))
-    assert table, f'{name}: produced an empty table'
-    for method, expected in REFERENCE_VALUES.get(name, {}).items():
-        assert len(table[method]) == len(expected), (
-            f'{name}: row {method!r} has {len(table[method])} values, '
-            f'expected {len(expected)}')
-        np.testing.assert_allclose(table[method], expected,
-                                   atol=TOLERANCES[name])
+    got = {'A': np.array([1.0]), 'B': np.array([1.0])}
+    with pytest.raises(AssertionError):
+        _assert_close('x', got, {'A': np.array([1.0])}, 0.1)
+
+
+def test_assert_close_rejects_missing_method():
+    """A reference method absent from the computed table must fail."""
+    got = {'A': np.array([1.0])}
+    with pytest.raises(AssertionError):
+        _assert_close('x', got, {'A': np.array([1.0]),
+                                 'B': np.array([2.0])}, 0.1)
+
+
+def test_assert_close_rejects_wrong_length():
+    """A row with the wrong number of values must fail with a clear message."""
+    got = {'A': np.array([1.0])}
+    with pytest.raises(AssertionError, match='has 1 values'):
+        _assert_close('x', got, {'A': np.array([1.0, 2.0])}, 0.1)
+
+
+def test_assert_close_rejects_different_values():
+    """Values differing beyond ``tolerance`` must fail."""
+    got = {'A': np.array([1.0])}
+    with pytest.raises(AssertionError):
+        _assert_close('x', got, {'A': np.array([2.0])}, 0.1)
+
+
+def test_assert_close_rejects_empty_table():
+    """An empty computed table must fail."""
+    with pytest.raises(AssertionError, match='empty table'):
+        _assert_close('x', {}, {'A': np.array([1.0])}, 0.1)
+
+
+def test_check_nested_rejects_missing_figure():
+    """A reference figure absent from the computed table must fail.
+
+    Without this check a missing figure would be silently ignored.
+    """
+    table = {'2.c': [['A', 1.0]]}
+    reference = {'2.c': {'A': np.array([1.0])},
+                 '2.d': {'A': np.array([1.0])}}
+    with pytest.raises(AssertionError, match='computed figures'):
+        _check_nested('x', table, reference, 0.1)
+
+
+def test_check_nested_rejects_empty_nested_table():
+    """An empty nested table must fail rather than pass vacuously."""
+    with pytest.raises(AssertionError, match='computed figures'):
+        _check_nested('x', {}, {'2.c': {'A': np.array([1.0])}}, 0.1)
+
+
+def test_check_nested_passes_matching_figures():
+    """A nested table matching its reference must pass."""
+    table = {'2.c': [['A', 1.0]]}
+    reference = {'2.c': {'A': np.array([1.0])}}
+    _check_nested('x', table, reference, 0.1)

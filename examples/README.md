@@ -2,6 +2,15 @@
 
 These are some example scripts to demonstrate the various simulations that can be done, and to verify the simulator by reproducing results of already-published works.
 
+Scripts double as tests: each one that has expected output defines a
+`reference_table` (the values its computed `table` is checked against, in the
+same order as the script's columns) and a `tolerance` (the absolute
+comparison tolerance).  `tests/test_examples.py` runs each script and checks
+`table` against `reference_table`.  Where a script reproduces the published
+results, the reference values come from the paper; where it does not (see
+issues #88 and #91), the reference is the script's "Typical result" as a
+regression guard until the discrepancy is fixed.
+
 ## Wikipedia
 
 ### Likelihood of a Condorcet cycle

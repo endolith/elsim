@@ -91,6 +91,20 @@ for method in ('Standard', 'Vote-for-half', 'Borda'):
 print(tabulate(table, 'keys', showindex=n_cands_list,
                tablefmt="pipe", floatfmt='.2f'))
 
+# Reference values from Weber's published table, ordered by n_cands_list.
+# This script reproduces them within tolerance, so test_examples.py checks the
+# computed table against these.  The paper only gives the m -> infinity limit
+# for the last row, so the 255-candidate value is taken from the "Typical
+# result" table in the docstring instead.
+reference_table = {
+    'Standard': (81.65, 75.00, 69.28, 64.55, 60.61, 49.79, 12.78),
+    'Vote-for-half': (81.65, 75.00, 80.00, 79.06, 81.32, 82.99, 86.37),
+    'Borda': (81.65, 86.60, 89.44, 91.29, 92.58, 95.35, 99.80),
+}
+
+# Absolute tolerance (percentage points) for test_examples.py
+tolerance = 5.0
+
 plt.plot([], [], 'k:', lw=0.8, label='Weber')  # Dummy plot for label
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
