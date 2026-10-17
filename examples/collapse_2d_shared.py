@@ -1,13 +1,17 @@
 """
-Shared palette, Voronoi, and theme for 2D collapse finder scripts.
+Shared configuration, palette, theme, plotting helpers and election sampling
+for the 2D collapse finder scripts.
 
 Used by collapse_finder_2d_irv.py, collapse_finder_2d_tvr.py,
-collapse_finder_2d_both.py, and collapse_finder_2d_palette_demo.py.
-Blacklist: Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12
-omitted (always bad).
+collapse_finder_2d_both.py and collapse_finder_2d_palette_demo.py.
+
+Palette blacklist: Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12 and
+TrafficLight_9 are omitted (always bad).
 """
 
+import argparse
 import importlib
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import matplotlib.colors as mcolors
@@ -16,33 +20,195 @@ import numpy as np
 from matplotlib.collections import LineCollection
 from scipy.spatial import Voronoi
 
+from elsim.elections import normal_electorate, normed_dist_utilities
+from elsim.strategies import honest_rankings
+
 # Default output root for collapse finder scripts (examples/results/).
 RESULTS_DIR = Path(__file__).resolve().parent / 'results'
 
-# Shared animation config for IRV/TVR/both scripts.
-# Override in script if needed.
-n_voters = 5000
-n_cands = 9
-max_trials = 100_000
-frames_per_transfer = 60
-disp = 0.5
-dark_background = True
-palette_name = 'Bold_10'
-
-# dark_background = False
-# palette_name = 'Bold_10'
+CANDIDATE_LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 
-# GIF timing: key frames (start, eliminate, last of transition,
-# winner) and transition total.
-KEY_FRAME_MS = 3000
-TRANSITION_TOTAL_MS = 3000
+# ── Configuration ─────────────────────────────────────────────────────
 
+@dataclass(frozen=True)
+class AnimationConfig:
+    """Everything the IRV/TVR/both scripts need to search and render."""
+    n_voters: int = 5000
+    n_cands: int = 9
+    max_trials: int = 100_000
+    frames_per_transfer: int = 60
+    disp: float = 0.5
+    dark_background: bool = True
+    palette_name: str = 'Bold_10'
+    seed: int | None = None
+    # GIF timing: key frames (start, eliminate, end of transition, winner)
+    # are held for key_frame_ms; a whole transition lasts transition_total_ms.
+    key_frame_ms: int = 3000
+    transition_total_ms: int = 3000
+
+    def transition_step_ms(self):
+        """Per-frame ms so a full transition lasts ``transition_total_ms``."""
+        n = self.frames_per_transfer
+        return self.transition_total_ms // max(1, n - 1) if n > 1 else 0
+
+    def labels(self):
+        return CANDIDATE_LABELS[:self.n_cands]
+
+
+DEFAULT_CONFIG = AnimationConfig()
+
+
+def parse_args(description, *, allow_positions=False):
+    """
+    Command-line interface shared by the collapse finder scripts.
+
+    Returns
+    -------
+    config : AnimationConfig
+    positions : Path or None
+        Only when ``allow_positions`` is True: a ``positions.npz`` from an
+        earlier run to reuse instead of searching for a new election.
+    """
+    p = argparse.ArgumentParser(description=description)
+    d = DEFAULT_CONFIG
+    p.add_argument('--n-voters', type=int, default=d.n_voters)
+    p.add_argument('--n-cands', type=int, default=d.n_cands)
+    p.add_argument('--max-trials', type=int, default=d.max_trials)
+    p.add_argument('--frames-per-transfer', type=int,
+                   default=d.frames_per_transfer)
+    p.add_argument('--disp', type=float, default=d.disp,
+                   help='candidate dispersion relative to voters')
+    p.add_argument('--palette', default=d.palette_name, choices=PALETTE_NAMES)
+    p.add_argument('--light', action='store_true',
+                   help='render on a white background')
+    p.add_argument('--seed', type=int, default=None,
+                   help='RNG seed for reproducible search and animation')
+    if allow_positions:
+        p.add_argument('--positions', type=Path, default=None,
+                       help='positions.npz from a previous run to reuse')
+    a = p.parse_args()
+    config = replace(
+        d, n_voters=a.n_voters, n_cands=a.n_cands, max_trials=a.max_trials,
+        frames_per_transfer=a.frames_per_transfer, disp=a.disp,
+        palette_name=a.palette, dark_background=not a.light, seed=a.seed)
+    if allow_positions:
+        return config, a.positions
+    return config
+
+
+# ── Elections ─────────────────────────────────────────────────────────
+
+@dataclass(frozen=True)
+class Election:
+    """A spatial election: positions plus the honest ranked ballots."""
+    voters: np.ndarray       # (n_voters, 2)
+    candidates: np.ndarray   # (n_cands, 2)
+    rankings: np.ndarray     # (n_voters, n_cands)
+
+    @classmethod
+    def from_positions(cls, voters, candidates):
+        utilities = normed_dist_utilities(voters, candidates)
+        return cls(voters, candidates, np.asarray(honest_rankings(utilities)))
+
+    @property
+    def n_voters(self):
+        return len(self.voters)
+
+    @property
+    def n_cands(self):
+        return len(self.candidates)
+
+    def distances_to_origin(self):
+        return np.linalg.norm(self.candidates, axis=1)
+
+    def center_candidate(self):
+        """Index of the candidate nearest the origin (the Condorcet winner)."""
+        return int(np.argmin(self.distances_to_origin()))
+
+    def approval_pct(self):
+        """Mean normalised utility per candidate, 0–100."""
+        utilities = normed_dist_utilities(self.voters, self.candidates)
+        return utilities.mean(axis=0) * 100
+
+    def save_positions(self, path):
+        np.savez(path, voters=self.voters, candidates=self.candidates)
+
+
+def load_election(positions_path):
+    """Rebuild an `Election` from a saved ``positions.npz``."""
+    data = np.load(positions_path)
+    return Election.from_positions(data['voters'], data['candidates'])
+
+
+def sample_election(config):
+    """One random 2D election with a candidate exactly at the origin."""
+    voters, candidates = normal_electorate(
+        config.n_voters, config.n_cands, dims=2, disp=config.disp)
+    candidates[0] = 0.0
+    candidates = sort_candidates_bell_curve(candidates)
+    return Election.from_positions(voters, candidates)
+
+
+def find_election(config, analyse):
+    """
+    Sample random elections until ``analyse(election)`` returns a result.
+
+    ``analyse`` returns ``None`` to reject an election and anything else
+    (typically a trace) to accept it.
+
+    Returns
+    -------
+    (trial, election, result) or None if ``max_trials`` is exhausted.
+    """
+    if config.seed is not None:
+        np.random.seed(config.seed)
+    for trial in range(1, config.max_trials + 1):
+        election = sample_election(config)
+        result = analyse(election)
+        if result is not None:
+            return trial, election, result
+    return None
+
+
+def sort_candidates_bell_curve(candidates):
+    """
+    Reorder candidates so bar graphs form an approximate bell curve:
+      left hemisphere (x < 0): farthest → nearest from origin
+      the (0, 0) candidate
+      right hemisphere (x > 0): nearest → farthest from origin
+    "Left" and "right" are determined by the sign of the x-coordinate.
+    Candidates exactly at x=0 (other than origin) are treated as right-side.
+    """
+    dists = np.linalg.norm(candidates, axis=1)
+    center_mask = np.all(candidates == 0.0, axis=1)
+    left_mask = candidates[:, 0] < 0
+    right_mask = ~left_mask & ~center_mask
+
+    center_idx = np.where(center_mask)[0]
+    left_idx = np.where(left_mask)[0]
+    right_idx = np.where(right_mask)[0]
+
+    left_sorted = left_idx[np.argsort(dists[left_idx])[::-1]]  # farthest 1st
+    right_sorted = right_idx[np.argsort(dists[right_idx])]     # nearest 1st
+
+    return candidates[np.concatenate([left_sorted, center_idx, right_sorted])]
+
+
+def candidate_name(candidate_index):
+    """Convert candidate index to name (A, B, C, etc.)."""
+    return CANDIDATE_LABELS[candidate_index]
+
+
+def ceildiv(a, b):
+    """Ceiling division for positive integers."""
+    return -(-a // b)
+
+
+# ── Palettes ──────────────────────────────────────────────────────────
 
 # module_path -> list of palette attr names.
 # Uses .mpl_colors except colorcet (hex list).
-# Pastel2_8, Pastel1_9, BlueRed_12, PurpleGray_12,
-# TrafficLight_9 omitted (always bad).
 PALETTE_OPTIONS = {
     'palettable.cartocolors.qualitative': [
         'Antique_10', 'Bold_10', 'Pastel_10',
@@ -62,11 +228,7 @@ PALETTE_OPTIONS = {
 
 PALETTE_NAMES = [n for names in PALETTE_OPTIONS.values() for n in names]
 
-
-def transition_step_ms(n_transfer):
-    """Per-frame ms so total matches TRANSITION_TOTAL_MS."""
-    return (TRANSITION_TOTAL_MS // max(1, n_transfer - 1)
-            if n_transfer > 1 else 0)
+GRAY = (0.5, 0.5, 0.5)
 
 
 def get_palette_colors(name):
@@ -83,101 +245,29 @@ def get_palette_colors(name):
     return list(pal.mpl_colors)
 
 
-def candidate_name(candidate_index):
-    """Convert candidate index to name (A, B, C, etc.)."""
-    return chr(65 + candidate_index)
-
-
-def ceildiv(a, b):
-    """Ceiling division for positive integers."""
-    return -(-a // b)
-
-
-def plot_wins(ax, wins, colors, labels, edgecolor='black', gap=0.15):
-    """Plot head-to-head wins as stacked square blocks per candidate.
-    Blocks are square, symmetrically spaced; integer y-ticks.
-    Used by IRV and TVR."""
-    n_cands = len(wins)
-    block = 1.0 - 2 * gap
-    max_w = max(wins) if wins else 0
-    for n in range(n_cands):
-        for i in range(int(wins[n])):
-            bottom = i + gap
-            ax.bar(n, block, bottom=bottom, width=block,
-                   color=colors[n], edgecolor=edgecolor, linewidth=1)
-    ax.set_xticks(range(n_cands))
-    ax.set_xticklabels(list(labels))
-    ax.set_xlim(-0.5, n_cands - 0.5)
-    ax.set_ylim(0, max_w if max_w > 0 else 1)
-    ax.set_aspect('equal')
-    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
-    ax.set_ylabel('')
-
-
-def plot_approval_bar(ax, approval_pct, labels, colors, fg, grid):
-    """Bar chart for approval rating 0–100%.
-
-    Used by IRV, TVR, and palette_demo.
-    """
-    bars = ax.bar(
-        range(len(labels)), approval_pct,
-        tick_label=list(labels), color=colors)
-    for rect in bars:
-        height = rect.get_height()
-        if height > 0:
-            ax.annotate(
-                f'{height:.0f}',
-                xy=(rect.get_x() + rect.get_width() / 2, height),
-                xytext=(0, 3),
-                textcoords='offset points',
-                ha='center',
-                va='bottom',
-                color=fg,
-            )
-    ax.set_ylim(0, 100)
-    ax.set_ylabel('Approval [%]')
-    ax.grid(True, alpha=0.25, axis='y', color=grid)
-    ax.set_axisbelow(True)
-    ax.text(0.5, 1.04, 'Approval rating',
-            transform=ax.transAxes,
-            ha='center', va='center', color=fg)
-
-
-def plot_wins_with_title(ax, wins, colors, labels, fg, gap=0.1):
-    """Plot head-to-head wins and set subplot title.
-
-    Used by IRV, TVR, palette_demo.
-    """
-    plot_wins(ax, wins, colors, labels, edgecolor=fg, gap=gap)
-    ax.text(0.5, 1.04, 'Head-to-head wins',
-            transform=ax.transAxes,
-            ha='center', va='center', color=fg)
-
-
-def prepare_palette_and_labels(palette_name, n_cands, dark_background):
+def prepare_palette(palette_name, n_cands, dark_background):
     """
     Load palette, apply Set1_9 yellow fix for light bg, trim to n_cands.
-    Build labels. Returns (colors, labels).
     Raises ValueError if palette too small.
     """
     colors = get_palette_colors(palette_name)
     if not dark_background and palette_name == 'Set1_9' and len(colors) > 5:
-        colors.pop(5)
+        colors.pop(5)  # yellow is invisible on white
     if n_cands > len(colors):
         raise ValueError(
-            f'n_cands={n_cands} exceeds palette '
-            f'"{palette_name}" size ({len(colors)}). '
-            'Use fewer candidates or a larger palette.'
-        )
-    colors = colors[:n_cands]
-    labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:n_cands]
-    return colors, labels
+            f'n_cands={n_cands} exceeds palette "{palette_name}" size '
+            f'({len(colors)}). Use fewer candidates or a larger palette.')
+    return colors[:n_cands]
+
+
+def prepare_palette_and_labels(palette_name, n_cands, dark_background):
+    """Backwards-compatible helper returning ``(colors, labels)``."""
+    return (prepare_palette(palette_name, n_cands, dark_background),
+            CANDIDATE_LABELS[:n_cands])
 
 
 def _color_to_rgb(c):
     """Normalize color to (r, g, b) in [0, 1]."""
-    if isinstance(c, str):
-        return mcolors.to_rgb(c)
     return tuple(mcolors.to_rgb(c))
 
 
@@ -195,12 +285,98 @@ def remove_grays(colors, min_saturation=0.12):
     return out, len(out)
 
 
-def voronoi_plot_2d_axes(ax, points, line_color='white',
-                          line_alpha=0.45):
-    """Draw Voronoi diagram of points on ax.
+# ── Theme ─────────────────────────────────────────────────────────────
 
-    No bounds change. Like elsim2k _plotutils.
-    """
+@dataclass(frozen=True)
+class Theme:
+    bg: str
+    fg: str
+    grid: str
+    stroke_fg: str
+    legend_bg: str
+    legend_fg: str
+    voronoi_color: tuple
+    dead_zone_color: str  # band for TVR rank dead zone
+
+    def style_axes(self, *axes):
+        for ax in axes:
+            ax.set_facecolor(self.bg)
+            ax.tick_params(colors=self.fg)
+            ax.xaxis.label.set_color(self.fg)
+            ax.yaxis.label.set_color(self.fg)
+            for spine in ax.spines.values():
+                spine.set_color(self.fg)
+
+
+DARK_THEME = Theme('black', 'white', 'white', 'black', 'black', 'white',
+                   (0.98, 0.98, 0.98), '0.15')
+# A dark dead-zone band looks wrong on white, so use light gray there.
+LIGHT_THEME = Theme('white', 'black', 'gray', 'white', 'white', 'black',
+                    (0.12, 0.12, 0.12), '0.88')
+
+
+def get_theme(dark_background):
+    return DARK_THEME if dark_background else LIGHT_THEME
+
+
+# ── Plot helpers ──────────────────────────────────────────────────────
+
+def annotate_bars(ax, bars, fmt='{:.0f}', color='black'):
+    """Write each bar's height above it (skipping empty bars)."""
+    for rect in bars:
+        height = rect.get_height()
+        if height > 0:
+            ax.annotate(fmt.format(height),
+                        xy=(rect.get_x() + rect.get_width() / 2, height),
+                        xytext=(0, 3), textcoords='offset points',
+                        ha='center', va='bottom', color=color)
+
+
+def set_panel_title(ax, title, color):
+    """Small centred title just above a subplot."""
+    ax.text(0.5, 1.04, title, transform=ax.transAxes,
+            ha='center', va='center', color=color)
+
+
+def plot_wins(ax, wins, colors, labels, edgecolor='black', gap=0.15):
+    """Plot head-to-head wins as stacked square blocks per candidate.
+    Blocks are square, symmetrically spaced; integer y-ticks."""
+    n_cands = len(wins)
+    block = 1.0 - 2 * gap
+    max_w = max(wins) if wins else 0
+    for n in range(n_cands):
+        for i in range(int(wins[n])):
+            ax.bar(n, block, bottom=i + gap, width=block,
+                   color=colors[n], edgecolor=edgecolor, linewidth=1)
+    ax.set_xticks(range(n_cands))
+    ax.set_xticklabels(list(labels))
+    ax.set_xlim(-0.5, n_cands - 0.5)
+    ax.set_ylim(0, max_w if max_w > 0 else 1)
+    ax.set_aspect('equal')
+    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    ax.set_ylabel('')
+
+
+def plot_approval_bar(ax, approval_pct, labels, colors, theme):
+    """Bar chart for approval rating 0–100%."""
+    bars = ax.bar(range(len(labels)), approval_pct,
+                  tick_label=list(labels), color=colors)
+    annotate_bars(ax, bars, color=theme.fg)
+    ax.set_ylim(0, 100)
+    ax.set_ylabel('Approval [%]')
+    ax.grid(True, alpha=0.25, axis='y', color=theme.grid)
+    ax.set_axisbelow(True)
+    set_panel_title(ax, 'Approval rating', theme.fg)
+
+
+def plot_wins_with_title(ax, wins, colors, labels, theme, gap=0.1):
+    """Plot head-to-head wins and set subplot title."""
+    plot_wins(ax, wins, colors, labels, edgecolor=theme.fg, gap=gap)
+    set_panel_title(ax, 'Head-to-head wins', theme.fg)
+
+
+def voronoi_plot_2d_axes(ax, points, line_color='white', line_alpha=0.45):
+    """Draw Voronoi diagram of points on ax without changing its bounds."""
     points = np.asarray(points)
     if len(points) < 2:
         return
@@ -243,50 +419,6 @@ def voronoi_plot_2d_axes(ax, points, line_color='white',
             ax.add_collection(lc)
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
-
-
-def sort_candidates_bell_curve(candidates):
-    """
-    Reorder candidates so bar graphs form an approximate bell curve:
-      left hemisphere (x < 0): farthest → nearest from origin
-      the (0, 0) candidate
-      right hemisphere (x > 0): nearest → farthest from origin
-    "Left" and "right" are determined by the sign of the x-coordinate.
-    Candidates exactly at x=0 (other than origin) are treated as right-side.
-    """
-    dists = np.linalg.norm(candidates, axis=1)
-    center_mask = np.all(candidates == 0.0, axis=1)
-    left_mask = candidates[:, 0] < 0
-    right_mask = ~left_mask & ~center_mask
-
-    center_idx = np.where(center_mask)[0]
-    left_idx = np.where(left_mask)[0]
-    right_idx = np.where(right_mask)[0]
-
-    left_sorted = left_idx[
-        np.argsort(dists[left_idx])[::-1]]   # farthest first
-    right_sorted = right_idx[
-        np.argsort(dists[right_idx])]        # nearest first
-
-    return candidates[np.concatenate([left_sorted, center_idx, right_sorted])]
-
-
-def get_theme(dark_background):
-    """Return (bg, fg, grid, stroke_fg, legend_bg, legend_fg,
-    voronoi_color, dead_zone_color)."""
-    if dark_background:
-        return (
-            'black', 'white', 'white', 'black', 'black', 'white',
-            (0.98, 0.98, 0.98),
-            '0.15',  # dark gray band for TVR rank dead zone
-        )
-    return (
-        'white', 'black', 'gray', 'white', 'white', 'black',
-        (0.12, 0.12, 0.12),
-        # light gray band for TVR rank dead zone
-        # (dark band looks wrong on white bg)
-        '0.88',
-    )
 
 
 def setup_scatter_axis_sigma(ax, voters):

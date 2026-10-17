@@ -10,146 +10,84 @@ Then renders the IRV animation to
 examples/results/collapse_2d_both_*_nc*_nv*/irv/
 and the TVR animation to .../tvr/.
 Same ballots, same candidates and voters; two GIFs.
+
+Pass ``--positions path/to/positions.npz`` to reuse a saved election
+instead of searching for a new one.
 """
 
 from datetime import datetime
-from pathlib import Path
 
-import numpy as np
-
-from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.strategies import honest_rankings
-
-from collapse_2d_shared import (
-    RESULTS_DIR,
-    sort_candidates_bell_curve,
-    palette_name,
-    n_voters,
-    n_cands,
-    max_trials,
-    frames_per_transfer,
-    disp,
-    dark_background,
-)
-# TODO: INPUT_POSITIONS is hardcoded to a local path;
-# use None or project-relative path for portability
-from collapse_finder_2d_irv import simulate_irv_rounds, run_irv_animation
-from collapse_finder_2d_tvr import simulate_tvr_rounds, run_tvr_animation
+from collapse_2d_shared import (RESULTS_DIR, find_election, load_election,
+                                parse_args)
+from collapse_finder_2d_irv import run_irv_animation, simulate_irv_rounds
+from collapse_finder_2d_tvr import run_tvr_animation, simulate_tvr_rounds
 
 
-# Path to positions.npz from a previous run,
-# or None to search for new election.
-INPUT_POSITIONS = Path(
-    '../elsim3k core collapse/'
-    'collapse_2d_both_20260308_141324_nc9_nv5000 great/positions.npz'
-)
-# INPUT_POSITIONS = None
+def simulate_both(election):
+    """Return ``(irv_trace, tvr_trace)`` or ``None`` if either test fails."""
+    irv_trace = simulate_irv_rounds(election)
+    if irv_trace is None:
+        return None
+    tvr_trace = simulate_tvr_rounds(election)
+    if tvr_trace is None:
+        return None
+    return irv_trace, tvr_trace
 
 
-def election_to_traces(voters, candidates):
+def load_or_find_election(config, positions):
     """
-    From (voters, candidates) compute rankings and both traces.
-    Returns (election, irv_trace, tvr_trace).
-    Either trace may be None if that method fails.
+    Load the election from ``positions`` or search for a new one.
+
+    Returns ``(election, irv_trace, tvr_trace, message)`` where ``message``
+    is a one-line description of where the election came from.
     """
-    utilities = normed_dist_utilities(voters, candidates)
-    election = np.asarray(honest_rankings(utilities))
-    irv_trace = simulate_irv_rounds(election, candidates)
-    tvr_trace = simulate_tvr_rounds(election, candidates)
-    return election, irv_trace, tvr_trace
-
-
-def find_both_election(n_voters, n_cands, max_trials, disp=1.0):
-    """
-    Sample random 2D elections until one satisfies both IRV center-outward
-    and TVR center-winner.
-
-    Returns (trial, voters, candidates, election, irv_trace, tvr_trace)
-    or None.
-    """
-    for trial in range(1, max_trials + 1):
-        voters, candidates = normal_electorate(
-            n_voters, n_cands, dims=2, disp=disp)
-        # Place one candidate at origin; sort reorders to bell-curve layout
-        candidates[0] = 0.0
-        candidates = sort_candidates_bell_curve(candidates)
-        election, irv_trace, tvr_trace = election_to_traces(voters, candidates)
-        if irv_trace is None or tvr_trace is None:
-            continue
-        return trial, voters, candidates, election, irv_trace, tvr_trace
-    return None
-
-
-def load_or_find_election():
-    """
-    Load from INPUT_POSITIONS or search for a new election.
-    Validate both traces.
-
-    Returns (voters, candidates, election, irv_trace, tvr_trace,
-    message). message is a one-line string to print
-    (e.g. "Loaded ..." or "Found ... on trial N").
-    """
-    if INPUT_POSITIONS is not None:
-        data = np.load(INPUT_POSITIONS)
-        voters = data['voters']
-        candidates = data['candidates']
-        election, irv_trace, tvr_trace = election_to_traces(voters, candidates)
+    if positions is not None:
+        election = load_election(positions)
+        irv_trace = simulate_irv_rounds(election)
         if irv_trace is None:
-            raise RuntimeError('IRV did not yield center-outward order '
-                               f'for {INPUT_POSITIONS}.')
+            raise SystemExit('IRV did not yield a center-outward order '
+                             f'for {positions}.')
+        tvr_trace = simulate_tvr_rounds(election)
         if tvr_trace is None:
-            raise RuntimeError('TVR did not converge to center '
-                               f'for {INPUT_POSITIONS}.')
-        return (voters, candidates, election, irv_trace, tvr_trace,
-                f'Loaded election from {INPUT_POSITIONS}.')
+            raise SystemExit(f'TVR did not converge to center for {positions}.')
+        return election, irv_trace, tvr_trace, \
+            f'Loaded election from {positions}.'
 
-    result = find_both_election(n_voters, n_cands, max_trials, disp=disp)
-    if result is None:
-        raise RuntimeError('No election found that satisfies both IRV '
-                           'center-outward and TVR center-winner. '
-                           'Increase max_trials or reduce n_cands.')
-    trial, voters, candidates, election, irv_trace, tvr_trace = result
-    return (voters, candidates, election, irv_trace, tvr_trace,
-            f'Found election on trial {trial} '
-            '(IRV center-outward + TVR center winner).')
+    found = find_election(config, simulate_both)
+    if found is None:
+        raise SystemExit('No election found that satisfies both IRV '
+                         'center-outward and TVR center-winner. '
+                         'Increase --max-trials or reduce --n-cands.')
+    trial, election, (irv_trace, tvr_trace) = found
+    return election, irv_trace, tvr_trace, \
+        f'Found election on trial {trial} ' \
+        '(IRV center-outward + TVR center winner).'
+
+
+def main():
+    config, positions = parse_args(__doc__, allow_positions=True)
+    election, irv_trace, tvr_trace, message = load_or_find_election(
+        config, positions)
+    print(message)
+    print('IRV elimination order:', irv_trace.elimination_order)
+    print('TVR elimination order:', tvr_trace.elimination_order)
+
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    output_dir = (RESULTS_DIR / f'collapse_2d_both_{timestamp}'
+                  f'_nc{config.n_cands}_nv{config.n_voters}')
+    output_dir.mkdir(parents=True, exist_ok=True)
+    election.save_positions(output_dir / 'positions.npz')
+
+    print('Rendering IRV animation...')
+    irv_gif = run_irv_animation(election, irv_trace, output_dir / 'irv',
+                                config)
+    print('Rendering TVR animation...')
+    tvr_gif = run_tvr_animation(election, tvr_trace, output_dir / 'tvr',
+                                config)
+    print(f'Saved both animations to {output_dir.resolve()}')
+    print(f'  IRV: {irv_gif}')
+    print(f'  TVR: {tvr_gif}')
 
 
 if __name__ == '__main__':
-    voters, candidates, election, irv_trace, tvr_trace, message = (
-        load_or_find_election())
-    print(message)
-
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_dir = (
-        RESULTS_DIR
-        / f'collapse_2d_both_{timestamp}_nc{n_cands}_nv{n_voters}'
-    )
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    np.savez(
-        output_dir / 'positions.npz',
-        voters=voters,
-        candidates=candidates,
-    )
-
-    print('Rendering IRV animation...')
-    run_irv_animation(
-        voters, candidates, election, irv_trace, output_dir / 'irv',
-        palette_name=palette_name,
-        n_cands=n_cands,
-        n_voters=n_voters,
-        frames_per_transfer=frames_per_transfer,
-        dark_background=dark_background,
-    )
-    print('Rendering TVR animation...')
-    run_tvr_animation(
-        voters, candidates, election, tvr_trace, output_dir / 'tvr',
-        palette_name=palette_name,
-        n_cands=n_cands,
-        n_voters=n_voters,
-        frames_per_transfer=frames_per_transfer,
-        dark_background=dark_background,
-    )
-    print(f'Saved both animations to {output_dir.resolve()}')
-    print(f'  IRV: {output_dir / "irv" / "collapse_2d_irv.gif"}')
-    print(f'  TVR: {output_dir / "tvr" / "collapse_2d_tvr.gif"}')
+    main()
