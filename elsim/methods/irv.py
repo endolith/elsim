@@ -1,12 +1,30 @@
 import numpy as np
 
-from elsim.methods._common import (_all_indices, _get_tiebreak, _inc_rank_idx,
-                                   _no_tiebreak, _order_tiebreak_elim,
-                                   _random_tiebreak, _tally_at_rank_idx)
+from elsim.methods._common import (_all_indices, _get_tiebreak, _no_tiebreak,
+                                   _order_tiebreak_elim, _random_tiebreak,
+                                   _tally_at_rank_idx)
+from elsim.methods._runoff import (remaining_minimum, run_elimination_rounds,
+                                   winner_from_result)
 
 _tiebreak_map = {'order': _order_tiebreak_elim,
                  'random': _random_tiebreak,
                  None: _no_tiebreak}
+
+
+def _zero_vote_candidates(election):
+    """Mask of candidates who receive no first-preference votes at all."""
+    n_voters, n_cands = election.shape
+    tallies = np.empty(n_cands, dtype=np.uint)
+    _tally_at_rank_idx(tallies, election, np.zeros(n_voters, dtype=np.uint8))
+    mask = np.zeros(n_cands, dtype=bool)
+    mask[_all_indices(tallies.tolist(), 0)] = True
+    return mask
+
+
+def _irv_losers(election, eliminated_mask, top_tallies):
+    """IRV rule: the remaining candidate(s) with the fewest first choices."""
+    tied = remaining_minimum(top_tallies.tolist(), eliminated_mask)
+    return tied, {'tallies_before': top_tallies.copy()}
 
 
 def irv_rounds(election, tiebreaker=None, *, min_remaining=1,
@@ -49,85 +67,18 @@ def irv_rounds(election, tiebreaker=None, *, min_remaining=1,
             First-preference tallies at end (length n_cands).
     """
     election = np.asarray(election)
-    n_voters, n_cands = election.shape
     tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
-    voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
-    cand_tallies = np.empty(n_cands, dtype=np.uint)
-    eliminated_mask = np.zeros(n_cands, dtype=bool)
-    rounds = []
-    winner = None
 
-    # Eliminate candidates with no first-choice votes before rounds begin.
-    # TODO: In the future when round tallies are also output, this should be
-    # its own round.  Either eliminate one zero-voted candidate at a time, or
-    # do a batch elimination of all candidates who can't possibly win in each
-    # round.  (Probably have a batch_elimination=True flag to choose.)
-    # Currently this step is needed because eliminated candidates drop to zero
-    # votes and can't be distinguished from candidates who never received any.
-    _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
-    for cand in _all_indices(cand_tallies.tolist(), 0):
-        eliminated_mask[cand] = True
-    if np.any(eliminated_mask):
-        _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
-
-    while np.sum(~eliminated_mask) > min_remaining:
-        _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
-
-        # (tolist makes things 2-4x faster)
-        cand_tallies_list = cand_tallies.tolist()
-
-        # Did anyone get a majority?
-        max_cand_tally = max(cand_tallies_list)
-        if max_cand_tally > n_voters / 2:
-            winner = cand_tallies_list.index(max_cand_tally)
-            break
-
-        # If not, eliminate least-favorited candidate
-        # (generator is faster than min(arr[np.nonzero(arr)]) for small lists)
-        last_place_tally = min(t for t in cand_tallies_list if t != 0)
-        last_place_cands = _all_indices(cand_tallies_list, last_place_tally)
-        cand_to_eliminate = tiebreak(last_place_cands)[0]
-
-        if cand_to_eliminate is None:
-            return None
-
-        if record_rounds:
-            ballots_before = election[np.arange(n_voters),
-                                      voter_top_rank_idx].copy()
-            affected_voters = np.flatnonzero(ballots_before ==
-                                             cand_to_eliminate)
-
-        eliminated_mask[cand_to_eliminate] = True
-        _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
-
-        if record_rounds:
-            ballots_after = election[np.arange(n_voters),
-                                     voter_top_rank_idx].copy()
-            rounds.append({
-                'loser': cand_to_eliminate,
-                'ballots_before': ballots_before,
-                'ballots_after': ballots_after,
-                'tallies_before': cand_tallies.copy(),
-                'affected_voters': affected_voters,
-            })
-        else:
-            rounds.append({'loser': cand_to_eliminate})
-
-    if winner is None:
-        remaining = np.flatnonzero(~eliminated_mask)
-        if len(remaining) == 1:
-            winner = int(remaining[0])
-
-    _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
-    final_ballots = election[np.arange(n_voters), voter_top_rank_idx].copy()
-
-    return {
-        'winner': winner,
-        'rounds': rounds,
-        'eliminated_mask': eliminated_mask,
-        'final_ballots': final_ballots,
-        'final_tallies': cand_tallies.copy(),
-    }
+    # Candidates with no first-choice votes are dropped as a batch before the
+    # rounds begin, so several of them never produce an elimination "tie".
+    # TODO: When round tallies are also output, this should be its own round
+    # (or a batch_elimination=True option).
+    return run_elimination_rounds(
+        election, _irv_losers, tiebreak,
+        min_remaining=min_remaining,
+        record_rounds=record_rounds,
+        eliminated_mask=_zero_vote_candidates(election),
+    )
 
 
 def irv(election, tiebreaker=None):
@@ -192,10 +143,5 @@ def irv(election, tiebreaker=None):
     >>> irv(election)
     0
     """
-    result = irv_rounds(election, tiebreaker=tiebreaker)
-    if result is None:
-        return None
-    winner = result['winner']
-    if winner is not None:
-        return winner
-    raise RuntimeError('Bug in IRV calculation')
+    return winner_from_result(irv_rounds(election, tiebreaker=tiebreaker),
+                              'IRV')
