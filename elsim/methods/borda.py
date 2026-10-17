@@ -8,6 +8,52 @@ _tiebreak_map = {'order': _order_tiebreak_keep,
                  None: _no_tiebreak}
 
 
+def borda_tallies(election, eliminated_mask=None, *, first_place_points=None):
+    """
+    Positional (Borda) point totals, optionally ignoring eliminated candidates.
+
+    Each ballot awards ``first_place_points`` to its highest-ranked remaining
+    candidate, one point fewer to the next, and so on.  Eliminated candidates
+    are skipped as if they had never been on the ballot and always total 0.
+
+    Parameters
+    ----------
+    election : array_like
+        Ranked ballots (n_voters × n_cands).  See `borda` for the format.
+    eliminated_mask : array_like of bool, optional
+        ``eliminated_mask[i]`` is True if candidate ``i`` is out of the race.
+        By default nobody is eliminated.
+    first_place_points : int, optional
+        Points for a ballot's top remaining candidate.  Defaults to the number
+        of remaining candidates (1-based convention: last place scores 1).
+        Pass ``n_remaining - 1`` for the 0-based convention used by
+        Baldwin's method / TVR.
+
+    Returns
+    -------
+    tallies : ndarray of float, length n_cands
+        Total points per candidate.
+    """
+    election = np.asarray(election)
+    n_cands = election.shape[1]
+
+    if eliminated_mask is None:
+        active = np.ones(election.shape, dtype=bool)
+        n_remaining = n_cands
+    else:
+        eliminated_mask = np.asarray(eliminated_mask, dtype=bool)
+        active = ~eliminated_mask[election]
+        n_remaining = n_cands - int(np.count_nonzero(eliminated_mask))
+
+    if first_place_points is None:
+        first_place_points = n_remaining
+
+    # Position of every cell among the *remaining* candidates on its ballot.
+    positions = np.cumsum(active, axis=1) - 1
+    points = (first_place_points - positions)[active]
+    return np.bincount(election[active], weights=points, minlength=n_cands)
+
+
 def borda(election, tiebreaker=None):
     """
     Find the winner of a ranked ballot election using the Borda count method.
@@ -72,23 +118,12 @@ def borda(election, tiebreaker=None):
     2
 
     """
-    election = np.asarray(election)
+    # Point totals are exact integers; round away any float noise before
+    # comparing.  (Python lists are faster than NumPy for the small tail.)
+    total_tally = np.rint(borda_tallies(election)).astype(int).tolist()
 
-    ncands = election.shape[1]
-    total_tally = np.zeros(ncands, dtype=int)
-
-    # Tally candidates in each column, multiply by points for each rank level
-    for n, column in enumerate(election.T):
-        tally = np.bincount(column, minlength=ncands)
-        total_tally += (ncands - n)*tally
-
-    # Python lists are faster than NumPy here
-    total_tally = total_tally.tolist()
-
-    # Find the set of candidates who have the highest score (usually only one)
     highest = max(total_tally)
     winners = _all_indices(total_tally, highest)
 
-    # Break any ties using specified method
     tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
     return tiebreak(winners)[0]
