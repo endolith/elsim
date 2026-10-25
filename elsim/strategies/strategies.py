@@ -340,6 +340,12 @@ def vote_for_or_against_k(utilities, k):
        Cowles Foundation Discussion Papers. Cowles Foundation for Research in
        Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 
+    Notes
+    -----
+    The effectiveness values published for this system (page 19 of [1]) are too
+    high for ``m >= 5``; the closed form behind them is wrong, not this rule.
+    See examples/weber_1977_expressions.py for the corrected values and why.
+
     Examples
     --------
     Voter 0 loves Candidates A (index 0) and B (index 1), but hates C, D, and
