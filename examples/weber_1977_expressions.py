@@ -39,6 +39,15 @@ top m-k".  Weber's optimal-strategy rule (maximize the sum of
 ``m - k`` candidates if the central ones are above average.  That rule is what
 `elsim.strategies.vote_for_or_against_k` implements, and it is correct.
 
+A correct implementation has to depend on the *pattern* of the voter's
+utilities -- specifically, on which candidates are central.  Choosing the
+option by coin flip, or by splitting the electorate in half, throws that
+information away: it reproduces the vote-for-k numbers (75.02%, 79.06%, 76.68%
+and 81.32% at the best k for m = 3, 5, 6, 10) rather than this system's
+(87.50%, 85.21%, 84.12% and 85.31%).  Splitting on the voter's own average
+utility instead of their central candidates' average is also wrong, but less
+so (80.45%, 81.80%, 83.46% at m = 3, 5, 10).
+
 Where the paper goes wrong
 --------------------------
 The effectiveness of "vote-for-k" is ``sqrt(24) E[G_k] /
