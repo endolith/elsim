@@ -5,8 +5,9 @@ Each script is executed as a whole (in a subprocess) and its computed
 ``table`` is read directly, rather than parsing printed output.  These tests
 are slow, so they are marked "slow" and skipped by default (run with
 ``pytest -m slow``), and they require the optional ``examples`` dependencies
-(joblib and matplotlib).  Reference values and tolerances are described at
-``REFERENCE_VALUES``.
+from ``pyproject.toml``, with ``joblib``, ``matplotlib``, and ``tabulate``
+enforced via ``importorskip``.  Reference values and tolerances are described
+at ``REFERENCE_VALUES``.
 """
 import os
 import pathlib
