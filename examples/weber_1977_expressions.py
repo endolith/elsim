@@ -55,11 +55,18 @@ The effectiveness of "vote-for-k" is ``sqrt(24) E[G_k] /
 ``p = 2k(m-k)/(m(m-1))``; "vote for or against k" changes only the numerator,
 to ``E[max(G_k, G_{m-k})] = E[G_k] + (m-2k) E[(c - ubar)^+]``.  So everything
 hinges on the central gap ``E[(c - ubar)^+]``, the expected amount by which the
-central candidates beat the voter's average.  The paper uses
-``k/(8(m+1))`` for it (plus a parity correction for odd m).  That value is
-exactly right at m = 3 and m = 4 -- where the paper worked the system out case
-by case -- and it is right by construction at ``k = m/2``, where the
-correction term is multiplied by zero.  Everywhere else it is too large, and
+central candidates beat the voter's average.  The published formula is exactly
+this expression with that one substitution made: it uses
+
+    g_paper = k (m(m - 2k) + (m mod 2)) / (8 m (m+1) (m - 2k)),
+
+i.e. ``k/(8(m+1))`` for even m, inflated by ``1 + 1/(m(m-2k))`` for odd m.
+(Rewriting the published formula this way reproduces it exactly for every m and
+k; the main term ``E[G_k]`` and the denominator are the vote-for-k ones, so the
+central gap is the only thing that differs.)  That value is exactly right at
+m = 3 and m = 4 -- where the paper worked the system out case by case -- and it
+is right by construction at ``k = m/2``, where the correction term is
+multiplied by zero.  Everywhere else it is too large, and
 it does not shrink as fast as the true value:
 
 * for fixed k, the true central gap falls off like ``m**-3/2``, faster than
@@ -84,7 +91,15 @@ shrinks with m (86.50% vs 86.18% at m = 100) instead of growing to 5.7
 points.
 
 The paper is self-consistent in its *description* of the system; it is the
-closed form, and hence the column, that is wrong.  The 3-candidate row
+closed form, and hence the column, that is wrong.  Where the derivation of that
+closed form goes wrong is not identified here: the derivation for this system
+is in the pairwise-probability section of the paper (p. 71 f.), which was not
+available to check.  What can be said is where the error must be -- the switch
+term only, i.e. the probability that a voter prefers the ``m - k`` ballot --
+and that it is not a slip of a constant: the true gap decays like
+``m**-1.5`` for fixed k while the published one decays like ``m**-1``, and the
+odd-m parity factor ``1 + 1/(m(m-2k))`` is exact only at m = 3, which is what
+interpolating between hand-computed cases would look like.  The 3-candidate row
 (87.50%) -- the paper's headline, and still the most effective system in the
 table -- is unaffected, as are the 2- and 4-candidate rows.
 
