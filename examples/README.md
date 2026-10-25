@@ -73,37 +73,90 @@ Source: [weber_1977_table_4.py](weber_1977_table_4.py)
 
 ### The Effectiveness of Several Voting Systems
 
-Reproduce table from p. 19 of *Reproducing Voting Systems* using Monte Carlo methods (incomplete)
+Reproduce table from p. 19 of *Comparison of Public Choice Systems*, measured
+from the ballots rather than by simulating elections.
 
-|      | Standard | Vote-for-half | Borda |
-| ---: | -------: | ------------: | ----: |
-|    2 |    81.37 |         81.71 | 81.41 |
-|    3 |    75.10 |         75.00 | 86.53 |
-|    4 |    69.90 |         79.92 | 89.47 |
-|    5 |    65.02 |         79.09 | 91.34 |
-|    6 |    61.08 |         81.20 | 92.61 |
-|   10 |    50.78 |         82.94 | 95.35 |
-|  255 |    12.78 |         86.37 | 99.80 |
+Effectiveness is defined as a limit for an infinite number of voters, so
+simulating whole elections (with a few thousand voters) has a bias of order
+1/sqrt(n_voters), up to 1.2 points high; that is what previously made this
+table hard to reproduce.  For a random society the effectiveness is instead a
+single-voter correlation, `Corr(u_A - u_B, w_A - w_B)`; see
+[weber_1977_expressions.py](weber_1977_expressions.py).  A million random
+voters is then enough for about 0.02 points of accuracy.
 
-![](./results/Weber_1977_Effectiveness,_1000_voters,_10000_iterations.png)
+| *m*  | Standard | Vote-for-half | Best VFOAK |   Borda |
+| :--- | -------: | ------------: | ---------: | ------: |
+| 2    |   81.63% |        81.63% |     81.63% |  81.63% |
+| 3    |   75.00% |        75.00% |     87.49% |  86.60% |
+| 4    |   69.26% |        79.98% |     80.83% |  89.43% |
+| 5    |   64.55% |        79.07% |     85.22% |  91.30% |
+| 6    |   60.60% |        81.30% |     84.10% |  92.56% |
+| 10   |   49.80% |        83.00% |     85.32% |  95.35% |
+
+Three of the four columns reproduce the paper.  "Best vote-for-or-against-k"
+reproduces the paper only for m <= 4; from m = 5 on the paper's published
+values (86.96%, 86.25%, 88.09%) are wrong, and the ballot rule is not.  See
+"Closed-form effectiveness expressions" below.
 
 Source: [weber_1977_effectiveness_table.py](weber_1977_effectiveness_table.py)
 
 ### Closed-form effectiveness expressions
 
-Reproduce table from p. 19 of *Reproducing Voting Systems* using Weber's closed-form expressions to verify them.
+Weber's own closed-form expressions for p. 19 of *Comparison of Public Choice
+Systems*, plus the corrected "vote-for-or-against-k" expression.
 
-| *m*  | Standard | Vote-for-half | Best Vote-for-or-against-k |   Borda |
-| :--- | -------: | ------------: | -------------------------: | ------: |
-| 2    |   81.65% |        81.65% |                     81.65% |  81.65% |
-| 3    |   75.00% |        75.00% |                     87.50% |  86.60% |
-| 4    |   69.28% |        80.00% |                     80.83% |  89.44% |
-| 5    |   64.55% |        79.06% |                     86.96% |  91.29% |
-| 6    |   60.61% |        81.32% |                     86.25% |  92.58% |
-| 10   |   49.79% |        82.99% |                     88.09% |  95.35% |
-| ∞    |    0.00% |        86.60% |                     92.25% | 100.00% |
+| *m*  | Standard | Vote-for-half | Best VFOAK (published) | Best VFOAK (correct) |   Borda |
+| :--- | -------: | ------------: | ---------------------: | -------------------: | ------: |
+| 2    |   81.65% |        81.65% |                 81.65% |               81.65% |  81.65% |
+| 3    |   75.00% |        75.00% |                 87.50% |               87.50% |  86.60% |
+| 4    |   69.28% |        80.00% |                 80.83% |               80.83% |  89.44% |
+| 5    |   64.55% |        79.06% |                 86.96% |               85.21% |  91.29% |
+| 6    |   60.61% |        81.32% |                 86.25% |               84.12% |  92.58% |
+| 10   |   49.79% |        82.99% |                 88.09% |               85.31% |  95.35% |
+| ∞    |    0.00% |        86.60% |                 92.25% |               86.60% | 100.00% |
+
+The published formula is
+`(5m² + (m mod 2) − 6mk)/(4(m+1)) · sqrt(3k/(m(m−1)(m−k)))` with the "best"
+k taken as `round(αm)`, `α = (9 − √21)/12 ≈ 0.368`.  It is exact for
+m = 2, 3, 4 (where the paper worked the system out case by case) and for
+k = m/2, where the system coincides with vote-for-k.  Elsewhere it is too
+high, because the paper uses `k/(8(m+1))` for the expected amount by which a
+voter's central candidates beat their average utility, and the true value is
+smaller and shrinks faster.  The error grows with m: 1.8 points at
+(m, k) = (5, 2), 2.8 at (10, 4), 5.2 at (10, 2), and 5.7 points in the
+large-m limit, where the published 92.25% should be 86.60% — the same limit
+as vote-for-half, reached at k/m → 1/2 rather than 0.368.  For fixed k the
+published formula overstates by a factor approaching 5/4.
+
+The paper's description of the system is correct; its closed form is not.  The
+3-candidate row (87.50%), which is the paper's headline, is unaffected.
 
 Source: [weber_1977_expressions.py](weber_1977_expressions.py)
+
+### Verifying vote-for-or-against-k with whole elections
+
+Reproduce the "best vote-for-or-against-k" column the hard way: draw electorates
+of 1,000 random voters, tally
+[vote_for_or_against_k](../elsim/strategies/strategies.py) ballots with
+approval voting, and compare the social utility of the winner with that of the
+utility winner.
+
+| *m*  | best *k* | measured  |            | corrected | published |
+| :--- | -------: | --------: | :--------- | --------: | --------: |
+| 2    |        1 |    81.46% | ±0.18      |    81.65% |    81.65% |
+| 3    |        1 |    87.60% | ±0.11      |    87.50% |    87.50% |
+| 4    |        1 |    80.81% | ±0.12      |    80.83% |    80.83% |
+| 5    |        2 |    85.08% | ±0.13      |    85.21% |    86.96% |
+| 6    |        2 |    84.26% | ±0.13      |    84.12% |    86.25% |
+| 10   |        4 |    85.25% | ±0.13      |    85.31% |    88.09% |
+
+The measured column matches the corrected closed form everywhere, and the
+published values only for m <= 4; for m = 5, 6, 10 the published values are
+more than ten standard errors away.  (The measured column is biased by a few tenths of
+a point because 1,000 voters is not an infinite number, and its noise only
+falls as 1/sqrt(n_elections), which is why the other two examples exist.)
+
+Source: [weber_1977_verify_vote_for_or_against_k.py](weber_1977_verify_vote_for_or_against_k.py)
 
 ### Vote-for-k effectiveness
 

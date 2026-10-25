@@ -270,12 +270,38 @@ def vote_for_k(utilities, k):
 
 
 def vote_for_or_against_k(utilities, k):
-    """
+    r"""
     Convert utilities to approval voting ballots, voting for top k or m-k.
 
-    Each voter decides between voting for their top `k` candidates (Vote-for-k)
-    or voting for their top `m-k` candidates (Vote-against-k), based on the
-    average utility of the centrally-ranked candidates.[1]_
+    Weber's "vote for or against k" system offers every voter a choice between
+    two ways of casting `k` approvals or `k` disapprovals: the weight sets
+    ``(1, ..., 1, 0, ..., 0)`` with `k` ones, and ``(0, ..., 0, -1, ..., -1)``
+    with `k` minus-ones.[1]_  Adding 1 to every weight of the second set does
+    not change who wins, so the two options are simply "approve of my top `k`
+    candidates" and "approve of my top `m - k` candidates", and that is what
+    this function returns.
+
+    Which option is optimal follows from Weber's optimal-strategy rule, which
+    maximizes the sum of ``w_c * (u_c - ubar)`` over the allowed weight sets,
+    where ``ubar`` is the voter's average utility.  Writing ``u_1 >= ... >=
+    u_m`` for the voter's sorted utilities, the two options score
+
+    .. math::
+
+        G(k) = \sum_{i \leq k} (u_i - \bar u), \qquad
+        G(m-k) = \sum_{i \leq m-k} (u_i - \bar u)
+
+    and their difference is
+
+    .. math::
+
+        G(m-k) - G(k) = (m - 2k)\left(\bar u_{central} - \bar u\right),
+
+    where :math:`\bar u_{central}` is the average utility of the ``m - 2k``
+    centrally-ranked candidates.  So a voter approves of their top ``m - k``
+    candidates if and only if their *central* candidates are, on average, above
+    their average utility; otherwise they approve of only their top `k`
+    candidates.  (When ``m = 2k`` the two options are the same ballot.)
 
     Parameters
     ----------
@@ -287,7 +313,9 @@ def vote_for_or_against_k(utilities, k):
         voter.
     k : int
         The number of candidates approved (if voting for k) or disapproved
-        (if voting against k, i.e. voting for m-k).
+        (if voting against k, i.e. voting for m-k).  Must be between 1 and
+        ``m // 2``; the system is symmetric in `k` and ``m - k``, and for
+        ``k > m/2`` the two weight sets would be the same.
 
     Returns
     -------
@@ -297,6 +325,14 @@ def vote_for_or_against_k(utilities, k):
         Rows represent voters, and columns represent candidate IDs.
         A cell contains 1 if that voter approves of that candidate,
         otherwise 0.
+
+        These are ordinary approval ballots, so they can be tallied with
+        `elsim.methods.approval`.  (A voter who chooses the "against" option
+        casts ``0`` and ``-1`` rather than ``1`` and ``0`` in the paper's
+        version, but that only shifts every candidate's total by the same
+        amount, so the winner is the same; `elsim.methods.combined_approval`
+        gives the same result if the "against" voters' ballots are shifted by
+        -1.)
 
     References
     ----------
@@ -337,44 +373,27 @@ def vote_for_or_against_k(utilities, k):
     n_voters, n_cands = utilities.shape
 
     if not 0 < k <= n_cands // 2:
-        raise ValueError(f'k={k} must be between 1 and m/2={n_cands // 2}. For m={n_cands}, max k={n_cands // 2}.')
+        raise ValueError(f'k={k} must be between 1 and m//2={n_cands // 2}')
 
-    # Sort utilities descending to find ranks: u_1 >= u_2 >= ... >= u_m
+    # Sorted utilities, best first: u_1 >= u_2 >= ... >= u_m
     sorted_utilities = np.sort(utilities, axis=1)[:, ::-1]
 
-    # Global mean per voter: average of all candidates
-    mean_u = utilities.mean(axis=1)
-
-    # Central average: average of candidates from rank k+1 to m-k
-    # Indices k to m-k-1 (inclusive, 0-indexed)
     if n_cands == 2 * k:
-        vote_unhappy = np.ones(n_voters, dtype=bool) # All choose 'Vote for k'
+        # Both weight sets are the same ballot: approve the top k
+        n_approved = np.full(n_voters, k)
     else:
-        # Compute average of central candidates (from index k to n_cands-k non-inclusive)
-        central_u = sorted_utilities[:, k : n_cands - k].mean(axis=1)
+        # The middle m-2k candidates decide it: if their average exceeds the
+        # average of all candidates, approving the top m-k scores higher.
+        mean_u = utilities.mean(axis=1)
+        central_u = sorted_utilities[:, k:n_cands - k].mean(axis=1)
+        n_approved = np.where(central_u >= mean_u, n_cands - k, k)
 
-        # Decision rule from Weber:
-        # "If average of centrally ranked >= average utility, vote for top m-k"
-        vote_happy = central_u >= mean_u
-        vote_unhappy = ~vote_happy
-
-    # Create empty approval ballots
-    ballots = np.zeros((n_voters, n_cands), dtype=np.uint8)
-
-    # "Unhappy" / Vote-for-k voters: Approve Top k
-    # Indices of top k candidates (in original unsorted utilities)
-    # argpartition with -k puts the largest k elements at the END INDICES
-    if np.any(vote_unhappy):
-        unhappy_idxs = np.where(vote_unhappy)[0]
-        top_k_indices = np.argpartition(utilities[unhappy_idxs], -k, axis=1)[:, -k:]
-        ballots[unhappy_idxs[:, None], top_k_indices] = 1
-
-    # "Happy" / Vote-for-(m-k) voters: Approve Top m-k
-    if np.any(~vote_unhappy):
-        happy_idxs = np.where(~vote_unhappy)[0]
-        m_minus_k = n_cands - k
-        # Top m-k indices
-        top_mk_indices = np.argpartition(utilities[happy_idxs], -m_minus_k, axis=1)[:, -m_minus_k:]
-        ballots[happy_idxs[:, None], top_mk_indices] = 1
-
-    return ballots
+    # Rank the candidates for each voter (0 = most preferred), then approve
+    # the first n_approved of them.  Note that argpartition can't be used here:
+    # its kth argument is constant per call, and looping over the two possible
+    # values of n_approved is slower than a single sort for these sizes.
+    order = np.argsort(utilities, axis=1)[:, ::-1]
+    ranks = np.empty_like(order)
+    np.put_along_axis(ranks, order,
+                      np.broadcast_to(np.arange(n_cands), order.shape), axis=1)
+    return (ranks < n_approved[:, np.newaxis]).astype(np.uint8)

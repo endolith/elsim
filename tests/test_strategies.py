@@ -87,22 +87,34 @@ def test_vote_for_or_against_k():
                           [0.0, 1.0, 0.7],
                           [0.3, 0.4, 0.6],
                           ])
-    assert_array_equal(vote_for_or_against_k(utilities, 1), [[0,   0, +1],
-                                                             [0,  -1,  0],
-                                                             [-1,  0,  0],
-                                                             [-1,  0,  0],
-                                                             [0,   0, +1],
+    # k = 1, three candidates: approve the top 1, or the top 2 (disapprove the
+    # bottom 1) if the middle candidate is above the voter's average utility.
+    assert_array_equal(vote_for_or_against_k(utilities, 1), [[0, 0, 1],
+                                                             [1, 0, 1],
+                                                             [0, 1, 1],
+                                                             [0, 1, 1],
+                                                             [0, 0, 1],
                                                              ])
 
-    assert_array_equal(vote_for_or_against_k(utilities, 2), [[-1, -1,  0],
-                                                             [+1,  0, +1],
-                                                             [0,  +1, +1],
-                                                             [0,  +1, +1],
-                                                             [-1, -1,  0],
+    utilities = np.array([[1.0, 1.0, 0.0, 0.0, 0.0],
+                          [0.1, 0.8, 1.0, 0.9, 0.2],
+                          [0.0, 0.5, 0.1, 0.5, 0.1],
+                          ])
+    assert_array_equal(vote_for_or_against_k(utilities, 2), [[1, 1, 0, 0, 0],
+                                                             [0, 1, 1, 1, 0],
+                                                             [0, 1, 0, 1, 0],
                                                              ])
 
+    # Each voter approves of either k or m-k candidates, never anything else
+    rng = np.random.default_rng(0)
+    for m in range(2, 12):
+        for k in range(1, m//2 + 1):
+            ballots = vote_for_or_against_k(rng.random((50, m)), k)
+            assert set(np.unique(ballots)) <= {0, 1}
+            assert set(np.unique(ballots.sum(axis=1))) <= {k, m - k}
 
-@pytest.mark.parametrize("method", [vote_for_k])  # , vote_for_or_against_k])
+
+@pytest.mark.parametrize("method", [vote_for_k, vote_for_or_against_k])
 @pytest.mark.parametrize("k", [0, 3, -3, -4, 4])
 def test_invalid_k(k, method):
     with pytest.raises(ValueError):

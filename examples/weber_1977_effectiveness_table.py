@@ -1,135 +1,118 @@
 """
 Reproduce table: "The Effectiveness of Several Voting Systems".
 
-from p. 19 of "Reproducing Voting Systems".
-
 Weber, Robert J. (1978). "Comparison of Public Choice Systems".
 Cowles Foundation Discussion Papers. Cowles Foundation for Research in
 Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
 
-Typical result with n = 100_000:
+This reproduces the table from p. 19 without simulating any elections.  For a
+random society the effectiveness of any system in which the candidate with the
+largest total weight wins is
 
-|     |   Standard |   Vote-for-half |   Borda |
-|----:|-----------:|----------------:|--------:|
-|   2 |      81.37 |           81.71 |   81.41 |
-|   3 |      75.10 |           75.00 |   86.53 |
-|   4 |      69.90 |           79.92 |   89.47 |
-|   5 |      65.02 |           79.09 |   91.34 |
-|   6 |      61.08 |           81.20 |   92.61 |
-|  10 |      50.78 |           82.94 |   95.35 |
-| 255 |      12.78 |           86.37 |   99.80 |
+    eff = Corr(u_A - u_B, w_A - w_B)
+
+the correlation, over a random voter and a random pair of candidates A and B,
+between how much more the voter likes A than B and how much more weight they
+give A than B (see `weber_1977_expressions.effectiveness_from_ballots`).  So a
+million random voters and the ballot rules in `elsim.strategies` are enough,
+and there is no noise from tallying: the results below are good to about 0.02
+points.
+
+|    |   Standard |   Vote-for-half |   Best VFOAK |   Borda |
+|:---|-----------:|----------------:|-------------:|--------:|
+| 2  |     81.63% |          81.63% |       81.63% |  81.63% |
+| 3  |     75.00% |          75.00% |       87.49% |  86.60% |
+| 4  |     69.26% |          79.98% |       80.83% |  89.43% |
+| 5  |     64.55% |          79.07% |       85.22% |  91.30% |
+| 6  |     60.60% |          81.30% |       84.10% |  92.56% |
+| 10 |     49.80% |          83.00% |       85.32% |  95.35% |
+
+(Compare weber_1977_expressions.py, which computes the closed forms instead
+and gets 81.65% / 75.00% / 69.28% / 64.55% / 60.61% / 49.79% for Standard, and
+the paper's published 81.65% / 87.50% / 80.83% / 86.96% / 86.25% / 88.09% for
+"best vote-for-or-against-k".)
+
+The "best vote-for-or-against-k" column is where the paper is wrong: for
+m <= 4 it agrees with the paper, and from m = 5 on it does not, because the
+paper's closed form for that system is wrong (see
+weber_1977_expressions.eff_vote_for_or_against_k for where and why).  The
+ballot rule is the one the paper describes, and it is implemented in
+`elsim.strategies.vote_for_or_against_k`; the discrepancy is in the paper's
+arithmetic, not in the simulation.  weber_1977_verify_vote_for_or_against_k.py
+runs whole elections and reaches the same conclusion.
+
+The other three columns reproduce the paper to within 0.03 points.
 """
-# TODO: Standard is consistently ~1% high, while Borda is very accurate
-# TODO: Best Vote-for-or-against-k is not implemneted yet
 import time
-from collections import Counter, defaultdict
 import numpy as np
-import matplotlib.pyplot as plt
 from tabulate import tabulate
-from joblib import Parallel, delayed
-from elsim.methods import (utility_winner,
-                           approval)
-from elsim.elections import random_utilities
-from elsim.strategies import (vote_for_or_against_k)
-from weber_1977_expressions import eff_vote_for_or_against_k
+from elsim.strategies import vote_for_k, vote_for_or_against_k
+from weber_1977_expressions import (best_vote_for_or_against_k, eff_borda,
+                                    eff_standard, eff_vote_for_half,
+                                    eff_vote_for_or_against_k_paper,
+                                    eff_vote_for_k,
+                                    effectiveness_from_ballots)
 
-n = 20_000
-n_voters = 1_000 # Increased voters for stability
-n_cands_list = (2, 3, 4, 5, 6, 10) # 10 is key
-
-# We will dynamically run Vfoak-k inside the loop
-
-count = defaultdict(lambda: defaultdict(int)) # accumulated utility
-# We also need to track social utility winner (UW) for normalization
-
-print(f'Doing {n:,} iterations, {n_voters:,} voters, '
-      f'{n_cands_list} candidates')
+m_cands_list = (2, 3, 4, 5, 6, 10)
+n_voters = 1_000_000
 
 start_time = time.monotonic()
 
 
-def func():
-    # Local accumulation for this batch
-    batch_count = defaultdict(lambda: defaultdict(float))
-    for n_cands in n_cands_list:
-        utilities = random_utilities(n_voters, n_cands)
-
-        # Find the social utility winner and accumulate utilities
-        UW = utility_winner(utilities)
-        batch_count['UW'][n_cands] = utilities.sum(axis=0)[UW]
-
-        # VFOAK: iterate all valid k
-        max_k = n_cands // 2
-        for k in range(1, max_k + 1):
-            try:
-                election = vote_for_or_against_k(utilities, k)
-                winner = approval(election, tiebreaker='random')
-                batch_count[f'Vfoak-{k}'][n_cands] = utilities.sum(axis=0)[winner]
-            except ValueError:
-                pass
-
-    return batch_count
+def plump(utilities):
+    """Standard (plurality) voting: approve only your favorite."""
+    return vote_for_k(utilities, 1)
 
 
-p = Parallel(n_jobs=-3, verbose=5)(delayed(func)() for i in range(n))
-
-for result in p:
-    for method, d in result.items():
-        for n_cands, value in d.items():
-            count[method][n_cands] += value
+def vote_for_half(utilities):
+    return vote_for_k(utilities, utilities.shape[1]//2)
 
 
-elapsed_time = time.monotonic() - start_time
-print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
+def borda(utilities):
+    m = utilities.shape[1]
+    return m - np.argsort(np.argsort(-utilities, axis=1), axis=1)
 
-plt.figure(f'Effectiveness, {n_voters} voters, {n} iterations')
-plt.title('The Effectiveness of Several Voting Systems')
 
-# Restart color cycle, so result colors match
-plt.gca().set_prop_cycle(None)
+print(f'Measuring each column from {n_voters:,} random voters '
+      f'({time.monotonic() - start_time:.1f}s)')
+best_k = [best_vote_for_or_against_k(m) for m in m_cands_list]
+measured = {
+    'Standard': [effectiveness_from_ballots(plump, m, n_voters)
+                 for m in m_cands_list],
+    'Vote-for-half': [effectiveness_from_ballots(vote_for_half, m, n_voters)
+                      for m in m_cands_list],
+    'Best VFOAK': [effectiveness_from_ballots(
+        lambda u, k=k: vote_for_or_against_k(u, k), m, n_voters)
+        for m, k in zip(m_cands_list, best_k)],
+    'Borda': [effectiveness_from_ballots(borda, m, n_voters)
+              for m in m_cands_list],
+}
 
-table = {}
+print(f'\nThe Effectiveness of Several Voting Systems '
+      f'({time.monotonic() - start_time:.1f}s)\n')
+print(tabulate(measured, 'keys', showindex=m_cands_list, tablefmt='pipe',
+               floatfmt='.2%'))
 
-# Calculate Social Utility Efficiency from summed utilities
-x_uw, y_uw = zip(*sorted(count['UW'].items()))
-average_utility = n_voters * n / 2
+print('\nThe closed forms, and the published "best VFOAK" values:\n')
+closed = {
+    'Standard': [eff_standard(m) for m in m_cands_list],
+    'Vote-for-half': [eff_vote_for_half(m) for m in m_cands_list],
+    'Best VFOAK (published)': [
+        eff_vote_for_or_against_k_paper(m, k)
+        for m, k in zip(m_cands_list, best_k)],
+    'Borda': [eff_borda(m) for m in m_cands_list],
+}
+print(tabulate(closed, 'keys', showindex=m_cands_list, tablefmt='pipe',
+               floatfmt='.2%'))
 
-# Calculate Best Vote-for-or-against-k SUE
-best_vfoak_sue = []
-sorted_n_cands = sorted(n_cands_list)
-print("\nDebug Best VFOAK selection:")
-for n_cands in sorted_n_cands:
-    max_util = -np.inf
-    best_k = -1
-
-    # Iterate valid k for this n_cands
-    max_k = n_cands // 2
-    for k in range(1, max_k + 1):
-        method_name = f'Vfoak-{k}'
-        if n_cands in count[method_name]:
-             if count[method_name][n_cands] > max_util:
-                 max_util = count[method_name][n_cands]
-                 best_k = k
-
-    if max_util == -np.inf:
-        # Should not happen if k=1 is always valid for m>=2
-        best_vfoak_sue.append(np.nan)
+print(f'\nBest k, and measured value as a fraction of the same system\'s '
+      f'vote-for-k value:')
+for m, k in zip(m_cands_list, best_k):
+    if k == m/2:
+        ratio = 'same system'
     else:
-        uw_util = count['UW'][n_cands]
-        sue = (max_util - average_utility)/(uw_util - average_utility)
-        best_vfoak_sue.append(sue * 100)
-        # Debug output
-        if n_cands in (3, 4, 10):
-            print(f"  m={n_cands}: Best k={best_k} (SUE={sue*100:.2f}%)")
+        ratio = f'{measured["Best VFOAK"][m_cands_list.index(m)]/eff_vote_for_k(m, k):.3f}'
+    print(f'  m = {m:2d}: k = {k}, {measured["Best VFOAK"][m_cands_list.index(m)]:.2%}'
+          f'  (vs vote-for-k {eff_vote_for_k(m, k):.2%}, ratio {ratio})')
 
-table['Best Vote-for-or-against-k'] = best_vfoak_sue
-
-print(tabulate(table, 'keys', showindex=n_cands_list,
-               tablefmt="pipe", floatfmt='.2f'))
-
-plt.plot([], [], 'k:', lw=0.8, label='Weber')  # Dummy plot for label
-plt.legend()
-plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
-plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
-plt.ylim(40, 102)
-plt.xlim(1.8, 10.2)
+print(f'\nTotal time: {time.monotonic() - start_time:.1f}s')
