@@ -33,17 +33,19 @@ than ten standard errors.  The measured values agree instead with
 `eff_vote_for_or_against_k`, the corrected closed form, and with
 `effectiveness_from_ballots`, which needs no election at all.
 
-Two caveats on reading the measured column:
+On reading the measured column:
 
-* It is for 1,000 voters, not an infinite number, so it carries a
-  finite-electorate bias of a few tenths of a point (visible at m = 3, where
-  the exact answer is 87.50%; more voters shrink it, which is why the
-  companion example weber_1977_verify_vote_for_k.py needs 100,000 voters to
-  match the paper to 0.1 points).
+* It is for 1,000 voters, not an infinite number.  At 150,000 elections the
+  same simulation lands within 0.17 points of the exact asymptote for
+  m = 2, 3, 5, 6, 10, and every deviation is within one standard error -- so
+  neither the size nor the sign of the residual finite-electorate bias is
+  resolved here.  (Do not read the small differences as bias.)
 * Election-level noise is large: a single election's effectiveness estimate
   has a standard deviation of order 100%, so the standard error only falls as
   1/sqrt(n_elections), and distinguishing two systems one point apart needs on
-  the order of 10,000 elections.
+  the order of 10,000 elections.  That, not bias, is what limits this check --
+  which is why the closed-form and ballot-level checks in the companion
+  examples are the primary ones.
 """
 import numpy as np
 from joblib import Parallel, delayed

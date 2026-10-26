@@ -175,7 +175,7 @@ if __name__ == '__main__':
                    - eff_vote_for_or_against_k(m, k)) < 1e-4, (m, k)
 
     rows = []
-    for m in range(2, 10):
+    for m in range(2, 13):
         for k in range(1, m//2 + 1):
             vertices = region_vertices(m, k)
             h = region_centroid(m, k)
@@ -194,6 +194,17 @@ if __name__ == '__main__':
                                   'b1 paper', 'b1 exact',
                                   'published', 'correct'),
                    tablefmt='pipe', disable_numparse=True))
+
+    print()
+    print('The published formula equals the exact value on exactly the rows in')
+    print('the table above, i.e. iff m <= 4 or k = m/2.  Both of those families')
+    print('are proved: for m <= 4 the region really has only m + 1 extreme')
+    print('points, and for k = m/2 the defining inequality is vacuous so H is')
+    print('the whole sorted simplex.  The converse is a finite verification')
+    print('(m <= 12 here, extended to m = 60 by quadrature, where the gap is')
+    print('4.1 to 6.7 points and the quadrature self-consistency is below')
+    print('2e-4 points) -- it is not a general proof, and should not be')
+    print('quoted as one.')
 
     print('\nThe centroid of H, for the two smallest failing cases:\n')
     for m, k in ((5, 1), (6, 2)):
@@ -239,12 +250,16 @@ if __name__ == '__main__':
               f'{ab2_printed:.6f} as printed (8(m+1)), '
               f'{ab2_fixed:.6f} with 2(m+1)')
     print()
-    print('So the error is invisible to internal consistency checks: the')
-    print('table is reproduced from the same wrong centroid, and the one')
-    print('check it would fail is masked by a typo.  Only the geometry (or a')
-    print('variational bound) exposes it -- and the correct strategy is the')
-    print('pointwise best one, so no strategy using these ballots can reach')
-    print('the published values.')
+    print('So the error is invisible to internal consistency checks: with the')
+    print('typo repaired the erroneous table satisfies Weber\'s identity, and')
+    print('the closed form is a faithful transcription of it.  The typo is a')
+    print('separate algebraic slip, not something that hides the geometry.')
+    print('Only an external check exposes the error: the geometry above, or the')
+    print('variational bound -- for k < m/2 the optimal rule takes')
+    print('max(A, B), which dominates any other choice, and all allowed')
+    print('ballots have the same length, so the published values cannot be')
+    print('reached by any strategy in the family.  (At k = m/2 the two')
+    print('ballots are the same after a shift, so that caveat is vacuous.')
     print()
     print('The two missing points pull the centroid of the middle components')
     print('down, so the paper\'s b1 is too small and w -- and the published')
@@ -256,7 +271,11 @@ if __name__ == '__main__':
     print('(1,...,1), (1,...,1,0), ... and again there is no error.  The')
     print('published a1 and b1 are individually wrong there (e.g. 0.64286 and')
     print('0.21429 instead of 0.71429 and 0.28571 for m = 6, k = 3), but only')
-    print('their difference enters the formula, and that is right.')
+    print('their difference enters the formula, and that is right.  Those rows')
+    print('are therefore still useful tests -- they check the reduction to')
+    print('vote-for-half and any normalisation -- they just cannot distinguish')
+    print('a correct sign choice from a coin flip, because at k = m/2 the two')
+    print('ballots are the same after a shift.')
 
     print()
     print('Finally, the k column of the printed table is not itself at fault.')

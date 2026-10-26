@@ -103,7 +103,10 @@ Source: [weber_1977_effectiveness_table.py](weber_1977_effectiveness_table.py)
 ### Closed-form effectiveness expressions
 
 Weber's own closed-form expressions for p. 19 of *Comparison of Public Choice
-Systems*, plus the corrected "vote-for-or-against-k" expression.
+Systems*, plus the corrected "vote-for-or-against-k" expression.  Note that the
+corrected one is **not** a closed form: it is an exact expectation whose central
+gap has no known elementary form, so it is evaluated by quadrature (error ~1e-6)
+and, for small m, exactly as a rational from the centroid of `H`.
 
 | *m*  | Standard | Vote-for-half | Best VFOAK (published) | Best VFOAK (correct) |   Borda |
 | :--- | -------: | ------------: | ---------------------: | -------------------: | ------: |
@@ -176,15 +179,20 @@ which — given the wrong `w` — reproduces the printed 92.25% exactly.
 The error is also invisible to the paper's own consistency check.  Weber asserts
 `a₁ − b₁ = a₂ − b₂`, and the printed odd-m entries satisfy it only once the
 `b₂` denominator is read as `2(m+1)`; as printed (`8(m+1)`) they violate it,
-which is how that typo shows up.  Because the closed form uses only `a₁ − b₁`,
-neither the typo nor the identity affects the published column.  Since the
-strategy is the pointwise-best one for these ballots, no strategy in the family
-can reach the published values either; only the geometry (or a variational
-bound) exposes the error.
+which is how that typo shows up.  The typo is a separate algebraic slip, not
+something that hides the geometry: with the typo repaired the erroneous table
+satisfies the identity, so internal consistency never detects the error at all,
+and the closed form is a faithful transcription of a geometrically wrong table.
+What does expose it is an external check — the geometry above, or the
+variational bound: for k < m/2 the optimal rule takes `max(A, B)`, which
+dominates any other choice, and all allowed ballots have the same length, so no
+strategy in the family can reach the published values.
 
 Finally, the `k` column of the printed table is not at fault: `round(0.368m)`
 coincides with the corrected argmax for every printed row, and the two only
-diverge from m = 9 on (m = 9: 3 vs 4; m = 20: 7 vs 9).
+diverge from m = 9 on (m = 9: 3 vs 4; m = 20: 7 vs 9; m = 50: 22 vs 18;
+m = 100: 46 vs 37).  Choosing the corrected k is worth 0.9 points at m = 9
+rising to 1.7 points at m = 100.
 
 Source: [weber_1977_vfoak_erratum.py](weber_1977_vfoak_erratum.py)
 

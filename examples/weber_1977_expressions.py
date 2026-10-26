@@ -113,8 +113,14 @@ table -- is unaffected, as are the 2- and 4-candidate rows.
 How the corrected column is computed
 ------------------------------------
 `eff_vote_for_or_against_k` evaluates the formula above, with the central gap
-obtained by numerical integration (`central_gap`); there is no elementary
-closed form for it.  `eff_vote_for_or_against_k_paper` is the published
+obtained by numerical integration (`central_gap`).  This is worth being precise
+about: the corrected expression is *not* a closed form.  It is an exact
+expectation over the region `H`, and the central gap has no known elementary
+closed form, so it is evaluated by quadrature here -- with error ~1e-6 at the
+default settings, which is a quadrature error and should not be confused with
+election Monte Carlo error.  For small m the same value can be obtained exactly,
+as a rational, from the centroid of `H` (weber_1977_vfoak_erratum.py), which is
+the cross-check used below.  `eff_vote_for_or_against_k_paper` is the published
 expression, kept so the published table can be reproduced.
 
 How it is checked
@@ -127,7 +133,7 @@ Two independent checks:
   candidates -- the correlation between how much more a voter likes A than B
   and how much more weight they give A than B.  Fed with the ballots that
   `elsim.strategies.vote_for_or_against_k` actually produces, it reproduces
-  every closed form here to a few hundredths of a point.
+  every expression here to a few hundredths of a point.
 * weber_1977_vfoak_erratum.py computes the centroid of the p. 14 region
   exactly, from its extreme points, and gets the corrected numbers as exact
   rationals; it is also where the error in the published formula is located.
