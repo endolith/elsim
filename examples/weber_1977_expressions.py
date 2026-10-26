@@ -90,16 +90,23 @@ that produces it, are artifacts.  The correct limit is 86.60%, which is the
 shrinks with m (86.50% vs 86.18% at m = 100) instead of growing to 5.7
 points.
 
-The paper is self-consistent in its *description* of the system; it is the
-closed form, and hence the column, that is wrong.  Where the derivation of that
-closed form goes wrong is not identified here: the derivation for this system
-is in the pairwise-probability section of the paper (p. 71 f.), which was not
-available to check.  What can be said is where the error must be -- the switch
-term only, i.e. the probability that a voter prefers the ``m - k`` ballot --
-and that it is not a slip of a constant: the true gap decays like
-``m**-1.5`` for fixed k while the published one decays like ``m**-1``, and the
-odd-m parity factor ``1 + 1/(m(m-2k))`` is exact only at m = 3, which is what
-interpolating between hand-computed cases would look like.  The 3-candidate row
+The paper is self-consistent in its *description* of the system.  The error is
+in the table of ``u_t(a)`` values on p. 14, which is obtained from the centroid
+of the region where a voter's central candidates fall below their average
+utility.  The paper says of that region "This region is a simplex, with extreme
+points ..." and averages its m + 1 extreme points.  The region is *not* a
+simplex, except when m <= 4 (where it really has m + 1 extreme points) and when
+k = m/2 (where the defining inequality is vacuous).  For m >= 5 it has many
+more extreme points -- 8 for (m, k) = (5, 1), of which the paper lists 6, the
+two it misses being (1, 3/4, 3/4, 0, 0) and (1, 1, 1/4, 1/4, 0) -- so the
+average of the listed points is not the centroid, and the tabulated a_1 and b_1
+(and with them w = a_1 - b_1, and the published formula) are wrong.
+
+That is also why the error has the shape it does: the published formula is
+exact for exactly those (m, k) for which the region is a simplex, and wrong
+everywhere else.  See weber_1977_vfoak_erratum.py, which enumerates the extreme
+points, computes the centroid exactly, and reproduces the corrected numbers as
+exact rationals (75.0391% at m = 5, k = 1).  The 3-candidate row
 (87.50%) -- the paper's headline, and still the most effective system in the
 table -- is unaffected, as are the 2- and 4-candidate rows.
 
@@ -121,6 +128,9 @@ Two independent checks:
   and how much more weight they give A than B.  Fed with the ballots that
   `elsim.strategies.vote_for_or_against_k` actually produces, it reproduces
   every closed form here to a few hundredths of a point.
+* weber_1977_vfoak_erratum.py computes the centroid of the p. 14 region
+  exactly, from its extreme points, and gets the corrected numbers as exact
+  rationals; it is also where the error in the published formula is located.
 * examples/weber_1977_verify_vote_for_or_against_k.py runs whole elections
   instead: it draws 1,000-voter electorates, tallies the ballots with approval
   voting, and measures the social utility of the winner.  It agrees with the
@@ -229,7 +239,8 @@ def central_gap(m, k, n_samples=2**20, seed=0):
     independent uniform random variables.  The integrand is piecewise linear
     in that vector, so a scrambled Sobol sequence converges much faster than
     random sampling: with the default of 2**20 points the error is well under
-    0.01%.  The result is deterministic.
+    0.01%.  The result is deterministic.  An independent exact evaluation, from
+    the centroid of the region (see weber_1977_vfoak_erratum.py), agrees.
 
     Parameters
     ----------

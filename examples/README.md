@@ -120,9 +120,11 @@ The published formula is
 k taken as `round(αm)`, `α = (9 − √21)/12 ≈ 0.368`.  It is exact for
 m = 2, 3, 4 (where the paper worked the system out case by case) and for
 k = m/2, where the system coincides with vote-for-k.  Elsewhere it is too
-high, because the paper uses `k/(8(m+1))` for the expected amount by which a
-voter's central candidates beat their average utility, and the true value is
-smaller and shrinks faster.  The error grows with m: 1.8 points at
+high, because the paper uses `k(m(m−2k) + (m mod 2))/(8m(m+1)(m−2k))` — that
+is, `k/(8(m+1))` for even m — for the expected amount by which a voter's
+central candidates beat their average utility, and the true value is smaller
+and shrinks faster (it decays like `m^-3/2`, not `m^-1`).  Why is explained in
+"Where the error is" below.  The error grows with m: 1.8 points at
 (m, k) = (5, 2), 2.8 at (10, 4), 5.2 at (10, 2), and 5.7 points in the
 large-m limit, where the published 92.25% should be 86.60% — the same limit
 as vote-for-half, reached at k/m → 1/2 rather than 0.368.  For fixed k the
@@ -132,6 +134,40 @@ The paper's description of the system is correct; its closed form is not.  The
 3-candidate row (87.50%), which is the paper's headline, is unaffected.
 
 Source: [weber_1977_expressions.py](weber_1977_expressions.py)
+
+### Where the error is
+
+Weber obtains the four numbers `a₁`, `b₁`, `a₂`, `b₂` on p. 14 from the centroid
+of the region where a voter's central candidates fall below their average
+utility, saying of it "This region is a simplex, with extreme points ...", and
+averaging its `m + 1` extreme points.  It is not a simplex:
+
+| m | k | extreme points | m + 1 | simplex? |
+| -: | -: | -------------: | ----: | :------- |
+| 2 | 1 | 3 | 3 | yes |
+| 3 | 1 | 4 | 4 | yes |
+| 4 | 1 | 5 | 5 | yes |
+| 5 | 1 | 8 | 6 | no |
+| 5 | 2 | 8 | 6 | no |
+| 6 | 2 | 9 | 7 | no |
+| 7 | 3 | 14 | 8 | no |
+| 8 | 3 | 15 | 9 | no |
+| 9 | 4 | 22 | 10 | no |
+
+For (m, k) = (5, 1) the paper lists six extreme points; the region has eight,
+and the two it misses — (1, ¾, ¾, 0, 0) and (1, 1, ¼, ¼, 0) — pull the
+centroid of the middle components down.  The published `a₁ = 0.833333` is
+right, `b₁ = 0.333333` should be `0.348958`, and `w = a₁ − b₁` should be
+0.484375 rather than 0.5 — which is exactly the 3.2% overstatement the
+published formula has there.
+
+This is also why the published formula is exact for m ≤ 4 (the region really is
+a simplex) and for k = m/2 (the inequality is vacuous, so the region is the
+whole sorted simplex).  The centroid can be computed exactly from the extreme
+points, which gives the corrected column as exact rationals and confirms the
+quadrature in `weber_1977_expressions.py`:
+
+Source: [weber_1977_vfoak_erratum.py](weber_1977_vfoak_erratum.py)
 
 ### Verifying vote-for-or-against-k with whole elections
 
