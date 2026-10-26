@@ -151,6 +151,23 @@ def exact_effectiveness(m, k):
     return (a1 - b1)*math.sqrt(12*k*(m - k)/(m*(m - 1)))
 
 
+def printed_table_is_self_consistent(m, k):
+    """
+    Check Weber's own consistency condition, ``a1 - b1 = a2 - b2`` (p. 15).
+
+    The printed odd-m entry for ``b2`` has denominator 8(m+1); with it the
+    identity fails, and with 2(m+1) it holds, which identifies it as a
+    transcription slip.  The even-m row already has 2(m+1), and satisfies
+    both ``b2 = 1 - a1`` and ``a2 = 1 - b1``.
+    """
+    a1 = paper_a1(m, k)
+    a2 = (5*m*m + 2*m + (1 if m % 2 else 0) - 6*k*k - 2*k)/(8*(m+1)*(m-k))
+    b1 = paper_b1(m, k)
+    b2_printed = (2 + 1.5*(k-1))/((8 if m % 2 else 2)*(m+1))
+    b2_fixed = (2 + 1.5*(k-1))/(2*(m+1))
+    return (a1 - b1, a2 - b2_printed, a2 - b2_fixed)
+
+
 if __name__ == '__main__':
     # The exact centroid must reproduce the quadrature in weber_1977_expressions
     for m, k in ((3, 1), (4, 1), (5, 1), (5, 2), (6, 1), (6, 2), (7, 2)):
@@ -202,7 +219,34 @@ if __name__ == '__main__':
     for v in np.abs(region_vertices(m, k)):
         missing = '' if any(np.allclose(v, p) for p in listed) else '   <- missing'
         print(f'    {np.round(v, 4)}{missing}')
-    print('\nThe two missing points pull the centroid of the middle components')
+    print('What the paper gets right:')
+    print()
+    print('  * the strategic types and the "equally likely" 1/2 marginal;')
+    print('  * the reduction on p. 15: the four sums over types collapse to')
+    print('    C(m-2,k-1) 2w^2 / (2 C(m,k)) = k(m-k)/(m(m-1)) w^2, so that')
+    print('    step and the closing square root are correct;')
+    print('  * the large-m algebra on p. 16, and the transcription of it into')
+    print('    the p. 19 table -- the published column is exactly what the')
+    print('    printed (wrong) centroid gives.')
+    print()
+    print('The printed p. 14 table also passes its own check: Weber asserts')
+    print('a1 - b1 = a2 - b2, and that holds once the odd-m b2 denominator is')
+    print('read as 2(m+1).  As printed, with 8(m+1), it does not:')
+    print()
+    for m, k in ((5, 1), (5, 2), (7, 3), (9, 4)):
+        ab1, ab2_printed, ab2_fixed = printed_table_is_self_consistent(m, k)
+        print(f'  m = {m}, k = {k}:  a1-b1 = {ab1:.6f};  a2-b2 = '
+              f'{ab2_printed:.6f} as printed (8(m+1)), '
+              f'{ab2_fixed:.6f} with 2(m+1)')
+    print()
+    print('So the error is invisible to internal consistency checks: the')
+    print('table is reproduced from the same wrong centroid, and the one')
+    print('check it would fail is masked by a typo.  Only the geometry (or a')
+    print('variational bound) exposes it -- and the correct strategy is the')
+    print('pointwise best one, so no strategy using these ballots can reach')
+    print('the published values.')
+    print()
+    print('The two missing points pull the centroid of the middle components')
     print('down, so the paper\'s b1 is too small and w -- and the published')
     print('effectiveness -- too large.  For m = 3 and m = 4 nothing is missing,')
     print('which is why the published formula is exact there.')
@@ -213,3 +257,13 @@ if __name__ == '__main__':
     print('published a1 and b1 are individually wrong there (e.g. 0.64286 and')
     print('0.21429 instead of 0.71429 and 0.28571 for m = 6, k = 3), but only')
     print('their difference enters the formula, and that is right.')
+
+    print()
+    print('Finally, the k column of the printed table is not itself at fault.')
+    print('The corrected argmax agrees with round(0.368 m) for every row in the')
+    print('table, and the two only diverge from m = 9 on:')
+    for m in (2, 3, 4, 5, 6, 9, 10, 20):
+        alpha_k = max(1, round((9 - math.sqrt(21))/12*m))
+        print(f'  m = {m:2d}: paper k = {alpha_k}, corrected best k = '
+              f'{best_vote_for_or_against_k(m)}'
+              f'{"   <- diverges" if alpha_k != best_vote_for_or_against_k(m) else ""}')

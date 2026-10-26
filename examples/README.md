@@ -163,9 +163,28 @@ published formula has there.
 
 This is also why the published formula is exact for m ≤ 4 (the region really is
 a simplex) and for k = m/2 (the inequality is vacuous, so the region is the
-whole sorted simplex).  The centroid can be computed exactly from the extreme
-points, which gives the corrected column as exact rationals and confirms the
-quadrature in `weber_1977_expressions.py`:
+whole sorted simplex — so (4,2), (6,3), (8,4) also agree exactly, for a
+different reason, and make misleading test cases).  The centroid can be
+computed exactly from the extreme points, which gives the corrected column as
+exact rationals and confirms the quadrature in `weber_1977_expressions.py`.
+
+What the paper gets right: the strategic types and their 1/2 marginal; the
+p. 15 reduction of the four sums over types to `C(m−2,k−1)·2w²/(2·C(m,k)) =
+k(m−k)w²/(m(m−1))` and the closing square root; and the p. 16 limit algebra,
+which — given the wrong `w` — reproduces the printed 92.25% exactly.
+
+The error is also invisible to the paper's own consistency check.  Weber asserts
+`a₁ − b₁ = a₂ − b₂`, and the printed odd-m entries satisfy it only once the
+`b₂` denominator is read as `2(m+1)`; as printed (`8(m+1)`) they violate it,
+which is how that typo shows up.  Because the closed form uses only `a₁ − b₁`,
+neither the typo nor the identity affects the published column.  Since the
+strategy is the pointwise-best one for these ballots, no strategy in the family
+can reach the published values either; only the geometry (or a variational
+bound) exposes the error.
+
+Finally, the `k` column of the printed table is not at fault: `round(0.368m)`
+coincides with the corrected argmax for every printed row, and the two only
+diverge from m = 9 on (m = 9: 3 vs 4; m = 20: 7 vs 9).
 
 Source: [weber_1977_vfoak_erratum.py](weber_1977_vfoak_erratum.py)
 
