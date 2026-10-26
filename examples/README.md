@@ -91,7 +91,9 @@ Source: [weber_1977_effectiveness_table.py](weber_1977_effectiveness_table.py)
 
 ### Closed-form effectiveness expressions
 
-Reproduce table from p. 19 of *Reproducing Voting Systems* using Weber's closed-form expressions to verify them.
+Reproduce the published table from p. 19 of *Reproducing Voting Systems* using Weber's closed-form expressions. This verifies the transcription, not the correctness of the derivation.
+
+**VFOAK erratum:** the published vote-for-or-against-k expression uses an incorrect simplex/centroid calculation. The printed best-VFOAK values at 5, 6, and 10 candidates should be 85.2058%, 84.1187%, and 85.3099%, respectively; the optimal many-candidate limit is 86.6025%, not 92.25%. The table below is preserved as the **historical published table**. See the [derivation and source verification](weber_vfoak_analysis.md), [exact rational audit and independent election simulation](weber_vfoak_audit.py), and [issue #110](https://github.com/endolith/elsim/issues/110).
 
 | *m*  | Standard | Vote-for-half | Best Vote-for-or-against-k |   Borda |
 | :--- | -------: | ------------: | -------------------------: | ------: |
