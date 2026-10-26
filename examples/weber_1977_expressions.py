@@ -144,7 +144,9 @@ Two independent checks:
   (That check is much noisier -- an election-level effectiveness estimate has
   a standard deviation of order 100% -- which is why the other two exist.)
 """
+from fractions import Fraction
 from functools import lru_cache
+from math import comb
 import numpy as np
 from numpy import sqrt, round
 from scipy.stats import qmc
@@ -226,6 +228,73 @@ def _central_sum_coefficients(m, k):
 
 
 @lru_cache(maxsize=None)
+def expected_gain(m, k):
+    r"""
+    Calculate ``E[max(G_k, G_{m-k})]`` exactly, as a Fraction.
+
+    This is the numerator of the vote-for-or-against-k effectiveness, so with
+    it the effectiveness is available in closed form for every `m` and `k`,
+    with no quadrature and no polytope.  The method is due to the independent
+    audit on branch ``arena/b1c51968-elsim`` (examples/weber_vfoak_audit.py),
+    which reached the same values by a different route.
+
+    Writing ``A = sum(top-k centred utilities)`` and
+    ``B = -sum(bottom-k centred utilities)``, the voter takes
+    ``max(A, B) = B + (A - B)^+``, and ``E[B] = k(m-k)/(2(m+1))``.  So only
+    ``E[(A - B)^+]`` is needed.  ``A - B`` is a fixed linear combination of the
+    ordered utilities, i.e. of the ``m+1`` Dirichlet(1,...,1) spacings, and
+    ``E[(sum_j a_j G_j)^+]`` is a confluent divided difference of the truncated
+    power ``x_+**(m+1)`` at the partial sums of the ``a_j``.  That is a finite
+    rational expression, so the result is exact.
+
+    Parameters
+    ----------
+    m : int
+        Total number of candidates.
+    k : int
+        Number of candidates that each voter approves or disapproves of.
+
+    Returns
+    -------
+    gain : Fraction
+        ``E[max(G_k, G_{m-k})]``.
+
+    Examples
+    --------
+    >>> from fractions import Fraction
+    >>> expected_gain(5, 2) == Fraction(97, 180)
+    True
+    >>> expected_gain(3, 1) == Fraction(7, 24)
+    True
+    """
+    if not 0 < k <= m//2:
+        raise ValueError(f'k={k} must be between 1 and m//2={m//2}')
+
+    # In ascending order, A - B has these coefficients on the utilities.
+    coefficients = [Fraction(int(i < k or i >= m - k)) - Fraction(2*k, m)
+                    for i in range(m)]
+    # D = sum_j knot_j * g_j in the m+1 uniform spacings of the ordered cube.
+    knots = sorted(sum(coefficients[j:], Fraction()) for j in range(m + 1))
+
+    # Confluent divided differences of x_+**(m+1) at the knots.
+    power = m + 1
+    differences = [max(x, Fraction())**power for x in knots]
+    for order in range(1, m + 1):
+        next_differences = []
+        for i in range(m + 1 - order):
+            left, right = knots[i], knots[i + order]
+            if left == right:
+                value = (comb(power, order)
+                         * max(left, Fraction())**(power - order))
+            else:
+                value = (differences[i + 1] - differences[i])/(right - left)
+            next_differences.append(value)
+        differences = next_differences
+
+    positive_part = differences[0]/(m + 1)      # E[(A - B)^+]
+    return Fraction(k*(m - k), 2*(m + 1)) + positive_part
+
+
 def central_gap(m, k, n_samples=2**20, seed=0):
     """
     Calculate ``E[max(0, c - ubar)]``, the expected "central gap".
@@ -281,7 +350,7 @@ def central_gap(m, k, n_samples=2**20, seed=0):
     return total/n_samples/(m*(m - 2*k))
 
 
-def eff_vote_for_or_against_k(m, k, n_samples=2**20, seed=0):
+def eff_vote_for_or_against_k(m, k, n_samples=None, seed=0):
     r"""
     Calculate effectiveness of the "vote-for-or-against-k" voting system.
 
@@ -308,8 +377,12 @@ def eff_vote_for_or_against_k(m, k, n_samples=2**20, seed=0):
         \mathbb{E}[\max(G_k, G_{m-k})] =
             \mathbb{E}[G_k] + (m - 2k)\,\mathbb{E}[(c - \bar u)^+].
 
-    The second term has no elementary closed form and is evaluated
-    numerically (see `central_gap`), so this is exact up to that quadrature.
+    Both terms are available in closed form: `expected_gain` evaluates the
+    whole expectation exactly as a rational number (via confluent divided
+    differences), so the default result here has no numerical error at all.
+    Passing `n_samples` instead routes through `central_gap`, the original
+    quadrature over the region, which is retained only as an independent
+    cross-check.
 
     Parameters
     ----------
@@ -318,7 +391,8 @@ def eff_vote_for_or_against_k(m, k, n_samples=2**20, seed=0):
     k : int
         Number of candidates that each voter approves or disapproves of.
     n_samples : int, optional
-        Number of quadrature points used for the central-gap expectation.
+        If given, compute the central gap by quadrature with this many points
+        instead of exactly.  Only useful as a cross-check.
     seed : int, optional
         Seed for the random number generator.
 
@@ -372,10 +446,15 @@ def eff_vote_for_or_against_k(m, k, n_samples=2**20, seed=0):
     """
     if not 0 < k <= m//2:
         raise ValueError(f'k={k} must be between 1 and m//2={m//2}')
-    expected_gain = k*(m-k)/(2*(m+1))
-    expected_gain += (m - 2*k)*central_gap(m, k, n_samples, seed)
     p = 2*k*(m-k)/(m*(m-1))
-    return sqrt(24)*expected_gain/((m-1)*sqrt(p))
+    if n_samples is None:
+        # Exact: a rational expected gain, so no quadrature error at all.
+        gain = expected_gain(m, k)
+    else:
+        # Independent route, kept for cross-checking: E[G_k] plus the gap.
+        gain = (k*(m-k)/(2*(m+1))
+                + (m - 2*k)*central_gap(m, k, n_samples, seed))
+    return sqrt(24)*gain/((m-1)*sqrt(p))
 
 
 def eff_vote_for_or_against_k_paper(m, k):
@@ -409,7 +488,7 @@ def eff_vote_for_or_against_k_paper(m, k):
     return (5*m**2 + m % 2 - 6*m*k) / (4*(m+1)) * sqrt(3*k/(m * (m-1) * (m-k)))
 
 
-def best_vote_for_or_against_k(m, n_samples=2**20, seed=0):
+def best_vote_for_or_against_k(m, n_samples=None, seed=0):
     """
     Find `k` that maximizes effectiveness of "vote-for-or-against-k" system.
 
@@ -426,7 +505,8 @@ def best_vote_for_or_against_k(m, n_samples=2**20, seed=0):
     m : int
         Total number of candidates.
     n_samples : int, optional
-        Number of quadrature points used for each candidate `k`.
+        If given, compare the candidate `k` by quadrature with this many
+        points each, instead of exactly.
     seed : int, optional
         Seed for the random number generator.
 
@@ -436,11 +516,21 @@ def best_vote_for_or_against_k(m, n_samples=2**20, seed=0):
         Number of candidates for every voter to approve or disapprove of.
     """
     ks = range(1, m//2 + 1)
-    effs = [eff_vote_for_or_against_k(m, k, n_samples, seed) for k in ks]
-    return int(ks[int(np.argmax(effs))])
+    if n_samples is not None:
+        effs = [eff_vote_for_or_against_k(m, k, n_samples, seed) for k in ks]
+        return int(ks[int(np.argmax(effs))])
+
+    # Comparing effectivenesses exactly: they differ only in the expected gain
+    # and in sqrt(p), so compare the squares, which are rational.  Ties are
+    # broken towards the smaller `k`, as with the argmax above.
+    def squared_effectiveness(k):
+        p = Fraction(2*k*(m - k), m*(m - 1))
+        return 24*expected_gain(m, k)**2/((m - 1)**2*p)
+
+    return int(max(ks, key=squared_effectiveness))
 
 
-def eff_best_vote_for_or_against_k(m, n_samples=2**20, seed=0):
+def eff_best_vote_for_or_against_k(m, n_samples=None, seed=0):
     """
     Calculate effectiveness of the best "vote-for-or-against-k" voting system.
 
@@ -453,7 +543,8 @@ def eff_best_vote_for_or_against_k(m, n_samples=2**20, seed=0):
     m : int
         Total number of candidates.
     n_samples : int, optional
-        Number of quadrature points used for each candidate `k`.
+        If given, compare the candidate `k` by quadrature with this many
+        points each, instead of exactly.
     seed : int, optional
         Seed for the random number generator.
 
@@ -585,12 +676,21 @@ def effectiveness_from_ballots(ballot_fn, m, n_voters=1_000_000, seed=0):
 def test_cases():
     # Verify various statements from the paper
     """
+    The exact rational expectation and the quadrature over the region agree,
+    so the exact route can be the default without losing the check.
+    """
+    for m, k in ((3, 1), (5, 1), (5, 2), (6, 2), (8, 3), (10, 4)):
+        assert_almost_equal(eff_vote_for_or_against_k(m, k),
+                            eff_vote_for_or_against_k(m, k, 2**19),
+                            decimal=4)
+
+    """
     When `m` is even and `k = m/2`, the vote-for-or-against-k system coincides
     with the vote-for-k system.
     """
     for m in range(2, 100, 2):
         k = m // 2
-        assert_almost_equal(eff_vote_for_or_against_k(m, k, 2**19),
+        assert_almost_equal(eff_vote_for_or_against_k(m, k),
                             eff_vote_for_k(m, k))
         assert_almost_equal(eff_vote_for_or_against_k_paper(m, k),
                             eff_vote_for_k(m, k))
@@ -601,8 +701,7 @@ def test_cases():
     """
     for m in range(3, 15):
         for k in range(1, (m+1)//2):
-            assert_(eff_vote_for_or_against_k(m, k, 2**19)
-                    > eff_vote_for_k(m, k))
+            assert_(eff_vote_for_or_against_k(m, k) > eff_vote_for_k(m, k))
 
     """
     For three-candidate elections we see that the standard voting system
@@ -625,11 +724,11 @@ def test_cases():
     """
     for m in (2, 3, 4):
         for k in range(1, m//2 + 1):
-            assert_almost_equal(eff_vote_for_or_against_k(m, k, 2**19),
+            assert_almost_equal(eff_vote_for_or_against_k(m, k),
                                 eff_vote_for_or_against_k_paper(m, k),
                                 decimal=3)
     for m, k in ((5, 1), (5, 2), (6, 2), (10, 4)):
-        assert_(eff_vote_for_or_against_k(m, k, 2**19)
+        assert_(eff_vote_for_or_against_k(m, k)
                 < eff_vote_for_or_against_k_paper(m, k) - 1/100)
 
     """
@@ -638,7 +737,7 @@ def test_cases():
     92.25%.
     """
     for m in (5, 6, 10, 20):
-        eff = eff_best_vote_for_or_against_k(m, n_samples=2**19)
+        eff = eff_best_vote_for_or_against_k(m)
         assert_(eff <= sqrt(3)/2)
         assert_(eff < 0.9225)
     assert_almost_equal(eff_vote_for_half(10**6), sqrt(3)/2, decimal=5)
@@ -667,7 +766,7 @@ def test_cases():
             assert_almost_equal(
                 effectiveness_from_ballots(
                     lambda u: vote_for_or_against_k(u, k), m, 200_000),
-                eff_vote_for_or_against_k(m, k, 2**19), decimal=3)
+                eff_vote_for_or_against_k(m, k), decimal=3)
         assert_almost_equal(effectiveness_from_ballots(borda, m, 200_000),
                             eff_borda(m), decimal=3)
 

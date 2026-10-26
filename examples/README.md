@@ -103,10 +103,13 @@ Source: [weber_1977_effectiveness_table.py](weber_1977_effectiveness_table.py)
 ### Closed-form effectiveness expressions
 
 Weber's own closed-form expressions for p. 19 of *Comparison of Public Choice
-Systems*, plus the corrected "vote-for-or-against-k" expression.  Note that the
-corrected one is **not** a closed form: it is an exact expectation whose central
-gap has no known elementary form, so it is evaluated by quadrature (error ~1e-6)
-and, for small m, exactly as a rational from the centroid of `H`.
+Systems*, plus the corrected "vote-for-or-against-k" expression.  The corrected
+one has no elementary closed form, but it is computable *exactly*: the expected
+gain `E[max(G_k, G_{m-k})]` is a rational number, a confluent divided difference
+of `x_+^(m+1)` at the knots of the head-count, so
+`eff_vote_for_or_against_k` returns the exact value (no quadrature error, and
+the best `k` is selected from exact rationals).  The quadrature over the region
+in `central_gap` remains as an independent cross-check.
 
 | *m*  | Standard | Vote-for-half | Best VFOAK (published) | Best VFOAK (correct) |   Borda |
 | :--- | -------: | ------------: | ---------------------: | -------------------: | ------: |
@@ -170,6 +173,9 @@ whole sorted simplex — so (4,2), (6,3), (8,4) also agree exactly, for a
 different reason, and make misleading test cases).  The centroid can be
 computed exactly from the extreme points, which gives the corrected column as
 exact rationals and confirms the quadrature in `weber_1977_expressions.py`.
+The same rationals follow from the divided-difference formula in
+`expected_gain`, which is now the default path and agrees with the centroid
+bit for bit.
 
 What the paper gets right: the strategic types and their 1/2 marginal; the
 p. 15 reduction of the four sums over types to `C(m−2,k−1)·2w²/(2·C(m,k)) =
