@@ -55,10 +55,18 @@ def approval(election, tiebreaker=None):
     1
 
     """
-    election = np.asarray(election, dtype=np.uint8)
+    election = np.asarray(election)
+    if election.ndim != 2 or 0 in election.shape:
+        raise ValueError(
+            'Approval election must have at least one ballot and candidate'
+        )
 
-    if election.min() < 0 or election.max() > 1:
-        raise ValueError
+    # Validate before casting: casting to uint8 first would silently truncate
+    # fractional ballots (for example 0.5 would become an approval).
+    if not np.all((election == 0) | (election == 1)):
+        raise ValueError('Approval ballots must contain only 0 and 1')
+
+    election = election.astype(np.uint8)
 
     # Tally all approvals
     tallies = election.sum(axis=0)
@@ -120,10 +128,20 @@ def combined_approval(election, tiebreaker=None):
     0
 
     """
-    election = np.asarray(election, dtype=np.int8)
+    election = np.asarray(election)
+    if election.ndim != 2 or 0 in election.shape:
+        raise ValueError(
+            'Combined approval election must have at least one ballot and '
+            'candidate'
+        )
 
-    if election.min() < -1 or election.max() > 1:
-        raise ValueError
+    # Validate before casting: casting to int8 first would silently truncate
+    # fractional ballots (for example -1.5 would become a disapproval).
+    if not np.all((election == -1) | (election == 0) | (election == 1)):
+        raise ValueError('Combined approval ballots must contain only -1, 0, '
+                         'and 1')
+
+    election = election.astype(np.int8)
 
     # Tally all approvals
     tallies = election.sum(axis=0)

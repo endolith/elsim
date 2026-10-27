@@ -176,6 +176,13 @@ def test_cav_legit_winner_none(election):
 
 
 @pytest.mark.parametrize("method", [approval, combined_approval])
+def test_empty_election_is_rejected(method):
+    """An election with no ballots has no meaningful winner."""
+    with pytest.raises(ValueError, match='at least one ballot'):
+        method(np.zeros((0, 2)), tiebreaker='order')
+
+
+@pytest.mark.parametrize("method", [approval, combined_approval])
 def test_invalid(method):
     with pytest.raises(ValueError):
         method([[0, 4, 0],
@@ -210,6 +217,39 @@ def test_combined_approval_winner_permutes_with_candidates(election, seed):
     election = np.asarray(election)
     permutation = np.random.default_rng(seed).permutation(election.shape[1])
     _assert_winner_permutes(combined_approval, election, permutation)
+
+
+@pytest.mark.parametrize("value", [-0.5, 0.5, 1.5, 2.5])
+def test_approval_rejects_fractional_ballots(value):
+    """
+    Approval ballots are binary.  Fractional values must raise instead of being
+    truncated to 0 or 1 by the internal dtype cast.
+    """
+    with pytest.raises(ValueError):
+        approval([[value, 0],
+                  [1, 0]])
+
+
+@pytest.mark.parametrize("value", [-1.5, -0.5, 0.5, 1.5])
+def test_combined_approval_rejects_fractional_ballots(value):
+    """
+    Combined approval ballots are -1, 0, or 1.  Fractional values must raise
+    instead of being truncated by the internal dtype cast.
+    """
+    with pytest.raises(ValueError):
+        combined_approval([[value, 0],
+                           [1, 0]])
+
+
+@pytest.mark.parametrize("method", [approval, combined_approval])
+def test_integer_valued_floats_are_accepted(method):
+    """
+    Floating-point arrays whose values are exactly -1, 0, or 1 remain valid
+    ballots, so callers that build ballots with NumPy's default float dtype
+    keep working.
+    """
+    assert method([[1.0, 0.0],
+                   [0.0, 1.0]], tiebreaker='order') in (0, 1)
 
 
 if __name__ == "__main__":
