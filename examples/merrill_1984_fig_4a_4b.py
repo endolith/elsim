@@ -40,31 +40,34 @@ The general trend is similar to Merrill's, but there are significant
 discrepancies.  It is smoother, so maybe the original just had lower number of
 simulations.
 """
+import random
 import time
-from collections import Counter
-from random import randint
 
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
 
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
-                           utility_winner)
+from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff)
 from elsim.strategies import approval_optimal, honest_rankings
 
-n_elections = 10_000  # Roughly 30 seconds each on a 2019 6-core i7-9750H
+n_candidate_sets = 200
+n_electorates_per_set = 5
+n_elections = n_candidate_sets * n_electorates_per_set
 n_voters = 201
 n_cands_list = (2, 3, 4, 5, 6, 7)
 corr = 0.5
 D = 2
 
+seed = 1984
+random.seed(seed)
+rng = np.random.default_rng(seed)
+
 ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
                   'Borda': borda, 'Coombs': coombs, 'Black': black}
 
-rated_methods = {'SU max': utility_winner,
-                 'Approval': lambda utilities, tiebreaker:
-                     approval(approval_optimal(utilities), tiebreaker)}
+rated_methods = {'Approval': lambda utilities, tiebreaker:
+                 approval(approval_optimal(utilities), tiebreaker)}
 
 # Plot Merrill's results as dotted lines for comparison (traced from plots)
 merrill_fig_4a = {
@@ -90,29 +93,50 @@ merrill_fig_4b = {
 for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
                               ('4.b', 0.5, 0, merrill_fig_4b)):
 
-    utility_sums = {key: Counter() for key in (ranked_methods.keys() |
-                                               rated_methods.keys() |
-                                               {'SU max', 'RW'})}
+    per_set = {name: {n: [] for n in n_cands_list}
+               for name in (*rated_methods, *ranked_methods)}
     start_time = time.monotonic()
 
-    for _iteration in range(n_elections):
+    for _set in range(n_candidate_sets):
         for n_cands in n_cands_list:
-            v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
-                                     disp=disp)
-            utilities = normed_dist_utilities(v, c)
-            rankings = honest_rankings(utilities)
+            # Merrill combines each candidate set with five fresh electorates.
+            _, c = normal_electorate(0, n_cands, dims=D, corr=corr,
+                                     disp=disp, random_state=rng)
+            utility_sums = {name: 0.0 for name in per_set}
+            max_utility_sum = 0.0
+            random_utility_sum = 0.0
 
-            # Pick a random winner and accumulate utilities
-            RW = randint(0, n_cands - 1)
-            utility_sums['RW'][n_cands] += utilities.sum(axis=0)[RW]
+            for _ in range(n_electorates_per_set):
+                v, _ = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
+                                         disp=disp, random_state=rng)
 
-            for name, method in rated_methods.items():
-                winner = method(utilities, tiebreaker='random')
-                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+                # Merrill used standard scores for the spatial model.
+                utilities = normed_dist_utilities(v, c)
+                utilities = (
+                    (utilities - utilities.mean(axis=1, keepdims=True))
+                    / utilities.std(axis=1, keepdims=True))
+                rankings = honest_rankings(utilities)
+                utility_sum = utilities.sum(axis=0)
 
-            for name, method in ranked_methods.items():
-                winner = method(rankings, tiebreaker='random')
-                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+                max_utility_sum += utility_sum.max()
+                random_utility_sum += utility_sum.mean()
+
+                for name, method in rated_methods.items():
+                    winner = method(utilities, tiebreaker='random')
+                    utility_sums[name] += utility_sum[winner]
+
+                for name, method in ranked_methods.items():
+                    winner = method(rankings, tiebreaker='random')
+                    utility_sums[name] += utility_sum[winner]
+
+            denominator = max_utility_sum - random_utility_sum
+            for name in utility_sums:
+                per_set[name][n_cands].append(
+                    (utility_sums[name] - random_utility_sum)
+                    / denominator * 100)
+
+    results = {name: {n: np.mean(values) for n, values in per_n.items()}
+               for name, per_n in per_set.items()}
 
     elapsed_time = time.monotonic() - start_time
     print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)),
@@ -127,23 +151,18 @@ for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
 
     for method in ('Black', 'Coombs', 'Borda', 'Approval', 'Hare', 'Runoff',
                    'Plurality'):
-        x, y = zip(*sorted(orig[method].items()))
+        x, y = zip(*sorted(orig[method].items()), strict=True)
         plt.plot(x, y, ':', lw=0.8)
 
     # Restart color cycle, so result colors match
     plt.gca().set_prop_cycle(None)
 
     table = []
-
-    # Calculate Social Utility Efficiency from summed utilities
-    x_uw, y_uw = zip(*sorted(utility_sums['SU max'].items()))
-    x_rw, y_rw = zip(*sorted(utility_sums['RW'].items()))
     for method in ('Black', 'Coombs', 'Borda', 'Approval', 'Hare', 'Runoff',
                    'Plurality'):
-        x, y = zip(*sorted(utility_sums[method].items()))
-        SUE = (np.array(y) - y_rw) / (np.array(y_uw) - y_rw)
-        plt.plot(x, SUE*100, '-', label=method)
-        table.append([method, *SUE*100])
+        x, y = zip(*sorted(results[method].items()), strict=True)
+        plt.plot(x, y, '-', label=method)
+        table.append([method, *y])
 
     print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
     print()
