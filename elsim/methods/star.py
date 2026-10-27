@@ -159,6 +159,138 @@ def _all_condorcet_from_matrix(matrix):
     return winners
 
 
+def _star_condorcet_candidate(election, candidates, tiebreak,
+                               copeland_only):
+    """
+    Choose one candidate from a set tied during the scoring round.
+
+    A Condorcet comparison is made between the tied candidates.  If it has a
+    winner, that candidate is returned.  Otherwise the `tiebreak` callable
+    chooses among the tied candidates.
+
+    Parameters
+    ----------
+    election : array_like
+        A 2D collection of score ballots, as accepted by `star`.
+    candidates : sequence of int
+        Candidate IDs tied in the scoring round.
+    tiebreak : callable
+        Tiebreaker from ``_tiebreak_map``.
+    copeland_only : bool
+        If True, restrict an unbroken Condorcet comparison to the candidates
+        with the most pairwise wins.  If False, every candidate in `candidates`
+        is available to the tiebreaker.
+
+    Returns
+    -------
+    winner : {int, None}
+        The ID number of the chosen candidate, or ``None`` if the tie could not
+        be broken.
+    """
+    matrix = matrix_from_scores(election[:, candidates])
+    winner = condorcet_from_matrix(matrix)
+    if winner is not None:
+        return candidates[winner]
+
+    if copeland_only:
+        candidates = [candidates[i]
+                      for i in _all_condorcet_from_matrix(matrix)]
+    result = tiebreak(candidates, 1)
+    return result[0]
+
+
+def _star_scoring_round(election, tallies, tiebreak):
+    """
+    Find the two STAR runoff finalists, breaking scoring-round ties.
+
+    Parameters
+    ----------
+    election : array_like
+        A 2D collection of score ballots, as accepted by `star`.
+    tallies : array_like
+        Total score for each candidate.
+    tiebreak : callable
+        Tiebreaker from ``_tiebreak_map``.
+
+    Returns
+    -------
+    first, second : {int, None}
+        The runoff finalists.  When `second` is ``None``, `first` is either the
+        already-decided winner or ``None`` if the scoring tie could not be
+        broken.
+    decided : bool
+        True when the scoring round already determined the winner.
+    """
+    highest = max(tallies)
+    first_set = _all_indices(tallies, highest)
+
+    if len(first_set) == 2:
+        # 2 tied for highest score: Both advance to runoff.
+        return first_set[0], first_set[1], False
+
+    if len(first_set) > 2:
+        # 3 or more tied for highest score: Tiebreak using Condorcet.
+        # "2. Ties in the Scoring round should be broken in favor of the
+        # candidate who was preferred head-to-head by more voters."
+        winner = _star_condorcet_candidate(election, first_set, tiebreak,
+                                           copeland_only=True)
+        return winner, None, True
+
+    # One candidate has the highest score.
+    first = first_set[0]
+    # Find the set of candidates who have the second-highest score
+    second_score = np.sort(tallies)[-2]
+    second_set = _all_indices(tallies, second_score)
+    if len(second_set) == 1:
+        # One candidate has second-highest score. They go to runoff.
+        return first, second_set[0], False
+
+    # Two or more candidates have second-highest score.
+    # "2. Ties in the Scoring Round should be broken in favor of the
+    # candidate who was preferred head-to-head by more voters."
+    second = _star_condorcet_candidate(election, second_set, tiebreak,
+                                       copeland_only=False)
+    return first, second, False
+
+
+def _star_runoff(election, tallies, first, second, tiebreak):
+    """
+    Run the STAR automatic runoff between two finalists.
+
+    Parameters
+    ----------
+    election : array_like
+        A 2D collection of score ballots, as accepted by `star`.
+    tallies : array_like
+        Total score for each candidate.
+    first, second : int
+        Candidate IDs of the runoff finalists.
+    tiebreak : callable
+        Tiebreaker from ``_tiebreak_map``.
+
+    Returns
+    -------
+    winner : {int, None}
+        The ID number of the winner, or ``None`` for an unbroken tie.
+    """
+    winner = _pairwise_compare(election, first, second)
+    if winner is not None:
+        return winner
+
+    # "1. Ties in the Runoff Round should be broken in favor of the candidate
+    # who was scored higher if possible."
+    winner = _scorewise_compare(tallies, first, second)
+    if winner is not None:
+        return winner
+
+    # '3. Ties which can be broken as above are known as simple ties and
+    # should be broken as above. Ties which can not be broken as above are
+    # considered "True Ties."'
+    # "In the event that a true tie arises you can opt to resolve it with a
+    # random tiebreaker"
+    return tiebreak([first, second], 1)[0]
+
+
 def star(election, tiebreaker=None):
     """
     Find the winner of an election using STAR voting.
@@ -233,85 +365,13 @@ def star(election, tiebreaker=None):
     # Break any True Ties using specified method
     tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
 
-    # SCORING ROUND
-
     # Tally all scores
     tallies = election.sum(axis=0)
 
-    # Find the set of candidates who have the highest score (usually only one)
-    highest = max(tallies)
-    first_set = _all_indices(tallies, highest)
+    first, second, decided = _star_scoring_round(election, tallies, tiebreak)
+    if decided:
+        return first
+    if second is None:
+        return None
 
-    if len(first_set) == 2:
-        # 2 tied for highest score: Both advance to runoff.
-        first, second = first_set
-    elif len(first_set) > 2:
-        # 3 or more tied for highest score: Tiebreak using Condorcet.
-        # "2. Ties in the Scoring round should be broken in favor of the
-        # candidate who was preferred head-to-head by more voters."
-        matrix = matrix_from_scores(election[:, first_set])
-        winner = condorcet_from_matrix(matrix)
-        if winner is None:
-            # There was a tie or cycle in both scores and preferences.
-            # Tiebreak randomly
-            # TODO: This should just call a condorcet function between the tied
-            # score candidates
-            # TODO: Should handle two CWs tied, Smith set(??), etc.
-            tied_candidates = [first_set[i]
-                               for i in _all_condorcet_from_matrix(matrix)]
-            result = tiebreak(tied_candidates, 1)
-            if result[0] is None:
-                return None
-            else:
-                return int(result[0])
-        else:
-            # There is a single Condorcet winner, so they will also win runoff
-            return int(first_set[winner])
-    elif len(first_set) == 1:
-        # One candidate has highest score
-        first = first_set[0]
-        # Find the set of candidates who have the second-highest score
-        second = np.sort(tallies)[-2]
-        second_set = _all_indices(tallies, second)
-        if len(second_set) == 1:
-            # One candidate has second-highest score. They go to runoff.
-            second = second_set[0]
-        else:
-            # Two or more candidates have second-highest score.
-            # "2. Ties in the Scoring Round should be broken in favor of the
-            # candidate who was preferred head-to-head by more voters."
-            matrix = matrix_from_scores(election[:, second_set])
-            winner = condorcet_from_matrix(matrix)
-            if winner is None:
-                # There was still a tie or cycle.
-                # '3. Ties which can be broken as above are known as simple
-                # ties and should be broken as above. Ties which can not be
-                # broken as above are considered "True Ties."
-                # "In the event that a true tie arises you can opt to resolve
-                # it with a random tiebreaker"
-                second = tiebreak(second_set, 1)[0]
-            else:
-                # There was a Condorcet winner among the tied candidates.
-                # Map back to their original index.
-                second = second_set[winner]
-        if second is None:
-            return None
-    else:
-        raise RuntimeError('This should not happen')
-
-    # RUNOFF ROUND
-
-    winner = _pairwise_compare(election, first, second)
-    if winner is None:  # Neither candidate preferred over the other
-        # "1. Ties in the Runoff Round should be broken in favor of the
-        # candidate who was scored higher if possible."
-        winner = _scorewise_compare(tallies, first, second)
-        if winner is None:  # Tied in both scores and preferences
-            # '3. Ties which can be broken as above are known as simple
-            # ties and should be broken as above. Ties which can not be
-            # broken as above are considered "True Ties."
-            # "In the event that a true tie arises you can opt to resolve
-            # it with a random tiebreaker"
-            winner = tiebreak([first, second], 1)[0]
-
-    return winner
+    return _star_runoff(election, tallies, first, second, tiebreak)
