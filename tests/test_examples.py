@@ -45,9 +45,13 @@ ALL_SCRIPTS = [
 # and weber_1977_table_4 the scripts reproduce the published tables within
 # ~2 pp, so the reference values are taken from the papers.
 #
-# merrill_1984_table_2 and merrill_1984_table_4 do not match the published
-# tables (unresolved discrepancies of up to ~5 pp and ~9 pp), so those two are
-# checked against the "Typical result" tables in their docstrings instead.
+# merrill_1984_table_2 does not match the published table (unresolved
+# discrepancies of up to ~5 pp), so it is checked against the "Typical result"
+# table in its docstring instead. merrill_1984_table_4 uses the paper's
+# candidate-set grouping, but the paper does not state whether the reported
+# SUE is a per-set mean or a pooled ratio. The per-set version is closer to
+# Table 4, so it is checked against its docstring; the paper's 200-set
+# estimates also carry several percentage points of Monte Carlo error.
 # weber_1977_effectiveness_table's last row (255 candidates) is taken from its
 # docstring too, because the paper only gives the m -> infinity limit there.
 #
@@ -86,13 +90,13 @@ REFERENCE_VALUES = {
         'Black': (100.0, 93.1, 91.9, 92.0, 93.1, 94.3),
     },
     'merrill_1984_table_4.py': {
-        'Plurality': (72.1, 79.1, 80.4, 92.4, 4.0, 6.3, 25.2, 52.9),
-        'Runoff': (90.5, 94.2, 92.0, 97.5, 36.6, 43.6, 53.3, 75.3),
-        'Hare': (91.7, 94.7, 94.3, 98.4, 46.4, 57.7, 58.7, 83.6),
-        'Approval': (96.2, 97.0, 96.8, 98.5, 95.6, 96.8, 95.8, 98.0),
-        'Borda': (97.8, 98.6, 98.3, 99.4, 96.6, 97.7, 97.4, 99.0),
-        'Coombs': (97.0, 97.5, 97.7, 98.7, 94.0, 94.3, 95.0, 96.7),
-        'Black': (97.3, 97.8, 98.0, 99.0, 95.5, 96.1, 96.5, 98.0),
+        'Plurality': (67.1, 75.1, 76.6, 90.3, 3.0, 7.1, 23.2, 49.6),
+        'Runoff': (88.3, 92.6, 89.6, 96.3, 35.0, 43.4, 51.4, 73.3),
+        'Hare': (89.8, 93.0, 92.7, 97.5, 42.5, 55.9, 55.0, 81.4),
+        'Approval': (95.7, 97.0, 96.6, 98.3, 95.3, 96.4, 95.1, 97.5),
+        'Borda': (97.6, 98.2, 98.0, 99.3, 96.1, 97.4, 96.9, 98.6),
+        'Coombs': (96.0, 96.7, 97.1, 98.1, 92.8, 93.3, 94.1, 95.6),
+        'Black': (96.6, 97.2, 97.6, 98.7, 94.9, 95.9, 96.1, 97.6),
     },
     'weber_1977_effectiveness_table.py': {
         'Standard': (81.65, 75.00, 69.28, 64.55, 60.61, 49.79, 12.78),
