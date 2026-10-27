@@ -120,6 +120,11 @@ def _all_condorcet_from_matrix(matrix):
     This does not contain any "tiebreakers"; it returns all tied Condorcet
     winners.
 
+    This is the "matches won" step of STAR's recommended Condorcet
+    tiebreaker.  The full protocol also compares preference votes and win
+    margin before a random tiebreak; see
+    https://www.starvoting.org/condorcet_tiebreaker.
+
     Parameters
     ----------
     matrix : array_like
@@ -254,18 +259,18 @@ def star(election, tiebreaker=None):
         if winner is None:
             # There was a tie or cycle in both scores and preferences.
             # Tiebreak randomly
-            # TODO: Shouldn't need to convert to list
-            # TODO: This should just call a condorcet function between the tied
-            # score candidates
-            # TODO: Should handle two CWs tied, Smith set(??), etc.
-            result = tiebreak(list(_all_condorcet_from_matrix(matrix)), 1)
+            # Matches-won step; preference votes and win margin are
+            # intentionally omitted here.
+            tied_candidates = [first_set[i]
+                               for i in _all_condorcet_from_matrix(matrix)]
+            result = tiebreak(tied_candidates, 1)
             if result[0] is None:
                 return None
             else:
                 return int(result[0])  # TODO: don't convert back and forth?
         else:
             # There is a single Condorcet winner, so they will also win runoff
-            return winner
+            return int(first_set[winner])
     elif len(first_set) == 1:
         # One candidate has highest score
         first = first_set[0]
