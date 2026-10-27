@@ -84,6 +84,28 @@ def test_normal_electorate():
                     np.std(cands[:, 1]), rtol=0.1)
 
 
+def test_normal_electorate_default_dims():
+    """normal_electorate defaults to a two-dimensional issue space."""
+    voters, cands = normal_electorate(7, 5, random_state=1979)
+    assert voters.shape == (7, 2)
+    assert cands.shape == (5, 2)
+
+
+@pytest.mark.parametrize(("dims", "corr"), [(2, 0.5), (3, 0.5), (4, 0.3)])
+def test_normal_electorate_corr_sets_axis_dispersion(dims, corr):
+    """
+    corr is the shared correlation of the underlying equicorrelated normal
+    distribution.  Equivalently, the first principal axis has SD
+    sqrt((1 + (dims - 1)*corr) / (1 - corr)) times the SD of the others, so an
+    implementation that drops or alters corr changes this ratio.
+    """
+    voters, _ = normal_electorate(100_000, 1, dims=dims, corr=corr,
+                                  random_state=1)
+    expected_ratio = np.sqrt((1 + (dims - 1)*corr) / (1 - corr))
+    assert_allclose(np.std(voters[:, 0]) / np.std(voters[:, 1]),
+                    expected_ratio, rtol=0.05)
+
+
 def test_normed_dist_utilities():
     voters = [[1, 1],
               [6, 3],
