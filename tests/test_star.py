@@ -7,6 +7,7 @@ from hypothesis import given
 from numpy.testing import assert_array_equal
 
 from elsim.methods import matrix_from_scores, star
+from elsim.methods.star import _all_condorcet_from_matrix
 
 score_ballots = test_score.score_ballots
 
@@ -613,6 +614,29 @@ def test_matrix_from_scores():
                 [1,  5,  0]]
 
     assert_array_equal(matrix_from_scores(election), expected)
+
+
+@pytest.mark.parametrize("matrix", [np.zeros((2, 1)), np.zeros((1, 2)),
+                                    np.zeros((2, 3)), np.zeros((3, 2))])
+def test_all_condorcet_from_matrix_rejects_nonsquare(matrix):
+    """
+    The square-matrix validation must reject any shape that is not n by n, not
+    only shapes that fail every check at once.
+    """
+    with pytest.raises(ValueError):
+        _all_condorcet_from_matrix(matrix)
+
+
+def test_all_condorcet_from_matrix_does_not_count_ties_as_wins():
+    """
+    A pairwise tie is not a win.  Candidate 0 beats 1 but ties 2, while
+    candidate 1 beats 2, so 0 and 1 are tied for the most wins.  Counting ties
+    (and the diagonal) as wins would make candidate 0 the sole winner.
+    """
+    matrix = np.array([[0, 1, 1],
+                       [0, 0, 1],
+                       [1, 0, 0]])
+    assert_array_equal(_all_condorcet_from_matrix(matrix), [0, 1])
 
 
 @pytest.mark.parametrize("method", [star])
