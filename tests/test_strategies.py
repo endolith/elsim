@@ -5,7 +5,8 @@ from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import floats, integers, tuples
 from numpy.testing import assert_array_equal
 
-from elsim.strategies import approval_optimal, honest_normed_scores, vote_for_k
+from elsim.strategies import (approval_optimal, honest_normed_scores,
+                              honest_rankings, vote_for_k)
 
 
 def test_approval_optimal():
@@ -62,6 +63,59 @@ def test_vote_for_k():
          [0, 1, 1]]
     assert_array_equal(vote_for_k(utilities, 2), b)
     assert_array_equal(vote_for_k(utilities, -1), b)
+
+
+def test_approval_optimal_ignores_candidates_at_mean_utility():
+    """
+    Optimal approval approves only candidates strictly above the voter's mean
+    utility.  A candidate exactly at the mean is not approved; changing the
+    comparison to >= would approve it.
+    """
+    utilities = np.array([[0.0, 1.0, 2.0]])
+    assert_array_equal(approval_optimal(utilities), [[0, 0, 1]])
+
+
+def test_honest_rankings_candidate_limit():
+    """
+    uint8 ranking ballots support at most 255 candidates.  255 is valid and
+    256 raises; off-by-one mistakes in the limit would accept 256 or reject
+    255.
+    """
+    rankings = honest_rankings(np.zeros((1, 255)))
+    assert rankings.shape == (1, 255)
+    assert rankings.max() == 254
+
+    with pytest.raises(ValueError):
+        honest_rankings(np.zeros((1, 256)))
+
+
+def test_honest_normed_scores_default_max_score():
+    """The default maximum score is 5, as documented for 0-5 score ballots."""
+    utilities = np.array([[0.0, 1.0]])
+    assert_array_equal(honest_normed_scores(utilities), [[0, 5]])
+
+
+@pytest.mark.parametrize(("n_cands", "n_approved"), [(4, 2), (5, 2), (6, 3),
+                                                 (7, 3)])
+def test_vote_for_k_half_approves_half_the_candidates(n_cands, n_approved):
+    """
+    The 'half' shortcut uses n_cands // 2, for both even and odd candidate
+    counts.
+    """
+    utilities = np.arange(n_cands, dtype=float)[np.newaxis, :]
+    election = vote_for_k(utilities, 'half')
+    assert election.sum() == n_approved
+    assert_array_equal(election[0],
+                       [0]*(n_cands - n_approved) + [1]*n_approved)
+
+
+def test_vote_for_k_large_k_approves_exactly_top_k():
+    """
+    k can exceed half the candidates; the ballot must still approve exactly the
+    top k utilities, not an arbitrary argpartition slice.
+    """
+    utilities = np.array([[0.0, 0.1, 0.2, 0.3, 0.4, 0.5]])
+    assert_array_equal(vote_for_k(utilities, 4)[0], [0, 0, 1, 1, 1, 1])
 
 
 @pytest.mark.parametrize("k", [0, 3, -3, -4, 4])

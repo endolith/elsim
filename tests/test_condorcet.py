@@ -8,6 +8,30 @@ from elsim.methods import (condorcet, condorcet_from_matrix,
                            ranked_election_to_matrix)
 
 
+def test_ranked_election_to_matrix_cache_checks_content():
+    """
+    The cached matrix may only be reused when the ballots are byte-for-byte
+    identical and have the same shape.  Two different elections with the same
+    shape must produce their own matrices, both on the first call and after the
+    cache has been populated by the other election.
+    """
+    first = [[0, 1, 2],
+             [1, 2, 0]]
+    first_expected = [[0, 1, 1],
+                      [1, 0, 2],
+                      [1, 0, 0]]
+
+    second = [[2, 1, 0],
+              [1, 0, 2]]
+    second_expected = [[0, 0, 1],
+                       [2, 0, 1],
+                       [1, 1, 0]]
+
+    assert_array_equal(ranked_election_to_matrix(first), first_expected)
+    assert_array_equal(ranked_election_to_matrix(second), second_expected)
+    assert_array_equal(ranked_election_to_matrix(first), first_expected)
+
+
 def test_ranked_election_to_matrix_basic():
     # Test examples from
     # https://en.wikipedia.org/wiki/Condorcet_method#Pairwise_counting_and_matrices
