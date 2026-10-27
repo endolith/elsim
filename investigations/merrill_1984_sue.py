@@ -149,6 +149,48 @@ def table4(n_elections, normalization, seed):
                   + f'   RMSE={rmse:4.1f}')
 
 
+def table4_perset(n_repeats, normalization, seed):
+    """Merrill's design: 200 candidate sets x 5 electorates per set."""
+    random.seed(seed)
+    rng = np.random.default_rng(seed)
+    print(f'Table 4 with per-candidate-set ratios, {n_repeats} repeats, '
+          f'{normalization} normalization')
+    for (disp, corr, dims), paper in PAPER_TABLE4.items():
+        runs = np.zeros((n_repeats, len(METHODS)))
+        for repeat in range(n_repeats):
+            per_set = np.zeros((200, len(METHODS)))
+            for s in range(200):
+                _, cands = normal_electorate(0, 5, dims=dims, corr=corr,
+                                             disp=disp, random_state=rng)
+                sums = np.zeros(len(METHODS))
+                max_su = 0.0
+                random_su = 0.0
+                for _ in range(5):
+                    voters, _ = normal_electorate(201, 5, dims=dims,
+                                                  corr=corr, disp=disp,
+                                                  random_state=rng)
+                    delta = voters[:, np.newaxis, :] - cands[np.newaxis, :, :]
+                    dists = np.sqrt((delta**2).sum(axis=-1))
+                    utilities = _normalize(-dists, normalization)
+                    rankings = honest_rankings(utilities)
+                    su = utilities.sum(axis=0)
+                    max_su += su.max()
+                    random_su += su.mean()
+                    for i, method in enumerate(METHODS):
+                        sums[i] += _winner_su(method, utilities, rankings)
+                denom = max_su - random_su
+                per_set[s] = (sums - random_su) / denom * 100
+            runs[repeat] = per_set.mean(axis=0)
+        eff = runs.mean(axis=0)
+        rmse = np.sqrt(np.mean((eff - np.array(paper))**2))
+        print(f'\n  disp={disp} corr={corr} dims={dims}')
+        print('    paper      ' + ' '.join(f'{v:6.0f}' for v in paper))
+        print('    per-set    ' + ' '.join(f'{v:6.1f}' for v in eff)
+              + f'   RMSE={rmse:4.1f}')
+        sd = runs.std(axis=0)
+        print('    repeat sd  ' + ' '.join(f'{v:6.1f}' for v in sd))
+
+
 def fig4(disp, n_elections, repeats, normalization, seed):
     random.seed(seed)
     rng = np.random.default_rng(seed)
@@ -157,6 +199,7 @@ def fig4(disp, n_elections, repeats, normalization, seed):
     for n_cands in (2, 3, 4, 5, 6, 7):
         method_su = np.zeros((repeats, len(METHODS)))
         baselines = np.zeros(repeats)
+        rand_ballot = np.zeros(repeats)
         max_su = np.zeros(repeats)
         for r in range(repeats):
             sums = np.zeros(len(METHODS))
@@ -166,13 +209,18 @@ def fig4(disp, n_elections, repeats, normalization, seed):
                 su = utilities.sum(axis=0)
                 max_su[r] += su.max()
                 baselines[r] += su.mean()
+                voter = rng.integers(201)
+                rand_ballot[r] += su[np.argmax(utilities[voter])]
                 for i, method in enumerate(METHODS):
                     sums[i] += _winner_su(method, utilities, rankings)
             method_su[r] = sums / n_elections
             max_su[r] /= n_elections
             baselines[r] /= n_elections
+            rand_ballot[r] /= n_elections
         eff = (method_su - baselines[:, None]) / (
             max_su - baselines)[:, None] * 100
+        eff_rb = (method_su - rand_ballot[:, None]) / (
+            max_su - rand_ballot)[:, None] * 100
         print(f'\n  n_cands={n_cands}')
         paper = np.array([PAPER_FIG4[disp][name].get(n_cands, np.nan)
                           for name in METHOD_NAMES], dtype=float)
@@ -192,13 +240,13 @@ def fig4(disp, n_elections, repeats, normalization, seed):
         for i, name in enumerate(METHOD_NAMES):
             repo = REPO_FIG4[disp][name].get(n_cands)
             print(f'    {name:10s} sample={eff[:, i].mean():6.1f} '
-                  f'±{eff[:, i].std():4.1f}  repo={repo}  '
-                  f'paper={paper[i]:6.1f}')
+                  f'±{eff[:, i].std():4.1f}  rb={eff_rb[:, i].mean():6.1f}'
+                  f'  repo={repo}  paper={paper[i]:6.1f}')
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=('table4', 'fig4'))
+    parser.add_argument('mode', choices=('table4', 'table4_perset', 'fig4'))
     parser.add_argument('--n-elections', type=int, default=2000)
     parser.add_argument('--repeats', type=int, default=5)
     parser.add_argument('--normalization', choices=('range', 'z'),
@@ -208,6 +256,8 @@ def main():
 
     if args.mode == 'table4':
         table4(args.n_elections, args.normalization, args.seed)
+    elif args.mode == 'table4_perset':
+        table4_perset(args.repeats, args.normalization, args.seed)
     else:
         for disp in (1.0, 0.5):
             fig4(disp, args.n_elections, args.repeats,
