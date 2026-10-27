@@ -87,7 +87,9 @@ def eff_vote_for_or_against_k(m, k):
     Calculate effectiveness of the "vote-for-or-against-k" voting system.
 
     This is a variant of combined approval voting (CAV) in which every voter
-    approves or disapproves of `k` candidates.
+    casts an ordinary approval ballot, approving either the top `k`
+    candidates or the top ``m - k`` candidates, whichever gives them more
+    utility.
 
     Parameters
     ----------
@@ -132,8 +134,9 @@ def eff_best_vote_for_or_against_k(m):
     Calculate effectiveness of the best "vote-for-or-against-k" voting system.
 
     This is a variant of combined approval voting (CAV) in which every voter
-    approves or disapproves of `k` candidates.  In this "best" case, `k` is the
-    chosen to maximize the effectiveness for a given `m`.
+    casts an ordinary approval ballot of either the top `k` candidates or the
+    top ``m - k`` candidates.  In this "best" case, `k` is chosen to maximize
+    the effectiveness for a given `m`.
 
     Parameters
     ----------
