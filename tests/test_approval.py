@@ -6,6 +6,8 @@ from hypothesis import given
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import integers, tuples
 
+from helpers import permute_candidate_columns
+
 from elsim.methods import approval, combined_approval
 
 
@@ -179,6 +181,36 @@ def test_invalid(method):
     with pytest.raises(ValueError):
         method([[0, 4, 0],
                 [0, 1, 1]])
+
+
+def _assert_winner_permutes(method, election, permutation):
+    """Assert the winner follows the candidate permutation, or stays None."""
+    winner = method(election)
+    permuted_winner = method(permute_candidate_columns(election, permutation))
+    if winner is None:
+        assert permuted_winner is None
+    else:
+        assert permuted_winner == permutation[winner]
+
+
+@given(election=approval_ballots(min_cands=1, max_cands=8, min_voters=1,
+                                 max_voters=40),
+       seed=integers(0, 2**31 - 1))
+def test_approval_winner_permutes_with_candidates(election, seed):
+    """Approval's winner permutes with its candidate columns."""
+    election = np.asarray(election)
+    permutation = np.random.default_rng(seed).permutation(election.shape[1])
+    _assert_winner_permutes(approval, election, permutation)
+
+
+@given(election=combined_approval_ballots(min_cands=1, max_cands=8,
+                                          min_voters=1, max_voters=40),
+       seed=integers(0, 2**31 - 1))
+def test_combined_approval_winner_permutes_with_candidates(election, seed):
+    """Combined approval's winner permutes with its candidate columns."""
+    election = np.asarray(election)
+    permutation = np.random.default_rng(seed).permutation(election.shape[1])
+    _assert_winner_permutes(combined_approval, election, permutation)
 
 
 if __name__ == "__main__":
