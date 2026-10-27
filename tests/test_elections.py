@@ -124,6 +124,16 @@ def test_normed_dist_utilities():
                     )
 
 
+def test_normed_dist_utilities_equidistant_voter_is_zero():
+    """
+    A voter equally distant from every candidate has no relative preference;
+    their utilities must be 0 rather than NaN.
+    """
+    utilities = normed_dist_utilities([[0, 0], [1, 1]], [[2, 2], [2, 2]])
+
+    assert_array_equal(utilities, np.zeros((2, 2)))
+
+
 @pytest.mark.parametrize("func", [random_utilities, impartial_culture,
                                   normal_electorate])
 def test_random_state(func):
