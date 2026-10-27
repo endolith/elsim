@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 import test_score
 from hypothesis import given
+from hypothesis.strategies import integers
 from numpy.testing import assert_array_equal
 
 from elsim.methods import matrix_from_scores, star
@@ -694,6 +695,48 @@ def test_matrix_from_scores_properties(election, method):
     n_voters = len(election)
     assert matrix.max() <= n_voters
     assert matrix.min() >= 0
+
+
+def _relabel_columns(election, perm):
+    """Apply candidate relabeling `perm` to candidate-per-column ballots."""
+    return np.asarray(election)[:, np.argsort(perm)]
+
+
+@given(election=score_ballots(min_cands=1, max_cands=8,
+                              min_voters=1, max_voters=40),
+       seed=integers(0, 2**31 - 1))
+def test_star_is_candidate_neutral(election, seed):
+    """Relabeling candidates permutes the STAR winner."""
+    election = np.asarray(election)
+    perm = np.random.default_rng(seed).permutation(election.shape[1])
+
+    winner = star(election)
+    relabeled_winner = star(_relabel_columns(election, perm))
+
+    if winner is None:
+        assert relabeled_winner is None
+    else:
+        assert relabeled_winner == perm[winner]
+
+
+@given(election=score_ballots(min_cands=1, max_cands=8,
+                              min_voters=1, max_voters=40))
+def test_star_winner_has_a_top_two_score(election):
+    """
+    A STAR winner is a finalist from the scoring round, so their score is at
+    least the second-highest score.
+
+    This catches tiebreak paths that leak subset positions as candidate IDs.
+    """
+    election = np.asarray(election)
+    winner = star(election, tiebreaker='order')
+    if winner is None:
+        return
+
+    tallies = election.sum(axis=0)
+    second_highest = np.sort(tallies)[-2] if len(tallies) > 1 else tallies[0]
+    assert tallies[winner] >= second_highest
+
 
 
 if __name__ == "__main__":

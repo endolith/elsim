@@ -5,7 +5,9 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
 
-from elsim.methods import sntv
+from test_condorcet import complete_ranked_ballots as ranked_ballots
+
+from elsim.methods import fptp, sntv
 
 
 def collect_random_results(method, election):
@@ -289,6 +291,47 @@ def test_small_n(tiebreaker):
                                         min_voters=1, max_voters=100))
 def test_defaults(election):
     assert sntv(election) == sntv(election, 1) == sntv(election, 1, None)
+
+
+def _single_winner(winners):
+    """Unwrap SNTV's one-element winner set."""
+    return None if winners is None else next(iter(winners))
+
+
+def _relabel_ranked(election, perm):
+    """Apply candidate relabeling `perm` to ranked ballots."""
+    return np.asarray(perm)[np.asarray(election)]
+
+
+@given(election=ranked_ballots(min_cands=1, max_cands=8, min_voters=1,
+                               max_voters=40),
+       seed=integers(0, 2**31 - 1))
+def test_sntv_is_candidate_neutral(election, seed):
+    """Relabeling candidates permutes SNTV's winner set."""
+    election = np.asarray(election)
+    perm = np.random.default_rng(seed).permutation(election.shape[1])
+    winner = _single_winner(sntv(election))
+    relabeled = _single_winner(sntv(_relabel_ranked(election, perm)))
+
+    if winner is None:
+        assert relabeled is None
+    else:
+        assert relabeled == perm[winner]
+
+
+@given(election=ranked_ballots(min_cands=1, max_cands=8, min_voters=1,
+                               max_voters=40))
+def test_fptp_matches_sntv_on_first_preferences(election):
+    """FPTP is SNTV with one winner, whether given 2D or 1D ballots."""
+    election = np.asarray(election)
+    winner = fptp(election)
+    winners = sntv(election[:, 0])
+
+    if winner is None:
+        assert winners is None
+    else:
+        assert winners == {winner}
+
 
 
 if __name__ == "__main__":

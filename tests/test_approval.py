@@ -3,6 +3,7 @@ import random
 import numpy as np
 import pytest
 from hypothesis import given
+from hypothesis import strategies as st
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import integers, tuples
 
@@ -179,6 +180,34 @@ def test_invalid(method):
     with pytest.raises(ValueError):
         method([[0, 4, 0],
                 [0, 1, 1]])
+
+
+def _relabel_columns(election, perm):
+    """Apply candidate relabeling `perm` to candidate-per-column ballots."""
+    return np.asarray(election)[:, np.argsort(perm)]
+
+
+@pytest.mark.parametrize("method", [approval, combined_approval])
+@given(data=st.data())
+def test_approval_methods_are_candidate_neutral(method, data):
+    """Relabeling candidates permutes the approval-based winner."""
+    if method is approval:
+        ballots = approval_ballots
+    else:
+        ballots = combined_approval_ballots
+    election = data.draw(ballots(min_cands=1, max_cands=8, min_voters=1,
+                                 max_voters=40), label="election")
+    perm = data.draw(st.permutations(range(election.shape[1])),
+                     label="perm")
+
+    winner = method(election)
+    relabeled_winner = method(_relabel_columns(election, perm))
+
+    if winner is None:
+        assert relabeled_winner is None
+    else:
+        assert relabeled_winner == perm[winner]
+
 
 
 if __name__ == "__main__":

@@ -1,5 +1,9 @@
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
+from hypothesis.extra.numpy import arrays
+from hypothesis.strategies import floats, integers
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_less)
 
@@ -162,6 +166,54 @@ def test_random_state(func):
 def test_invalid_random_state(func):
     with pytest.raises(ValueError):
         func(5, 5, random_state='bananas')
+
+
+@given(data=st.data())
+def test_normed_dist_utilities_is_bounded_and_affine_invariant(data):
+    """
+    Utilities stay in [0, 1] and are unchanged when both voter and candidate
+    positions are translated and scaled together, since only relative
+    distances matter.
+    """
+    n_voters = data.draw(integers(1, 6), label="n_voters")
+    n_cands = data.draw(integers(2, 6), label="n_cands")
+    dims = data.draw(integers(1, 4), label="dims")
+    voters = data.draw(arrays(np.float64, (n_voters, dims),
+                              elements=integers(-3, 3)), label="voters")
+    cands = data.draw(arrays(np.float64, (n_cands, dims),
+                             elements=integers(-3, 3)), label="cands")
+    # Powers of two and integer offsets make the affine transformation exact,
+    # so ties between distances are preserved bit-for-bit.
+    scale = data.draw(integers(-2, 1).map(lambda e: 2.0 ** e), label="scale")
+    offset = data.draw(integers(-3, 3).map(float), label="offset")
+
+    utilities = normed_dist_utilities(voters, cands)
+    assert np.all(utilities >= 0)
+    assert np.all(utilities <= 1)
+
+    transformed = normed_dist_utilities(voters*scale + offset,
+                                        cands*scale + offset)
+    assert_allclose(utilities, transformed, rtol=1e-6, atol=1e-9)
+
+
+@given(dims=integers(2, 5), corr=floats(0, 0.8), disp=floats(0.2, 3),
+       seed=integers(0, 2**31 - 1))
+def test_normal_electorate_matches_its_correlation_parameters(
+        dims, corr, disp, seed):
+    """
+    corr sets the SD ratio between the first axis and the others, and disp sets
+    the candidate/voter SD ratio.  Both are checked on large samples so the
+    statistical error is small.
+    """
+    voters, cands = normal_electorate(10_000, 5_000, dims=dims, corr=corr,
+                                      disp=disp, random_state=seed)
+
+    axis_ratio = np.sqrt((1 + (dims - 1)*corr) / (1 - corr))
+    assert_allclose(np.std(cands[:, 0]) / np.std(cands[:, 1]), axis_ratio,
+                    rtol=0.1)
+    assert_allclose(np.std(cands[:, 0]) / np.std(voters[:, 0]), disp,
+                    rtol=0.1)
+
 
 
 if __name__ == "__main__":

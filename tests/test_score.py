@@ -168,6 +168,29 @@ def test_invalid(method):
                 [0, +1, -1]])
 
 
+def _relabel_columns(election, perm):
+    """Apply candidate relabeling `perm` to candidate-per-column ballots."""
+    return np.asarray(election)[:, np.argsort(perm)]
+
+
+@given(election=score_ballots(min_cands=1, max_cands=8,
+                              min_voters=1, max_voters=40),
+       seed=integers(0, 2**31 - 1))
+def test_score_is_candidate_neutral(election, seed):
+    """Relabeling candidates permutes the Score winner."""
+    election = np.asarray(election)
+    perm = np.random.default_rng(seed).permutation(election.shape[1])
+
+    winner = score(election)
+    relabeled_winner = score(_relabel_columns(election, perm))
+
+    if winner is None:
+        assert relabeled_winner is None
+    else:
+        assert relabeled_winner == perm[winner]
+
+
+
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime
