@@ -109,6 +109,48 @@ def test_star_true_tie(method):
 
 @pytest.mark.parametrize("method", [star])
 @pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
+def test_star_tied_top_score_condorcet_winner_candidate_id(tiebreaker, method):
+    """
+    A Condorcet winner among 3+ tied top scorers is returned by its candidate
+    ID, not by its position within the tied subset.
+
+    Candidates 1, 2, and 3 all score 8, while candidate 0 scores 7.  Candidate
+    3 beats both 1 and 2 head-to-head, so STAR must return 3.  The Condorcet
+    winner is index 2 of the [1, 2, 3] subset, so a missing mapping would
+    incorrectly return 2.
+    """
+    election = np.array([[0, 1, 1, 1],
+                         [1, 0, 1, 1],
+                         [1, 2, 2, 0],
+                         [2, 2, 0, 2],
+                         [0, 2, 1, 2],
+                         [2, 0, 2, 0],
+                         [1, 1, 1, 2]])
+    assert_array_equal(election.sum(axis=0), [7, 8, 8, 8])
+    assert method(election, tiebreaker) == 3
+
+
+@pytest.mark.parametrize("method", [star])
+def test_star_tied_top_score_true_tie_uses_candidate_ids(method):
+    """
+    When the tied top scorers have no Condorcet winner, the fallback tiebreaker
+    must choose among those candidates themselves, not their subset positions.
+
+    Candidates 1, 2, and 3 each score 1 and beat each other in a cycle, so the
+    lowest-ID tied candidate (1) wins with the 'order' tiebreaker.  Candidate 0
+    scored nothing and must never be returned.  Without mapping the subset
+    positions back to candidate IDs, 'order' would return candidate 0.
+    """
+    election = np.array([[0, 1, 0, 0],
+                         [0, 0, 1, 0],
+                         [0, 0, 0, 1]])
+    assert method(election) is None
+    assert method(election, tiebreaker='order') == 1
+    assert collect_random_results(method, election) == {1, 2, 3}
+
+
+@pytest.mark.parametrize("method", [star])
+@pytest.mark.parametrize("tiebreaker", [None, 'random', 'order'])
 def test_star_PR_ties(tiebreaker, method):
     Allison, Bill, Carmen, Doug = 0, 1, 2, 3
     election = [[5, 4, 1, 4],
