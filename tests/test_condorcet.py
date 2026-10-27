@@ -341,6 +341,16 @@ def test_condorcet_agrees_with_ranked_election_to_matrix(election):
     assert condorcet(election) == expected
 
 
+def test_ranked_election_to_matrix_single_candidate():
+    """
+    A one-candidate election has no candidate pairs to tally, so the matrix is
+    simply [[0]].  With Numba enabled, forwarding the empty pair array to the
+    JIT tally function used to fail type inference.
+    """
+    assert_array_equal(ranked_election_to_matrix([[0]]), [[0]])
+    assert_array_equal(ranked_election_to_matrix([[0], [0], [0]]), [[0]])
+
+
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime

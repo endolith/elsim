@@ -78,15 +78,16 @@ def ranked_election_to_matrix(election):
         self._cache_out = None
 
     n_cands = election.shape[1]
-    sum_matrix = np.zeros((n_cands, n_cands), dtype=int)
-
-    # Look at every pairwise combination of columns in the election at once
-    # All 1st-pref candidates vs 2nd-pref, all 1st-pref vs 3rd-pref, etc.
-    pairs = election[:, tuple(combinations(range(n_cands), 2))]
-
-    # Make a tallying array and then tally all pairs into it
     sum_matrix = np.zeros((n_cands, n_cands), dtype=np.uint)
-    _tally_pairs(pairs, sum_matrix)
+
+    if n_cands > 1:
+        # Look at every pairwise combination of columns in the election at
+        # once.  All 1st-pref candidates vs 2nd-pref, all 1st-pref vs
+        # 3rd-pref, etc.
+        pairs = election[:, tuple(combinations(range(n_cands), 2))]
+
+        # Tally all pairs into the matrix
+        _tally_pairs(pairs, sum_matrix)
 
     self._cache_in = election.tobytes()
     self._cache_shape = election.shape
