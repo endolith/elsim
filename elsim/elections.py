@@ -321,7 +321,13 @@ def normed_dist_utilities(voters, cands):
 
     # Normalize utilities to [0, 1] for each voter
     utilities -= utilities.min(1)[:, _np.newaxis]
-    utilities /= utilities.max(1)[:, _np.newaxis]
+    ranges = utilities.max(1)[:, _np.newaxis]
+    with _np.errstate(divide='ignore', invalid='ignore'):
+        utilities /= ranges
+
+    # A voter who is equally distant from every candidate has no relative
+    # preference; 0/0 would otherwise leave NaNs.
+    utilities[ranges[:, 0] == 0] = 0
 
     # TODO: Actually Merrill says: "For the spatial-model simulations standard
     # scores were used as the most practical computational method."
