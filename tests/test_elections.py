@@ -1,5 +1,8 @@
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis.extra.numpy import arrays
+from hypothesis.strategies import floats, integers
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_less)
 
@@ -162,6 +165,48 @@ def test_random_state(func):
 def test_invalid_random_state(func):
     with pytest.raises(ValueError):
         func(5, 5, random_state='bananas')
+
+
+# Powers of two and integer offsets make the affine transformation exact,
+# so ties between distances are preserved bit-for-bit.
+@given(voters=arrays(np.float64, (4, 2), elements=integers(-3, 3)),
+       cands=arrays(np.float64, (3, 2), elements=integers(-3, 3)),
+       scale=integers(-2, 1).map(lambda e: 2.0 ** e),
+       offset=integers(-3, 3).map(float))
+def test_normed_dist_utilities_is_bounded_and_affine_invariant(
+        voters, cands, scale, offset):
+    """
+    Utilities stay in [0, 1] and are unchanged when both voter and candidate
+    positions are translated and scaled together, since only relative
+    distances matter.
+    """
+    utilities = normed_dist_utilities(voters, cands)
+    assert np.all(utilities >= 0)
+    assert np.all(utilities <= 1)
+
+    transformed = normed_dist_utilities(voters*scale + offset,
+                                        cands*scale + offset)
+    assert_allclose(utilities, transformed, rtol=1e-6, atol=1e-9)
+
+
+@given(dims=integers(2, 5), corr=floats(0, 0.8), disp=floats(0.2, 3),
+       seed=integers(0, 2**31 - 1))
+def test_normal_electorate_matches_its_correlation_parameters(
+        dims, corr, disp, seed):
+    """
+    corr sets the SD ratio between the first axis and the others, and disp sets
+    the candidate/voter SD ratio.  Both are checked on large samples so the
+    statistical error is small.
+    """
+    voters, cands = normal_electorate(10_000, 5_000, dims=dims, corr=corr,
+                                      disp=disp, random_state=seed)
+
+    axis_ratio = np.sqrt((1 + (dims - 1)*corr) / (1 - corr))
+    assert_allclose(np.std(cands[:, 0]) / np.std(cands[:, 1]), axis_ratio,
+                    rtol=0.1)
+    assert_allclose(np.std(cands[:, 0]) / np.std(voters[:, 0]), disp,
+                    rtol=0.1)
+
 
 
 if __name__ == "__main__":
