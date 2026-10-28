@@ -96,7 +96,7 @@ def test_honest_normed_scores_default_max_score():
 
 
 @pytest.mark.parametrize(("n_cands", "n_approved"), [(4, 2), (5, 2), (6, 3),
-                                                 (7, 3)])
+                                                     (7, 3)])
 def test_vote_for_k_half_approves_half_the_candidates(n_cands, n_approved):
     """
     The 'half' shortcut uses n_cands // 2, for both even and odd candidate
