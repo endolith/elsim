@@ -327,8 +327,8 @@ average favorability (mean normalized utility), and head-to-head wins.
   pairwise matrix and is elected by Baldwin.
 - **Both** (`collapse_finder_2d_both.py`): finds a single election satisfying
   both verified criteria above: IRV squeezes out the Condorcet winner while
-  Baldwin correctly elects it. It renders both animations side by side from
-  the same voters and candidates.
+  Baldwin correctly elects it. It renders both animations from the same voters
+  and candidates into separate `irv/` and `tvr/` subdirectories.
 
 Running a script searches for a qualifying election and writes its frames and
 GIF under `examples/results/` (generated output is git-ignored). Run from the

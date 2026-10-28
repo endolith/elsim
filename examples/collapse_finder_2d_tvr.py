@@ -291,6 +291,8 @@ def run_tvr_animation(
         per_frame = max(1, ceildiv(n_voters, frames_per_transfer))
         running_borda = round_.borda_before.copy()
         running_choices = choices.copy()
+        transfer_target = np.full(n_voters, -1, dtype=np.int64)
+        transfer_target[transferred_voters] = transferred_to
         for step in range(frames_per_transfer):
             start = step * per_frame
             stop = min(start + per_frame, n_voters)
@@ -298,9 +300,9 @@ def run_tvr_animation(
                 higher = higher_ranked[voter]
                 running_borda[higher] -= 1
                 running_borda[loser] -= n_active - len(higher)
-                transferred = np.flatnonzero(transferred_voters == voter)
-                if len(transferred):
-                    running_choices[voter] = transferred_to[transferred[0]]
+                target = transfer_target[voter]
+                if target >= 0:
+                    running_choices[voter] = target
             if step == frames_per_transfer - 1:
                 if not np.array_equal(running_borda, round_.borda_after):
                     raise AssertionError('Baldwin Borda transition did not match trace.')

@@ -8,7 +8,7 @@ import matplotlib.patheffects as PathEffects
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
-from scipy.spatial import Voronoi
+from scipy.spatial import QhullError, Voronoi
 
 RESULTS_DIR = Path(__file__).resolve().parent / 'results'
 KEY_FRAME_MS = 3000
@@ -187,7 +187,7 @@ def plot_favorability_bar(ax, favorability_pct, labels, colors, fg, grid):
     ax.text(
         0.5,
         1.04,
-        'Average favorability',
+        'Mean utility',
         transform=ax.transAxes,
         ha='center',
         va='center',
@@ -222,7 +222,10 @@ def voronoi_plot_2d_axes(ax, points, line_color='white', line_alpha=0.45):
         )
         return
 
-    voronoi = Voronoi(points)
+    try:
+        voronoi = Voronoi(points)
+    except QhullError:
+        return
     center = points.mean(axis=0)
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
