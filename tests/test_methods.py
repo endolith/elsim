@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from helpers import permute_ranked_candidates
+from _helpers import permute_ranked_candidates
 from hypothesis import given
 from hypothesis import strategies as st
 from hypothesis.strategies import integers

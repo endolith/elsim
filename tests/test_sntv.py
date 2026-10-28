@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 import pytest
-from helpers import permute_ranked_candidates
+from _helpers import permute_ranked_candidates
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
 from test_condorcet import complete_ranked_ballots as ranked_ballots

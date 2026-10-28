@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 import pytest
-from helpers import permute_candidate_columns
+from _helpers import permute_candidate_columns
 from hypothesis import given
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import integers, tuples

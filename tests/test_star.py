@@ -3,7 +3,7 @@ import random
 import numpy as np
 import pytest
 import test_score
-from helpers import permute_candidate_columns
+from _helpers import permute_candidate_columns
 from hypothesis import given
 from hypothesis.strategies import integers
 from numpy.testing import assert_array_equal
