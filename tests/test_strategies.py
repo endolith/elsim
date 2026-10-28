@@ -68,8 +68,8 @@ def test_vote_for_k():
 def test_approval_optimal_ignores_candidates_at_mean_utility():
     """
     Optimal approval approves only candidates strictly above the voter's mean
-    utility.  A candidate exactly at the mean is not approved; changing the
-    comparison to >= would approve it.
+    utility.  A candidate exactly at the mean is not approved.
+    (Strict > follows Weber’s greater-than-average definition.)
     """
     utilities = np.array([[0.0, 1.0, 2.0]])
     assert_array_equal(approval_optimal(utilities), [[0, 0, 1]])

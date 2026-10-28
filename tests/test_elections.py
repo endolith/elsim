@@ -99,8 +99,8 @@ def test_normal_electorate_corr_sets_axis_dispersion(dims, corr):
     sqrt((1 + (dims - 1)*corr) / (1 - corr)) times the SD of the others, so an
     implementation that drops or alters corr changes this ratio.
     """
-    voters, _ = normal_electorate(100_000, 1, dims=dims, corr=corr,
-                                  random_state=1)
+    voters = normal_electorate(100_000, 1, dims=dims, corr=corr,
+                               random_state=1)[0]
     expected_ratio = np.sqrt((1 + (dims - 1)*corr) / (1 - corr))
     assert_allclose(np.std(voters[:, 0]) / np.std(voters[:, 1]),
                     expected_ratio, rtol=0.05)
