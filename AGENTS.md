@@ -54,6 +54,7 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 - **Numpy alias:** `elsim/elections.py` and `elsim/strategies.py` import numpy as `_np` to keep it out of the public namespace. `elsim/methods/` modules use plain `np`; exports are pinned by `__all__` in `__init__.py`, so it doesn't leak. Either way, numpy and the like must not appear in the public interface.
 - **Numba:** Soft dependency. Performance paths use `@njit(cache=True, nogil=True)`. If Numba is absent, a no-op `njit` decorator is used. Check `elsim.methods._common.numba_enabled` for the flag.
 - **Random state:** All public functions accept `random_state=None|int|Generator` and use `np.random.default_rng()`.
+- **Unpacking:** When only the first value of a tuple is used, prefer `result[0]` over `x, _ = result`.
 - **Tiebreakers:** Most methods accept `tiebreaker=None` (returns `None` on ties), `'random'`, or `'order'`.
 - **Data types:** Candidates are 0-indexed integer IDs. Ballots are numpy arrays (`uint8` where possible). Rows = voters.
 - **Line length:** 79 characters (PEP8).
@@ -66,6 +67,8 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 - When Numba is installed, Hypothesis deadline is relaxed to 5000ms (configured in `tests/conftest.py`).
 - Property-based tests use Hypothesis (`@given` with `lists(permutations(...))` for ballot generation).
 - `tests/test_methods.py` has parametrized cross-cutting tests (unanimity, degenerate cases, invalid tiebreakers) that run against all methods.
+- Put tests in the module for their subject: method-specific tests in `tests/test_<method>.py`, cross-method invariants in `tests/test_methods.py`, strategy/election properties in `tests/test_strategies.py`/`tests/test_elections.py`. Do not create a catch-all `test_properties.py`.
+- Random seeds in tests and examples are often deliberate publication-year references (e.g. Merrill 1984, Weber 1977/1978, Niemi 1968). Preserve them; if adding one, pick a meaningful reference.
 - Coverage omits `tests/` directory (`.coveragerc`).
 
 ## Caveats
@@ -102,6 +105,8 @@ When changing code, update **all** relevant documentation:
 
 - **Code comments** explain *why*: the intent, non-obvious reasoning, edge cases, and business logic. If a comment is needed to restate what the code does, rewrite the code to be clearer instead. Historical context that explains current behavior is acceptable. Remove meta-commentary about the development process (e.g., "fixing my commit according to instructions" or "now following the directions"). Keep process discussions in chat, not in comments or commit messages.
 - Don't delete or omit comments while changing things. Comments are just as important as code.
+- **Do not remove or rewrite a TODO unless the change actually resolves it.** If a TODO is stale, explain why in the PR instead of silently deleting it—and don't replace it with a different TODO under the same wording.
+- Before adding explanatory text to a test or docstring, check whether the same point is already documented; don't duplicate it.
 
 ### PRs and Issues
 
@@ -110,6 +115,7 @@ When changing code, update **all** relevant documentation:
 - **Rework an existing PR in place.** When asked to rebase or fix a PR, modify the PR's actual head branch and force-push with `--force-with-lease`—don't create a new parallel branch and point people at it. First push a backup of the head branch to the remote (e.g. `git push origin <head-branch>:backup/<head-branch>`) and confirm the backup ref exists, so the original is recoverable even if the local environment is lost; only then rewrite the branch. If anything goes wrong, restore from the backup.
 - **Prefer small, reviewable PRs.** Split large efforts into stacked PRs with a clear merge order. Each PR should have one scope; the description should list commits and what each one does so reviewers can read commit-by-commit.
 - **Don't expand a PR's scope just because a reviewer pointed something out.** Reviewer comments may flag pre-existing or out-of-scope issues; if a comment isn't about code this PR changed, fix it in its own PR and rebase on top of that, rather than scope-creeping the PR under review.
+- If review feedback is about code already changed by the current PR, fix it in that PR (fold the commit) rather than opening a separate cleanup PR.
 - Check if there are any Issues related to the change you are making, and if so, mention it in the PR and write `Fixes #…` in the relevant commit message, so that the Issue will be auto-closed on merge.
 - **PR descriptions** should stand alone for a reviewer who has not read the issue or agent chat. Use short sections: **Background** (what should work), **Problem** (what is wrong), **Visible symptoms** (what users or CI observe), **What this PR changes** (scope and non-goals), **Tests** (what was added or updated). Add **Related work** only when stacked PRs or merge order matter. Split unrelated fixes into separate PRs; cross-link siblings when you do.
 
