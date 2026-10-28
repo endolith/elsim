@@ -18,6 +18,7 @@ pytest tests/test_irv.py
 
 # Lint (blocking — same gate as CI)
 ruff check . --select=E9,F63,F7,F82
+ruff check . --preview --select=E303  # PEP8 blank-line spacing
 
 # Lint (full ruleset from ruff.toml; informational, but failures should be mentioned)
 ruff check .
@@ -117,7 +118,7 @@ When changing code, update **all** relevant documentation:
 ## Done checklist
 
 - [ ] `pytest` passes locally
-- [ ] Blocking lint passes (`ruff check . --select=E9,F63,F7,F82`)
+- [ ] Blocking lint passes (`ruff check . --select=E9,F63,F7,F82` and `ruff check . --preview --select=E303`)
 - [ ] New logic has tests with docstrings
 - [ ] Affected docs updated (docstrings, README, AGENTS.md)
 - [ ] CI is green (monitor until it passes)

@@ -35,10 +35,13 @@ jobs:
       - name: Install ruff
         run: |
           python -m pip install --upgrade pip
-          pip install ruff
+          pip install ruff==0.17.1
 
       - name: Lint with ruff (blocking; same gate as old flake8 E9/F63/F7/F82)
         run: ruff check . --select=E9,F63,F7,F82
+
+      - name: Lint with ruff (blocking; PEP8 blank-line spacing)
+        run: ruff check . --preview --select=E303
 
       - name: Lint with ruff (full ruleset from ruff.toml; informational only)
         run: ruff check . --exit-zero --output-format=github
