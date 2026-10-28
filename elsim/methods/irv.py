@@ -5,6 +5,7 @@ import numpy as np
 
 from elsim.methods._common import (
     _all_indices,
+    _final_winner,
     _get_tiebreak,
     _inc_rank_idx,
     _no_tiebreak,
@@ -80,6 +81,11 @@ def _run_irv(election, tiebreaker, stop_at, record_rounds):
     # order among candidates tied at zero.
     _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
     initially_eliminated = np.flatnonzero(cand_tallies == 0)
+    # Batch-eliminating every zero-vote candidate can undershoot stop_at.
+    # Keep them active when the batch would drop below the requested floor;
+    # the ordinary elimination loop will remove them one at a time.
+    if initially_eliminated.size > n_cands - stop_at:
+        initially_eliminated = np.empty(0, dtype=np.intp)
     eliminated_mask[initially_eliminated] = True
     if initially_eliminated.size:
         _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
@@ -134,10 +140,10 @@ def _run_irv(election, tiebreaker, stop_at, record_rounds):
             )
 
     active_candidates = np.flatnonzero(~eliminated_mask)
-    if winner is None and active_candidates.size == 1:
-        winner = int(active_candidates[0])
-
     _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
+    winner = _final_winner(
+        winner, active_candidates, cand_tallies, n_voters
+    )
     final_choices = election[
         np.arange(n_voters), voter_top_rank_idx
     ].copy()

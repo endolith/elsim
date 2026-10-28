@@ -6,6 +6,7 @@ import numpy as np
 from elsim.methods._common import (
     _all_indices,
     _dec_rank_idx,
+    _final_winner,
     _get_tiebreak,
     _inc_rank_idx,
     _no_tiebreak,
@@ -134,10 +135,12 @@ def _run_coombs(election, tiebreaker, stop_at, record_rounds):
             )
 
     active_candidates = np.flatnonzero(~eliminated_mask)
-    if winner is None and active_candidates.size == 1:
-        winner = int(active_candidates[0])
-
-    _tally_at_rank_idx(cand_top_tallies, election, voter_top_rank_idx)
+    _tally_at_rank_idx(
+        cand_top_tallies, election, voter_top_rank_idx
+    )
+    winner = _final_winner(
+        winner, active_candidates, cand_top_tallies, n_voters
+    )
     final_choices = election[
         np.arange(n_voters), voter_top_rank_idx
     ].copy()

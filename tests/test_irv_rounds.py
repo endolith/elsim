@@ -56,9 +56,25 @@ def test_irv_rounds_can_stop_with_two_candidates():
 
     result = irv_rounds(election, stop_at=2)
 
-    assert result.winner is None
+    assert result.winner == a
     np.testing.assert_array_equal(result.active_candidates, [a, b])
     np.testing.assert_array_equal(result.final_tallies, [3, 2, 0])
+
+
+def test_irv_rounds_initial_eliminations_respect_stop_at():
+    """Batch zero-vote removal must not drop below the stop_at floor."""
+    election = np.array([
+        [0, 1, 2, 3, 4],
+        [0, 1, 2, 3, 4],
+        [1, 0, 2, 3, 4],
+        [1, 0, 2, 3, 4],
+        [2, 0, 1, 3, 4],
+    ])
+
+    result = irv_rounds(election, 'order', stop_at=4)
+
+    assert result.winner is None
+    assert result.active_candidates.size == 4
 
 
 def test_irv_rounds_returns_none_for_an_unbroken_elimination_tie():

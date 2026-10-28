@@ -40,7 +40,7 @@ def test_coombs_rounds_can_stop_with_two_candidates():
 
     result = coombs_rounds(election, stop_at=2)
 
-    assert result.winner is None
+    assert result.winner == 2
     np.testing.assert_array_equal(result.active_candidates, [0, 2])
     np.testing.assert_array_equal(result.final_tallies, [2, 0, 3])
 

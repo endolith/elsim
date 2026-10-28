@@ -202,6 +202,18 @@ def _get_tiebreak(tiebreaker, tiebreak_map):
         raise ValueError(f'Tiebreaker {tiebreaker} not understood') from None
 
 
+def _final_winner(winner, active_candidates, tallies, n_voters):
+    """Return a winner from final tallies when the loop stopped early."""
+    if winner is not None:
+        return winner
+    if active_candidates.size == 1:
+        return int(active_candidates[0])
+    max_final_tally = int(tallies.max())
+    if max_final_tally > n_voters / 2:
+        return int(tallies.argmax())
+    return None
+
+
 def _validate_stop_at(stop_at, n_cands):
     """
     Validate an elimination count's requested number of survivors.
