@@ -18,6 +18,10 @@ repos:
         name: ruff (blocking; same gate as old flake8 E9/F63/F7/F82)
         args: ["--select=E9,F63,F7,F82"]
       - id: ruff
+        alias: ruff-pep8
+        name: ruff (blocking; PEP8 blank-line spacing)
+        args: ["--preview", "--select=E303"]
+      - id: ruff
         alias: ruff-full-report
         name: ruff (full ruleset from ruff.toml; informational only)
         args: ["--exit-zero", "--output-format=github"]
