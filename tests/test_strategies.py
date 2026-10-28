@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from hypothesis import given
+from hypothesis import strategies as st
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import floats, integers, tuples
 from numpy.testing import assert_array_equal
@@ -163,6 +164,88 @@ def test_honest_normed_scores_properties(utilities, max_score):
 
     # Output should be integers
     assert_array_equal(election % 1, 0)
+
+
+def integer_valued_utilities(min_cands=2, max_cands=8, min_voters=1,
+                             max_voters=20):
+    """
+    Test-only utility arrays with small integer values.
+
+    These are not score ballots: utilities are arbitrary reals. Integers make
+    exact row means (such as 1.0) common, so the strict ``>`` boundary in
+    approval_optimal is exercised.
+    """
+    n_cands = integers(min_value=min_cands, max_value=max_cands)
+    n_voters = integers(min_value=min_voters, max_value=max_voters)
+    return arrays(np.int64, tuples(n_voters, n_cands),
+                  elements=integers(0, 5)).map(lambda a: a.astype(float))
+
+
+@given(data=st.data())
+def test_vote_for_k_approves_the_top_k_utilities(data):
+    """
+    vote_for_k approves exactly k candidates per voter, and every approved
+    utility is at least every rejected utility.  Negative k is equivalent to
+    counting from the other end.
+    """
+    utils = data.draw(utilities(min_cands=2, max_cands=8, min_voters=1,
+                                max_voters=20), label="utilities")
+    n_cands = utils.shape[1]
+    k = data.draw(integers(1, n_cands - 1), label="k")
+
+    election = vote_for_k(utils, k)
+    assert_array_equal(election, vote_for_k(utils, k - n_cands))
+    assert_array_equal(election.sum(axis=1), k)
+
+    for row, ballot in zip(utils, election, strict=True):
+        approved = row[ballot == 1]
+        rejected = row[ballot == 0]
+        assert approved.min() >= rejected.max()
+
+    assert_array_equal(vote_for_k(utils, 'half').sum(axis=1),
+                       n_cands // 2)
+
+
+@given(utilities=integer_valued_utilities())
+def test_approval_optimal_approves_strictly_above_mean(utilities):
+    """
+    Optimal approval approves exactly the candidates whose utility is strictly
+    greater than the voter's mean utility; utility equal to the mean is not
+    approved.
+    """
+    means = utilities.mean(axis=1, keepdims=True)
+    assert_array_equal(approval_optimal(utilities),
+                       (utilities > means).astype(np.uint8))
+
+
+@given(utilities=utilities(min_cands=1, max_cands=8, min_voters=1,
+                           max_voters=20))
+def test_honest_rankings_rows_are_permutations(utilities):
+    """Each honest ranking must be a permutation of all candidate IDs."""
+    rankings = honest_rankings(utilities)
+    n_cands = utilities.shape[1]
+
+    for row in rankings:
+        assert sorted(row.tolist()) == list(range(n_cands))
+
+
+@given(utilities=utilities(min_cands=1, max_cands=8, min_voters=1,
+                           max_voters=20),
+       max_score=integers(1, 50))
+def test_honest_normed_scores_use_the_full_scale(utilities, max_score):
+    """
+    Non-degenerate rows span the whole score scale: the least favorite gets 0
+    and the favorite gets max_score.
+    """
+    scores = honest_normed_scores(utilities, max_score)
+
+    assert scores.min() >= 0
+    assert scores.max() <= max_score
+
+    varying = utilities.max(axis=1) > utilities.min(axis=1)
+    if varying.any():
+        assert_array_equal(scores[varying].min(axis=1), 0)
+        assert_array_equal(scores[varying].max(axis=1), max_score)
 
 
 if __name__ == "__main__":

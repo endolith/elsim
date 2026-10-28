@@ -326,6 +326,21 @@ def test_ranked_election_to_matrix(election):
     assert_array_equal(np.diagonal(matrix), 0)
 
 
+@given(election=complete_ranked_ballots(min_cands=2, max_cands=8,
+                                        min_voters=1, max_voters=40))
+def test_condorcet_agrees_with_ranked_election_to_matrix(election):
+    """
+    condorcet() must agree with building the pairwise matrix explicitly.
+
+    Hypothesis reuses one process, so this also exercises cache invalidation
+    between different same-shaped elections.
+    """
+    election = np.asarray(election)
+    expected = condorcet_from_matrix(ranked_election_to_matrix(election))
+
+    assert condorcet(election) == expected
+
+
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime

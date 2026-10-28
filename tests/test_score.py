@@ -2,6 +2,7 @@ import random
 
 import numpy as np
 import pytest
+from _helpers import permute_candidate_columns
 from hypothesis import given
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import integers, tuples
@@ -166,6 +167,25 @@ def test_invalid(method):
     with pytest.raises(ValueError):
         method([[-2, -2, -2],
                 [0, +1, -1]])
+
+
+@given(election=score_ballots(min_cands=1, max_cands=8,
+                              min_voters=1, max_voters=40),
+       seed=integers(0, 2**31 - 1))
+def test_score_is_candidate_neutral(election, seed):
+    """Permuting candidate columns permutes the Score winner."""
+    election = np.asarray(election)
+    permutation = np.random.default_rng(seed).permutation(
+        election.shape[1])
+
+    winner = score(election)
+    permuted_winner = score(
+        permute_candidate_columns(election, permutation))
+
+    if winner is None:
+        assert permuted_winner is None
+    else:
+        assert permuted_winner == permutation[winner]
 
 
 if __name__ == "__main__":
