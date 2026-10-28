@@ -135,7 +135,6 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
     print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
     print()
 
-
     plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
     plt.legend()
     plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')

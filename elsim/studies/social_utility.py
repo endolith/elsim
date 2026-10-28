@@ -72,6 +72,10 @@ def random_society_utility_updates(
         uw = utility_winner(utilities)
     else:
         uw = utility_winner(utilities, tiebreaker=utility_winner_tiebreaker)
+    if uw is None:
+        raise ValueError(
+            'utility_winner returned no winner; pass a tiebreaker'
+        )
     out: dict[str, float] = {uw_key: float(utilities.sum(axis=0)[uw])}
 
     for name, fn in rated_methods.items():

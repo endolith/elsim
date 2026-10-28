@@ -22,7 +22,6 @@ from
 
 """
 import os
-import pickle
 from collections import defaultdict
 from functools import partial
 
@@ -36,7 +35,7 @@ from elsim.strategies import approval_optimal, honest_normed_scores, honest_rank
 from elsim.studies import JoblibBackend
 
 try:
-    pass  # Creates afmhot_u colormap
+    import ehtplot.color  # noqa: F401  Creates afmhot_u colormap
 except ValueError:  # https://github.com/liamedeiros/ehtplot/pull/6
     pass
 
@@ -157,11 +156,20 @@ if cand_dist == 'normal':
     title += ', both Gaussian'
 title += f', {disp:.1f} relative dispersion'
 
-# Load from .pkl file if it exists
-pkl_filename = title + '.pkl'
-if os.path.exists(pkl_filename):
-    with open(pkl_filename, "rb") as file:
-        aggregated_histograms, standard_deviations = pickle.load(file)
+# Load from .npz cache if it exists
+npz_filename = title + '.npz'
+if os.path.exists(npz_filename):
+    with np.load(npz_filename, allow_pickle=False) as cache:
+        aggregated_histograms = {
+            name.removeprefix('hist_'): cache[name]
+            for name in cache.files
+            if name.startswith('hist_')
+        }
+        standard_deviations = {
+            name.removeprefix('std_'): cache[name]
+            for name in cache.files
+            if name.startswith('std_')
+        }
 else:
     print('Running simulations')
     backend = JoblibBackend(n_jobs=-3, verbose=5)
@@ -193,9 +201,14 @@ else:
         std = np.sqrt(aggregated_variances[key] / n_batches)
         standard_deviations[key] = std
 
-    # Save the generated data to .pkl file
-    with open(pkl_filename, "wb") as file:
-        pickle.dump((aggregated_histograms, standard_deviations), file)
+    # Save the generated data to .npz cache
+    np.savez_compressed(
+        npz_filename,
+        **{f'hist_{key}': value
+           for key, value in aggregated_histograms.items()},
+        **{f'std_{key}': value
+           for key, value in standard_deviations.items()},
+    )
 
 
 # %% Measure distributions
