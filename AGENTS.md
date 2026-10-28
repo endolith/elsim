@@ -54,6 +54,7 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 - **Numpy alias:** `elsim/elections.py` and `elsim/strategies.py` import numpy as `_np` to keep it out of the public namespace. `elsim/methods/` modules use plain `np`; exports are pinned by `__all__` in `__init__.py`, so it doesn't leak. Either way, numpy and the like must not appear in the public interface.
 - **Numba:** Soft dependency. Performance paths use `@njit(cache=True, nogil=True)`. If Numba is absent, a no-op `njit` decorator is used. Check `elsim.methods._common.numba_enabled` for the flag.
 - **Random state:** All public functions accept `random_state=None|int|Generator` and use `np.random.default_rng()`.
+- **Unpacking:** Prefer explicit indexes (`result[0]`, `result[-1]`) over throwaway underscore variables for unused tuple values.
 - **Tiebreakers:** Most methods accept `tiebreaker=None` (returns `None` on ties), `'random'`, or `'order'`.
 - **Data types:** Candidates are 0-indexed integer IDs. Ballots are numpy arrays (`uint8` where possible). Rows = voters.
 - **Line length:** 79 characters (PEP8).
@@ -101,7 +102,7 @@ When changing code, update **all** relevant documentation:
 ### Comments
 
 - **Code comments** explain *why*: the intent, non-obvious reasoning, edge cases, and business logic. If a comment is needed to restate what the code does, rewrite the code to be clearer instead. Historical context that explains current behavior is acceptable. Remove meta-commentary about the development process (e.g., "fixing my commit according to instructions" or "now following the directions"). Keep process discussions in chat, not in comments or commit messages.
-- Don't delete or omit comments while changing things. Comments are just as important as code.
+- Don't delete, reword, reformat, or move comments, TODOs, or code while changing things unless the change requires it. Comments are just as important as code.
 
 ### PRs and Issues
 
