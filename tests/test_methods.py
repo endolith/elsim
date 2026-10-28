@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
+from helpers import permute_ranked_candidates
 from hypothesis import given
 from hypothesis import strategies as st
 from hypothesis.strategies import integers
-from helpers import permute_ranked_candidates
 from test_condorcet import complete_ranked_ballots
 
 from elsim.methods import (approval, black, borda, combined_approval,
@@ -113,7 +113,6 @@ def test_ranked_methods_are_unanimous(data):
 
     for method in RANKED_METHODS:
         assert method(election) == winner
-
 
 
 if __name__ == "__main__":

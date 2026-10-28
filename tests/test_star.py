@@ -3,11 +3,10 @@ import random
 import numpy as np
 import pytest
 import test_score
+from helpers import permute_candidate_columns
 from hypothesis import given
 from hypothesis.strategies import integers
 from numpy.testing import assert_array_equal
-
-from helpers import permute_candidate_columns
 
 from elsim.methods import matrix_from_scores, star
 from elsim.methods.star import _all_condorcet_from_matrix
@@ -735,7 +734,6 @@ def test_star_winner_has_a_top_two_score(election):
     tallies = election.sum(axis=0)
     second_highest = np.sort(tallies)[-2] if len(tallies) > 1 else tallies[0]
     assert tallies[winner] >= second_highest
-
 
 
 if __name__ == "__main__":

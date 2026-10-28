@@ -341,7 +341,6 @@ def test_condorcet_agrees_with_ranked_election_to_matrix(election):
     assert condorcet(election) == expected
 
 
-
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime

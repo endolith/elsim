@@ -2,10 +2,9 @@ import random
 
 import numpy as np
 import pytest
+from helpers import permute_ranked_candidates
 from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
-
-from helpers import permute_ranked_candidates
 from test_condorcet import complete_ranked_ballots as ranked_ballots
 
 from elsim.methods import fptp, sntv
@@ -329,7 +328,6 @@ def test_fptp_matches_sntv_on_first_preferences(election):
         assert winners is None
     else:
         assert winners == {winner}
-
 
 
 if __name__ == "__main__":

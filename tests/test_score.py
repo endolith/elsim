@@ -2,11 +2,10 @@ import random
 
 import numpy as np
 import pytest
+from helpers import permute_candidate_columns
 from hypothesis import given
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import integers, tuples
-
-from helpers import permute_candidate_columns
 
 from elsim.methods import score
 
@@ -187,7 +186,6 @@ def test_score_is_candidate_neutral(election, seed):
         assert permuted_winner is None
     else:
         assert permuted_winner == permutation[winner]
-
 
 
 if __name__ == "__main__":

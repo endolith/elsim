@@ -208,7 +208,6 @@ def test_normal_electorate_matches_its_correlation_parameters(
                     rtol=0.1)
 
 
-
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime

@@ -248,7 +248,6 @@ def test_honest_normed_scores_use_the_full_scale(utilities, max_score):
         assert_array_equal(scores[varying].max(axis=1), max_score)
 
 
-
 if __name__ == "__main__":
     # Run unit tests, in separate process to avoid warnings about cached
     # modules, printing output line by line in realtime
