@@ -103,13 +103,39 @@ class CondorcetSuite:
             impartial_culture(N_VOTERS, N_CANDS, random_state=42)
         )
         matrix = ranked_election_to_matrix(election)
-        return {"election": election, "matrix": matrix}
+        rng = np.random.default_rng(42)
+        miss_elections = []
+        for _ in range(1000):
+            changed = election.copy()
+            changed[0] = rng.permutation(N_CANDS)
+            miss_elections.append(changed)
+        return {
+            "election": election,
+            "matrix": matrix,
+            "miss_elections": miss_elections,
+        }
+
+    def _next_miss_election(self, data):
+        self._miss_index = (getattr(self, "_miss_index", 0) + 1) % len(
+            data["miss_elections"]
+        )
+        return data["miss_elections"][self._miss_index]
 
     def time_ranked_election_to_matrix(self, data):
+        """Time the cached matrix conversion path."""
         ranked_election_to_matrix(data["election"])
 
+    def time_ranked_election_to_matrix_cache_miss(self, data):
+        """Time matrix conversion with fresh ballot bytes on every call."""
+        ranked_election_to_matrix(self._next_miss_election(data))
+
     def time_condorcet(self, data):
+        """Time condorcet() with the cached matrix conversion path."""
         condorcet(data["election"])
+
+    def time_condorcet_cache_miss(self, data):
+        """Time condorcet() with fresh ballot bytes on every call."""
+        condorcet(self._next_miss_election(data))
 
     def time_condorcet_from_matrix(self, data):
         condorcet_from_matrix(data["matrix"])

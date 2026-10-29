@@ -3,7 +3,7 @@
     "project": "elsim",
     "project_url": "https://endolith.github.io/elsim/",
     "repo": "..",
-    "branches": ["master"],
+    "branches": ["main", "master"],
     "show_commit_url": "https://github.com/endolith/elsim/commit/",
     "pythons": ["3.12"],
     "environment_type": "virtualenv",
