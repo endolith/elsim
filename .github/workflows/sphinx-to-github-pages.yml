@@ -19,6 +19,15 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          persist-credentials: false
+
+      - name: Restore ASV result history
+        uses: actions/cache@v4
+        with:
+          path: benchmarks/results
+          key: asv-results-${{ github.run_id }}
+          restore-keys: |
+            asv-results-
 
       - uses: actions/setup-python@v6
         with:
