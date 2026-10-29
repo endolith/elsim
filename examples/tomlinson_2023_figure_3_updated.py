@@ -145,7 +145,10 @@ for n, method in enumerate(winners.keys()):
     tmp.set_yticklabels([])  # Don't care about numbers
     tmp.set_ylabel("")  # No "density"
 
-ax[0].set_xlim(-2.5, 2.5)
+winner_values = [value for values in winners.values() for value in values]
+low, high = min(winner_values), max(winner_values)
+pad = 0.05 * (high - low if high > low else 1)
+ax[0].set_xlim(low - pad, high + pad)
 ax[0].legend()
 
 # These take so long and kernel crashes!
