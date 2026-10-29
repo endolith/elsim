@@ -228,6 +228,32 @@ def test_legit_winner_order(election, tiebreaker):
     assert runoff(election, tiebreaker) in range(n_cands)
 
 
+def test_runoff_handles_rank_positions_above_255():
+    """Rank cursors must not overflow when finalists appear late on a ballot."""
+    n_cands = 258
+    tail = list(range(3, n_cands))
+    election = np.array([
+        [0, 2, 1, *tail],
+        [1, 2, 0, *tail],
+        [2, *tail, 0, 1],
+    ])
+
+    assert runoff(election, tiebreaker='order') == 0
+
+
+def test_runoff_accepts_non_native_integer_byte_order():
+    """Valid ballots with a non-native integer dtype must reach Numba safely."""
+    election = np.array([
+        [0, 2, 1],
+        [0, 2, 1],
+        [1, 2, 0],
+        [1, 2, 0],
+        [2, 0, 1],
+    ], dtype='>i8')
+
+    assert runoff(election, tiebreaker='order') == 0
+
+
 @given(election=complete_ranked_ballots(min_cands=1, max_cands=25,
                                         min_voters=1, max_voters=100))
 def test_legit_winner_none(election):

@@ -73,7 +73,7 @@ def runoff(election, tiebreaker=None):
     >>> runoff(election)
     0
     """
-    election = np.asarray(election)
+    election = np.asarray(election, dtype=np.intp)
     n_voters = election.shape[0]
     first_preferences = election[:, 0]
     tallies = np.bincount(first_preferences).tolist()
@@ -105,7 +105,7 @@ def runoff(election, tiebreaker=None):
 
     n_cands = election.shape[1]
     cand_tallies = np.empty(n_cands, dtype=np.uint)
-    voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
+    voter_top_rank_idx = np.zeros(n_voters, dtype=np.intp)
     eliminated_mask = np.ones(n_cands, dtype=bool)
     eliminated_mask[finalist_0] = False
     eliminated_mask[finalist_1] = False
