@@ -23,7 +23,8 @@ def nominee_restricted_plurality(rankings, voter_indices, allowed_candidates,
     rankings : array_like
         Full ranked ballots, shape ``(n_voters, n_cands)``.
     voter_indices : array_like
-        Indices of voters participating in this round (e.g. primary electorate).
+        Indices of voters participating in this round (e.g. the primary
+        electorate).
     allowed_candidates : array_like
         Candidate IDs allowed on this ballot.
 
@@ -64,7 +65,8 @@ def pairwise_majority_from_rankings(rankings, voter_indices, cand_a, cand_b,
     rankings : array_like
         Full rankings.
     voter_indices : array_like
-        Voters participating in this comparison (e.g. general-election turnout).
+        Voters participating in this comparison (e.g. general-election
+        turnout).
     cand_a, cand_b : int
         Candidate IDs.
 

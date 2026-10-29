@@ -15,7 +15,9 @@ _tiebreak_map = {'order': _order_tiebreak_keep,
 
 def _pairwise_rating_preference(election, a, b, tiebreaker):
     """
-    Winner between candidates ``a`` and ``b`` where higher rating wins each ballot.
+    Winner between candidates ``a`` and ``b``.
+
+    On each ballot, the higher rating wins.
 
     Ties on the same ballot count toward neither side. Overall ties use total
     rating points (Good=2, OK=1, Bad=0), then ``tiebreaker``.
@@ -44,9 +46,9 @@ def three_two_one(election, tiebreaker=None):
 
     Semifinalists are the three candidates with the most Good ratings; ties are
     broken by total score (Good=2, OK=1). Among those three, the one with the
-    most Bad ratings is eliminated (ties broken by lower total score, then lower
-    candidate ID). The remaining two are compared pairwise by higher rating on
-    each ballot. [1]_
+    most Bad ratings is eliminated (ties broken by lower total score, then
+    lower candidate ID). The remaining two are compared pairwise by higher
+    rating on each ballot. [1]_
 
     Party-specific rules for the third semifinalist and blank ballots from the
     full specification are omitted here (they are optional for one-off
@@ -77,7 +79,8 @@ def three_two_one(election, tiebreaker=None):
         raise ValueError('3-2-1 ballots must use ratings 0, 1, and 2 only')
 
     n_voters, n_cands = election.shape
-    tiebreak = _get_tiebreak(tiebreaker, _tiebreak_map)
+    # Validate `tiebreaker` up front, even if no tie occurs.
+    _get_tiebreak(tiebreaker, _tiebreak_map)
 
     good = (election == 2).sum(axis=0)
     score = election.sum(axis=0)
@@ -88,8 +91,10 @@ def three_two_one(election, tiebreaker=None):
     if n_cands == 2:
         return _pairwise_rating_preference(election, 0, 1, tiebreaker)
 
-    semifinalists = sorted(range(n_cands),
-                           key=lambda i: (-int(good[i]), -int(score[i]), i))[:3]
+    semifinalists = sorted(
+        range(n_cands),
+        key=lambda i: (-int(good[i]), -int(score[i]), i),
+    )[:3]
 
     sf = semifinalists
     bad_sf = [(election[:, j] == 0).sum() for j in sf]

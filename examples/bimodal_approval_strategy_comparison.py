@@ -2,7 +2,8 @@
 Bimodal electorate: optimal approval vs vote-for-half (and vote-for-k).
 
 Mirrors the Weber-style comparison requested in
-https://github.com/endolith/elsim/issues/20 alongside distributions_by_method.py.
+https://github.com/endolith/elsim/issues/20 alongside
+ distributions_by_method.py.
 """
 from collections import defaultdict
 
@@ -21,7 +22,7 @@ n_cands_each = 4
 dims = 1
 disp = 0.5
 separation = 0.5
-vote_for = n_cands_each // 2
+vote_for = n_cands_each  # half of 2 * n_cands_each
 
 batch_size = 100
 n_batches = n_elections // batch_size
@@ -65,7 +66,8 @@ results = Parallel(n_jobs=-3, verbose=5)(jobs)
 
 winners = {k: [v for d in results for v in d[k]] for k in results[0]}
 
-title = (f'Bimodal approval strategies, {human_format(n_elections)} elections, '
+title = (f'Bimodal approval strategies, '
+         f'{human_format(n_elections)} elections, '
          f'{2 * n_voters_each} voters, ±{separation} separation')
 
 v, _ = bimodal_electorate(n_voters_each, 50, dims=dims, disp=disp,

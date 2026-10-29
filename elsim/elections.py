@@ -287,11 +287,13 @@ def bimodal_electorate(n_voters_each, n_cands_each, dims=2, corr=0.0, disp=1.0,
     n_voters_each : int
         Number of voters in each cluster (total voters ``2 * n_voters_each``).
     n_cands_each : int
-        Number of candidates per cluster (total candidates ``2 * n_cands_each``).
+        Number of candidates per cluster (total candidates
+        ``2 * n_cands_each``).
     dims : int
         Number of dimensions (same meaning as in :func:`normal_electorate`).
     corr : float
-        Correlation between dimensions (same meaning as in :func:`normal_electorate`).
+        Correlation between dimensions (same meaning as in
+        :func:`normal_electorate`).
     disp : float
         Relative dispersion of candidates vs voters (same meaning as in
         :func:`normal_electorate`).
@@ -316,8 +318,9 @@ def bimodal_electorate(n_voters_each, n_cands_each, dims=2, corr=0.0, disp=1.0,
     left_v[:, 0] -= separation
     left_c[:, 0] -= separation
 
-    right_v, right_c = normal_electorate(n_voters_each, n_cands_each, dims=dims,
-                                         corr=corr, disp=disp, random_state=rng)
+    right_v, right_c = normal_electorate(n_voters_each, n_cands_each,
+                                         dims=dims, corr=corr, disp=disp,
+                                         random_state=rng)
     right_v = _np.asarray(right_v).copy()
     right_c = _np.asarray(right_c).copy()
     right_v[:, 0] += separation

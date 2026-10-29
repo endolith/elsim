@@ -17,8 +17,9 @@ from seaborn import histplot, kdeplot
 
 from elsim.elections import bimodal_electorate, normed_dist_utilities
 from elsim.methods import (approval, black, closed_partisan_primary_runoff,
-                           fptp, irv, open_partisan_primary, runoff, score, star,
-                           three_two_one, top_two_runoff_reduced_turnout)
+                           fptp, irv, open_partisan_primary, runoff, score,
+                           star, three_two_one,
+                           top_two_runoff_reduced_turnout)
 from elsim.strategies import (approval_optimal, honest_321_ratings,
                               honest_normed_scores, honest_rankings,
                               vote_for_k)
@@ -99,14 +100,16 @@ def simulate_batch(seed):
         winner = open_partisan_primary(
             rankings, n_cands_each, primary_left, primary_right, all_v,
             tiebreaker=tb)
-        winners['Open partisan primary → general (subset primary electorate)'].append(
-            c[winner][0])
+        winners[
+            'Open partisan primary → general (subset primary electorate)'
+        ].append(c[winner][0])
 
         winner = closed_partisan_primary_runoff(
             rankings, n_cands_each, primary_left, primary_right,
             runoff_voters, tiebreaker=tb)
-        winners['Closed partisan primary → runoff (subset runoff electorate)'].append(
-            c[winner][0])
+        winners[
+            'Closed partisan primary → runoff (subset runoff electorate)'
+        ].append(c[winner][0])
 
         ballots321 = honest_321_ratings(utilities)
         winner = three_two_one(ballots321, tiebreaker=tb)
@@ -118,7 +121,7 @@ def simulate_batch(seed):
         winners['Approval (threshold at mean utility)'].append(c[winner][0])
 
         winner = approval(vote_for_k(utilities, 'half'), tiebreaker=tb)
-        winners[f'Approval (vote-for-{n_cands_each // 2} per party pool)'].append(
+        winners[f'Approval (vote-for-{n_cands_each}, half of all)'].append(
             c[winner][0])
 
         winner = np.argmin(np.abs(c[:, 0]))
