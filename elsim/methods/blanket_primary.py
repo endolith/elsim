@@ -370,6 +370,9 @@ def irv_primary_top_n_runoff(election, n, tiebreaker=None):
     finalists = irv(election, tiebreaker, n_winners=n)
     if finalists is None:
         return None
+    if not isinstance(finalists, set):
+        # n_winners=1 returns the single IRV winner rather than a set.
+        finalists = {finalists}
     sub, new_to_old = _restrict_ballots(election, finalists)
     w = runoff(sub, tiebreaker)
     if w is None:

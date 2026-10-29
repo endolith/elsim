@@ -86,6 +86,20 @@ def test_irv_primary_runoff_four_and_five_tennessee(tiebreaker):
 
 
 @pytest.mark.parametrize('tiebreaker', [None, 'random', 'order'])
+def test_irv_primary_single_finalist(tiebreaker):
+    """A one-finalist IRV primary must not crash on the scalar winner."""
+    Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
+    election = [*42 * [[Memphis, Nashville, Chattanooga, Knoxville]],
+                *26 * [[Nashville, Chattanooga, Knoxville, Memphis]],
+                *15 * [[Chattanooga, Knoxville, Nashville, Memphis]],
+                *17 * [[Knoxville, Chattanooga, Nashville, Memphis]],
+                ]
+
+    assert irv_primary_top_n_runoff(election, 1, tiebreaker) == irv(
+        election, tiebreaker, n_winners=1)
+
+
+@pytest.mark.parametrize('tiebreaker', [None, 'random', 'order'])
 def test_irv_primary_runoff_narrows_field(tiebreaker):
     """IRV primary to two or three can pick different finalists than top-two."""
     Memphis, Nashville, Chattanooga, Knoxville = 0, 1, 2, 3
