@@ -34,6 +34,7 @@ def binomial_proportion_ci_errors_percent(
     """
     k_arr = np.atleast_1d(np.asarray(k, dtype=np.int64))
     n_arr = np.atleast_1d(np.asarray(n, dtype=np.int64))
+    k_arr, n_arr = np.broadcast_arrays(k_arr, n_arr)
     lo_e = np.empty(k_arr.shape, dtype=float)
     hi_e = np.empty(k_arr.shape, dtype=float)
     for i in np.ndindex(k_arr.shape):

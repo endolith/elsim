@@ -98,7 +98,7 @@ for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
     B_z = np.zeros((nc_ct, n_elections))
     start_time = time.monotonic()
 
-    for _iteration in range(n_elections):
+    for iteration in range(n_elections):
         for n_cands in n_cands_list:
             j = idx[n_cands]
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,

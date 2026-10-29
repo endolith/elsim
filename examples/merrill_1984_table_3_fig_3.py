@@ -53,7 +53,7 @@ Z_uw = np.zeros((nc_ct, n_elections))
 
 start_time = time.monotonic()
 
-for _iteration in range(n_elections):
+for iteration in range(n_elections):
     for n_cands in n_cands_list:
         j = idx[n_cands]
         utilities = random_utilities(n_voters, n_cands)
