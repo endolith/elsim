@@ -59,8 +59,9 @@ def _election_common_param_doc():
     pass
 
 
-docstrings.keep_params('election_common.parameters', 'n_voters', 'n_cands')
-docstrings.keep_params('election_common.parameters', 'random_state')
+if _election_common_param_doc.__doc__ is not None:
+    docstrings.keep_params('election_common.parameters', 'n_voters', 'n_cands')
+    docstrings.keep_params('election_common.parameters', 'random_state')
 
 
 @docstrings.dedent
