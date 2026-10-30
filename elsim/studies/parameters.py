@@ -4,10 +4,10 @@ Expand simulation parameters into explicit scenario dictionaries.
 Issue `#10 <https://github.com/endolith/elsim/issues/10>`_ called out three
 common shapes:
 
-* **Cartesian product** — every combination of voter counts, candidate counts,
-  methods, etc.  Use :func:`expand_product`.
-* **Zipped columns** — parallel lists of the same length (e.g. sweep ``n_voters``
-  and ``n_cands`` together).  Use :func:`expand_zip`.
+* **Cartesian product** — every combination of voter counts, candidate
+  counts, methods, etc.  Use :func:`expand_product`.
+* **Zipped columns** — parallel lists of the same length (e.g. sweep
+  ``n_voters`` and ``n_cands`` together).  Use :func:`expand_zip`.
 * **Explicit rows** — a small table of tuples such as Merrill 1984 Table 2
   ``(disp, corr, D)`` that is *not* a full product.  Use :func:`expand_rows` or
   pass your own sequence of mappings to your driver loop.
@@ -18,10 +18,11 @@ Strings are treated as scalars (not iterated character-wise).
 from __future__ import annotations
 
 from itertools import product
-from typing import Any, Iterable, Mapping, Sequence, Union
+from typing import Any
+from collections.abc import Iterable, Mapping, Sequence
 
 Scalar = Any
-ScalarOrIterable = Union[Scalar, Iterable[Scalar]]
+ScalarOrIterable = Scalar | Iterable[Scalar]
 
 
 def _as_tuple(x: ScalarOrIterable) -> tuple[Scalar, ...]:
@@ -52,7 +53,10 @@ def expand_product(**params: ScalarOrIterable) -> list[dict[str, Any]]:
         return [{}]
     keys = list(params)
     value_lists = [_as_tuple(params[k]) for k in keys]
-    return [dict(zip(keys, combo)) for combo in product(*value_lists)]
+    return [
+        dict(zip(keys, combo, strict=True))
+        for combo in product(*value_lists)
+    ]
 
 
 def expand_zip(**params: Iterable) -> list[dict[str, Any]]:
@@ -79,18 +83,22 @@ def expand_zip(**params: Iterable) -> list[dict[str, Any]]:
     if len(lengths) > 1:
         raise ValueError(
             "expand_zip: all parameter lists must have the same length; "
-            f"got {dict(zip(keys, map(len, columns)))}"
+            f"got {dict(zip(keys, map(len, columns), strict=True))}"
         )
-    rows = zip(*columns)
-    return [dict(zip(keys, row)) for row in rows]
+    rows = zip(*columns, strict=True)
+    return [dict(zip(keys, row, strict=True)) for row in rows]
 
 
-def expand_rows(rows: Sequence[Sequence[Any]], keys: Sequence[str]) -> list[dict[str, Any]]:
+def expand_rows(
+    rows: Sequence[Sequence[Any]],
+    keys: Sequence[str],
+) -> list[dict[str, Any]]:
     """
     Turn fixed scenario rows into dicts.
 
     Use this for tables like Merrill (1984) Table 2 where each row is a
-    deliberate ``(disp, corr, D)`` triple rather than a combination from a grid.
+    deliberate ``(disp, corr, D)`` triple rather than a combination from a
+    grid.
 
     Parameters
     ----------
@@ -110,7 +118,8 @@ def expand_rows(rows: Sequence[Sequence[Any]], keys: Sequence[str]) -> list[dict
         row_t = tuple(row)
         if len(row_t) != len(keys_t):
             raise ValueError(
-                f"expand_rows: row {i} has length {len(row_t)} but {len(keys_t)} keys were given"
+                f"expand_rows: row {i} has length {len(row_t)} "
+                f"but {len(keys_t)} keys were given"
             )
-        out.append(dict(zip(keys_t, row_t)))
+        out.append(dict(zip(keys_t, row_t, strict=True)))
     return out

@@ -9,14 +9,15 @@ Table 4) or by ``(method, n_cands)`` via nested counters.
 from __future__ import annotations
 
 import random
-from typing import Callable, Mapping, Optional
+from typing import Optional
+from collections.abc import Callable, Mapping
 
 import numpy as np
 
 from elsim.methods import utility_winner
 
-RankedMethod = Callable[..., Optional[int]]
-RatedMethod = Callable[..., Optional[int]]
+RankedMethod = Callable[..., int | None]
+RatedMethod = Callable[..., int | None]
 
 
 def spatial_random_reference_utility_updates(
@@ -28,7 +29,8 @@ def spatial_random_reference_utility_updates(
     tiebreaker: str = "random",
 ) -> dict[str, float]:
     """
-    Total utility (summed over voters) for each method winner plus random baseline.
+    Total utility (summed over voters) for each method winner plus random
+    baseline.
 
     Matches the Merrill (1984) spatial social-utility-efficiency figures: pick
     ``RW`` with ``random.randint``, accumulate rated and ranked method winners,
@@ -93,7 +95,7 @@ def ranked_rated_utility_updates(
     *,
     tiebreaker: str = "random",
 ) -> dict[str, float]:
-    """Per-election utility totals for ranked and rated methods only (no UW/RW)."""
+    """Per-election utility totals for ranked and rated methods only."""
     out: dict[str, float] = {}
     for name, fn in rated_methods.items():
         w = fn(utilities, tiebreaker=tiebreaker)

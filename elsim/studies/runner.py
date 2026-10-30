@@ -5,7 +5,8 @@ Batched Monte Carlo execution and simple result merging.
 from __future__ import annotations
 
 from collections import Counter
-from typing import Callable, Iterable, TypeVar
+from typing import TypeVar
+from collections.abc import Callable, Iterable
 
 from .backends import SerialBackend
 
@@ -42,7 +43,8 @@ def run_batched(
     Returns
     -------
     list
-        One return value per batch invocation (length ``ceil(n_trials / batch_size)``).
+        One return value per batch invocation (length
+        ``ceil(n_trials / batch_size)``).
     """
     if batch_size <= 0:
         raise ValueError("batch_size must be positive")

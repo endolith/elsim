@@ -8,12 +8,16 @@ pattern so example scripts only declare parameters and method maps.
 from __future__ import annotations
 
 from collections import Counter
-from typing import Mapping, Sequence
+from collections.abc import Mapping, Sequence
 
 from elsim.elections import normal_electorate, normed_dist_utilities
 from elsim.strategies import honest_rankings
 
-from .condorcet_metrics import RankedMethod, RatedMethod, tally_condorcet_agreement
+from .condorcet_metrics import (
+    RankedMethod,
+    RatedMethod,
+    tally_condorcet_agreement,
+)
 from .social_utility import spatial_random_reference_utility_updates
 
 
@@ -30,7 +34,8 @@ def accumulate_spatial_condorcet_by_ncands(
     tiebreaker: str = "random",
 ) -> dict[str, Counter]:
     """
-    Run elections on a spatial normal model and tally Condorcet agreement by ``n_cands``.
+    Run elections on a spatial normal model and tally Condorcet agreement
+    by ``n_cands``.
 
     For each of ``n_elections`` iterations, draws one electorate per entry in
     ``n_cands_list`` (same pattern as Merrill figures 2.c / 2.d).
@@ -40,7 +45,9 @@ def accumulate_spatial_condorcet_by_ncands(
 
     for _ in range(n_elections):
         for n_cands in n_cands_list:
-            v, c = normal_electorate(n_voters, n_cands, dims=dims, corr=corr, disp=disp)
+            v, c = normal_electorate(
+                n_voters, n_cands, dims=dims, corr=corr, disp=disp
+            )
             utilities = normed_dist_utilities(v, c)
             rankings = honest_rankings(utilities)
             delta = tally_condorcet_agreement(
@@ -71,15 +78,17 @@ def accumulate_spatial_sue_by_ncands(
     """
     Accumulate summed social utilities (plus random reference) by ``n_cands``.
 
-    Uses :func:`spatial_random_reference_utility_updates` each election, matching
-    Merrill figures 4.a / 4.b.
+    Uses :func:`spatial_random_reference_utility_updates` each election,
+    matching Merrill figures 4.a / 4.b.
     """
     keys = ranked_methods.keys() | rated_methods.keys() | {"SU max", "RW"}
     utility_sums: dict[str, Counter] = {k: Counter() for k in keys}
 
     for _ in range(n_elections):
         for n_cands in n_cands_list:
-            v, c = normal_electorate(n_voters, n_cands, dims=dims, corr=corr, disp=disp)
+            v, c = normal_electorate(
+                n_voters, n_cands, dims=dims, corr=corr, disp=disp
+            )
             utilities = normed_dist_utilities(v, c)
             rankings = honest_rankings(utilities)
             delta = spatial_random_reference_utility_updates(

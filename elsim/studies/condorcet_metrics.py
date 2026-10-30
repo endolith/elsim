@@ -8,20 +8,24 @@ so driver loops can ``counter.update(...)`` in one line.
 from __future__ import annotations
 
 from collections import Counter
-from typing import Callable, Mapping, Optional
+from collections.abc import Callable, Mapping
 
 import numpy as np
 
 from elsim.methods import approval, condorcet
 from elsim.strategies import approval_optimal
 
-RankedMethod = Callable[..., Optional[int]]
-RatedMethod = Callable[..., Optional[int]]
+RankedMethod = Callable[..., int | None]
+RatedMethod = Callable[..., int | None]
 
 
-def approval_at_optimal(utilities: np.ndarray, tiebreaker: str = "random") -> Optional[int]:  # noqa: UP045
+def approval_at_optimal(
+    utilities: np.ndarray,
+    tiebreaker: str = "random",
+) -> int | None:
     """
-    Rated-method helper: build an optimal approval ballot, then apply :func:`elsim.methods.approval`.
+    Rated-method helper: build an optimal approval ballot, then apply
+    :func:`elsim.methods.approval`.
 
     Intended for use in a ``rated_methods`` mapping passed to
     :func:`tally_condorcet_agreement` or the spatial sweep helpers, so scripts
@@ -39,7 +43,8 @@ def tally_condorcet_agreement(
     tiebreaker: str = "random",
 ) -> Counter:
     """
-    Count whether each method agrees with the Condorcet winner for one election.
+    Count whether each method agrees with the Condorcet winner for one
+    election.
 
     If there is no Condorcet winner, returns an empty counter.
 
@@ -50,7 +55,8 @@ def tally_condorcet_agreement(
     utilities : array_like
         Utilities aligned with ``rankings``, shape ``(n_voters, n_cands)``.
     ranked_methods, rated_methods
-        Name to callable maps; ranked methods take ``(rankings, tiebreaker=...)``;
+        Name to callable maps; ranked methods take
+        ``(rankings, tiebreaker=...)``;
         rated methods take ``(utilities, tiebreaker=...)``.
     tiebreaker : str, optional
         Passed through to each method callable.
@@ -58,9 +64,9 @@ def tally_condorcet_agreement(
     Returns
     -------
     collections.Counter
-        Includes key ``\"CW\"`` when a Condorcet winner exists, plus one key per
-        supplied method name when that method's winner matches the Condorcet
-        winner.
+        Includes key ``\"CW\"`` when a Condorcet winner exists, plus one key
+        per supplied method name when that method's winner matches the
+        Condorcet winner.
     """
     cw = condorcet(rankings)
     if cw is None:

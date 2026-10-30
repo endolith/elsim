@@ -1,12 +1,14 @@
 """
 Execution helpers for repeating independent Monte Carlo batches.
 
-Serial execution is always available for :func:`elsim.studies.runner.run_batched`.
+Serial execution is always available for
+:func:`elsim.studies.runner.run_batched`.
 """
 
 from __future__ import annotations
 
-from typing import Callable, Sequence, TypeVar
+from typing import TypeVar
+from collections.abc import Callable, Sequence
 
 T = TypeVar("T")
 
@@ -20,5 +22,8 @@ class SerialBackend:
         return [fn() for _ in range(n)]
 
     def map_each(self, fns: Sequence[Callable[[], T]]) -> list[T]:
-        """Invoke each zero-argument callable once, in order, and collect results."""
+        """Invoke each zero-argument callable once, in order.
+
+        Results are collected in invocation order.
+        """
         return [fn() for fn in fns]
