@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import numpy as np
+
 from elsim.methods import approval, utility_winner
 from elsim.strategies import approval_optimal, honest_rankings
 
@@ -26,12 +28,17 @@ def normalize_utilities(utilities, mode):
     if mode is None or mode == 'none':
         return utilities
     if mode == 'range':
-        utilities = utilities - utilities.min(axis=1, keepdims=True)
-        return utilities / utilities.max(axis=1, keepdims=True)
-    if mode == 'standard':
-        return ((utilities - utilities.mean(axis=1, keepdims=True))
-                / utilities.std(axis=1, keepdims=True))
-    raise ValueError(f'unknown utility normalization: {mode!r}')
+        shifted = utilities - utilities.min(axis=1, keepdims=True)
+        scale = shifted.max(axis=1, keepdims=True)
+    elif mode == 'standard':
+        shifted = utilities - utilities.mean(axis=1, keepdims=True)
+        scale = shifted.std(axis=1, keepdims=True)
+    else:
+        raise ValueError(f'unknown utility normalization: {mode!r}')
+    # A voter with identical utilities has no relative preference.
+    return np.divide(shifted, scale,
+                     out=np.zeros(shifted.shape, dtype=float),
+                     where=scale != 0)
 
 
 def rankings_from(utilities):

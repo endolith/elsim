@@ -104,6 +104,38 @@ def test_utility_normalization_values():
     assert_allclose(standard.mean(axis=1), [0, 0], atol=1e-12)
     assert_allclose(standard.std(axis=1), [1, 1])
 
+    constant = np.array([[1.0, 1.0, 1.0], [1.0, 2.0, 3.0]])
+    for mode in ('range', 'standard'):
+        normalized = normalize_utilities(constant, mode)
+        assert_array_equal(normalized[0], np.zeros(3))
+
+
+def test_study_sue_handles_none_winner_and_zero_denominator():
+    """Ties credit mean utility; zero-spread sets report NaN."""
+    from elsim.studies.models import Election
+
+    class FixedElectorate:
+        def draw(self, scenario, rng):
+            return Election(
+                utilities=np.array([[10., 0.], [10., 0.],
+                                    [0., 1.], [0., 1.]]),
+                rankings=np.array([[0, 1], [0, 1], [1, 0], [1, 0]]),
+            )
+
+        def draw_set(self, scenario, n, rng):
+            return [self.draw(scenario, rng) for _ in range(n)]
+
+    tied = Study([{}], FixedElectorate(), 1,
+                 ranked_methods={'Plurality': fptp},
+                 metric='sue', normalization=None, tiebreaker=None)
+    assert tied.run().values[0]['Plurality'] == 0
+
+    one_candidate = Study(grid(n_cands=1, n_voters=2), random_society(), 1,
+                          ranked_methods={'Plurality': fptp},
+                          metric='sue', normalization=None,
+                          tiebreaker='order', random_state=1)
+    assert np.isnan(one_candidate.run().values[0]['Plurality'])
+
 
 def test_grid_no_axes_and_bad_mapping():
     """No axes gives one empty scenario; mappings are rejected."""

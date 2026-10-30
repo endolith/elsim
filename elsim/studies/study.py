@@ -85,7 +85,7 @@ class Study:
         ``1`` serial, ``-1`` all CPUs, positive values that many workers.
         Requires the optional ``joblib`` dependency for values other than 1.
     normalization : {'standard', 'range', None}, optional
-        Utility normalization used for SUE (ignored for Condorcet).
+        Utility normalization used for rated methods and SUE.
     tiebreaker : {None, 'random', 'order'}, optional
         Passed through to each voting method.
     random_state : int, Generator or None, optional
@@ -233,6 +233,31 @@ def _winners(study: Study, work_utilities, rankings, scores):
     return out
 
 
+def _sue_set(study: Study, elections):
+    """Return SUE contributions for one candidate set."""
+    utility_sums = {name: 0.0 for name in study.method_names}
+    max_utility_sum = 0.0
+    random_utility_sum = 0.0
+    for election in elections:
+        utilities, rankings, scores = _election_ballots(election, study)
+        utility_sum = utilities.sum(axis=0)
+        max_utility_sum += float(utility_sum.max())
+        random_utility_sum += float(utility_sum.mean())
+        for name, winner in _winners(study, utilities, rankings,
+                                     scores).items():
+            if winner is None:
+                utility_sums[name] += float(utility_sum.mean())
+            else:
+                utility_sums[name] += float(utility_sum[winner])
+    denominator = max_utility_sum - random_utility_sum
+    if denominator == 0:
+        return {name: np.nan for name in study.method_names}
+    return {
+        name: (utility_sums[name] - random_utility_sum) / denominator * 100
+        for name in study.method_names
+    }
+
+
 def _run_chunk(study: Study, scenario, seed, set_start, set_stop):
     rng = np.random.default_rng(seed)
     if study.metric == 'condorcet':
@@ -256,21 +281,9 @@ def _run_chunk(study: Study, scenario, seed, set_start, set_stop):
     for _ in range(set_start, set_stop):
         elections = study.electorate.draw_set(
             scenario, study.electorates_per_set, rng)
-        utility_sums = {name: 0.0 for name in study.method_names}
-        max_utility_sum = 0.0
-        random_utility_sum = 0.0
-        for election in elections:
-            utilities, rankings, scores = _election_ballots(election, study)
-            utility_sum = utilities.sum(axis=0)
-            max_utility_sum += float(utility_sum.max())
-            random_utility_sum += float(utility_sum.mean())
-            for name, winner in _winners(study, utilities, rankings,
-                                         scores).items():
-                utility_sums[name] += float(utility_sum[winner])
-        denominator = max_utility_sum - random_utility_sum
+        set_values = _sue_set(study, elections)
         for name in study.method_names:
-            sums[name] += ((utility_sums[name] - random_utility_sum)
-                           / denominator * 100)
+            sums[name] += set_values[name]
         n_sets += 1
     return sums, n_sets
 
