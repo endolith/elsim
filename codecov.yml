@@ -1,0 +1,16 @@
+# https://docs.codecov.com/docs/codecovyml-reference
+coverage:
+  status:
+    project:
+      default:
+        paths:
+          - "elsim/"
+          - "tests/"
+    patch:
+      default:
+        paths:
+          - "elsim/"
+          - "tests/"
+
+ignore:
+  - "benchmarks/"

@@ -13,3 +13,4 @@ exclude_lines =
 [run]
 omit =
     tests/*
+    benchmarks/*

@@ -228,6 +228,12 @@ __marimo__/
 # sphinx
 _autosummary/
 
+# airspeed velocity (see benchmarks/asv.conf.json)
+benchmarks/env/
+benchmarks/results/
+benchmarks/html/
+docs/_benchmark_site/
+
 # Build-time copy of examples into docs (see conf.py prepare_examples_doc)
 docs/examples/README.md
 docs/examples/results/
