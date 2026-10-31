@@ -55,6 +55,9 @@ examples = [
 fast = [
     "numba>=0.58",
 ]
+parallel = [
+    "joblib",
+]
 docs = [
     "sphinx>=6",
     "myst-parser",
