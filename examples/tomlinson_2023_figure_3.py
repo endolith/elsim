@@ -48,14 +48,15 @@ def simulate_batch(n_cands):
     winners = defaultdict(list)
     for _iteration in range(batch_size):
 
-        # "voters and candidates come from the uniform distribution on [0, 1]"
-        v = np.random.uniform(0, 1, n_voters)
-        # But remove any run-to-run random bias, because we want to match ideal
-        # points of the actual set of voters, not their expected value.
-        v = (v - v.mean() + 0.5)[:, np.newaxis]
+        # Uniform on [0, 1]. Same translation for voters and candidates so
+        # pairwise distances are unchanged; anchor the draw to the voter median
+        # at 0.5 (issue #22, consistent with tomlinson_2023_figure_3_updated.py).
+        v_flat = np.random.uniform(0, 1, n_voters)
+        ref = np.median(v_flat)
+        v = (v_flat - ref + 0.5)[:, np.newaxis]
 
-        c = np.random.uniform(0, 1, n_cands)
-        c = (c - v.mean() + 0.5)[:, np.newaxis]
+        c_flat = np.random.uniform(0, 1, n_cands)
+        c = (c_flat - ref + 0.5)[:, np.newaxis]
 
         # FPTP voting method
         utilities = normed_dist_utilities(v, c)
@@ -98,7 +99,11 @@ for n_cands in n_cands_list:
         tmp.set_yticklabels([])  # Don't care about numbers
         tmp.set_ylabel("")  # No "density"
 
-    ax[0, n_cands-3].set_xlim(-0.05, 1.05)
+    winner_values = [value for values in winners.values()
+                     for value in values]
+    low, high = min(winner_values), max(winner_values)
+    pad = 0.05 * (high - low if high > low else 1)
+    ax[0, n_cands-3].set_xlim(low - pad, high + pad)
 
     # "the probability that the winning candidate produced by IRV lies outside
     # the interval [1/6, 5/6] goes to 0 as the number of candidates k goes to
