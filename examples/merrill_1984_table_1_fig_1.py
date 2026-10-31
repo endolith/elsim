@@ -101,7 +101,7 @@ plt.figure(f'Figure 1. {n_voters} voters, {n_elections} elections')
 plt.title('Figure 1: Condorcet Efficiencies for a Random Society')
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
-    x, y = zip(*sorted(merrill_table_1[method].items()))
+    x, y = zip(*sorted(merrill_table_1[method].items()), strict=True)
     plt.plot(x, y, ':', lw=0.8)
 
 # Restart color cycle, so result colors match
@@ -110,16 +110,16 @@ plt.gca().set_prop_cycle(None)
 table = []
 
 # Of those elections with CW, likelihood that method chooses CW
-x_cw, y_cw = zip(*sorted(condorcet_winner_count['CW'].items()))
+x_cw, y_cw = zip(*sorted(condorcet_winner_count['CW'].items()), strict=True)
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
-    x, y = zip(*sorted(condorcet_winner_count[method].items()))
+    x, y = zip(*sorted(condorcet_winner_count[method].items()), strict=True)
     CE = np.array(y)/y_cw
     plt.plot(x, CE*100, '-', label=method)
     table.append([method, *np.array(y)/y_cw*100])
 
 # Likelihood that social utility maximizer is Condorcet Winner
-x, y = zip(*sorted(condorcet_winner_count['SU max'].items()))
+x, y = zip(*sorted(condorcet_winner_count['SU max'].items()), strict=True)
 table.append(['SU max', *np.array(y)/y_cw*100])
 
 # Likelihood of Condorcet Winner (normalized by n elections)

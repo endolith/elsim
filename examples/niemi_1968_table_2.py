@@ -63,7 +63,7 @@ print(f'{len(jobs)} tasks total:')
 results = Parallel(n_jobs=-3, verbose=5)(jobs)
 condorcet_paradox_counts = sum(results, Counter())
 
-nm, P = zip(*sorted(condorcet_paradox_counts.items()))
+nm, P = zip(*sorted(condorcet_paradox_counts.items()), strict=True)
 P = np.asarray(P) / n_elections  # Percent likelihood of paradox
 
 table = []

@@ -117,11 +117,11 @@ for fig, disp, _ymin in (('4.a', 1.0, 55),
     table = []
 
     # Calculate Social Utility Efficiency from summed utilities
-    x_uw, y_uw = zip(*sorted(utility_sums['SU max'].items()))
-    x_rw, y_rw = zip(*sorted(utility_sums['RW'].items()))
+    x_uw, y_uw = zip(*sorted(utility_sums['SU max'].items()), strict=True)
+    x_rw, y_rw = zip(*sorted(utility_sums['RW'].items()), strict=True)
     for method in ('Score', 'STAR', 'Borda', 'Condorcet RCV', 'Coombs',
                    'Approval (opt.)', 'Hare RCV', 'Top-2 Runoff', 'Plurality'):
-        x, y = zip(*sorted(utility_sums[method].items()))
+        x, y = zip(*sorted(utility_sums[method].items()), strict=True)
         SUE = (np.array(y) - y_rw) / (np.array(y_uw) - y_rw)
         plt.plot(x, SUE*100, '-', label=method)
         table.append([method, *SUE*100])

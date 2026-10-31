@@ -68,7 +68,7 @@ table = {}
 
 # Calculate the expected utilities over all elections
 for method in ('Standard', 'Borda', 'Approval'):
-    x, y = zip(*sorted(utility_sums[method].items()))
+    x, y = zip(*sorted(utility_sums[method].items()), strict=True)
     table.update({method: np.array(y) / n_elections})
 
 print(tabulate(table, 'keys', showindex=n_voters_list,

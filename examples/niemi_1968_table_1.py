@@ -86,10 +86,10 @@ print(f'{len(jobs)} tasks total:')
 results = Parallel(n_jobs=-3, verbose=5)(jobs)
 condorcet_paradox_counts = sum(results, Counter())
 
-x, y = zip(*niemi_table.items())
+x, y = zip(*niemi_table.items(), strict=True)
 plt.plot(x, y, label='Niemi')
 
-x, y = zip(*sorted(condorcet_paradox_counts.items()))
+x, y = zip(*sorted(condorcet_paradox_counts.items()), strict=True)
 y = np.asarray(y) / n_elections  # Percent likelihood of paradox
 plt.plot(x, y, '.', label='Simulation')
 

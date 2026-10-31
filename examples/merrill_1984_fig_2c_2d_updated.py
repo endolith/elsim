@@ -116,10 +116,12 @@ for fig, disp, ymin in (('2.c', 1.0, 50),
     table = []
 
     # Of those elections with CW, likelihood that method chooses CW
-    x_cw, y_cw = zip(*sorted(condorcet_winner_count['CW'].items()))
+    x_cw, y_cw = zip(
+        *sorted(condorcet_winner_count['CW'].items()), strict=True)
     for method in ('Condorcet RCV', 'Coombs', 'STAR', 'Borda', 'Score',
                    'Approval (opt.)', 'Hare RCV', 'Top-2 Runoff', 'Plurality'):
-        x, y = zip(*sorted(condorcet_winner_count[method].items()))
+        x, y = zip(
+            *sorted(condorcet_winner_count[method].items()), strict=True)
         CE = np.array(y)/y_cw
         plt.plot(x, CE*100, '-', label=method)
         table.append([method, *CE*100])

@@ -70,10 +70,10 @@ print(f'{len(jobs)} tasks total:')
 results = Parallel(n_jobs=-3, verbose=5)(jobs)
 condorcet_paradox_counts = sum(results, Counter())
 
-x, y = zip(*WP_table.items())
+x, y = zip(*WP_table.items(), strict=True)
 plt.plot(x, y, label='WP')
 
-x, y = zip(*sorted(condorcet_paradox_counts.items()))
+x, y = zip(*sorted(condorcet_paradox_counts.items()), strict=True)
 CP = np.asarray(y) / n_elections  # Likelihood of paradox
 plt.plot(x, CP*100, '-', label='Simulation')
 

@@ -94,7 +94,7 @@ plt.figure(f'Figure 3. {n_voters} voters, {n_elections} elections')
 plt.title('Figure 3: Efficiencies for Social Utility for a Random Society')
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
-    x, y = zip(*sorted(merrill_table_1[method].items()))
+    x, y = zip(*sorted(merrill_table_1[method].items()), strict=True)
     plt.plot(x, y, ':', lw=0.8)
 
 # Restart color cycle, so result colors match
@@ -103,10 +103,10 @@ plt.gca().set_prop_cycle(None)
 table = []
 
 # Calculate Social Utility Efficiency from summed utilities
-x_uw, y_uw = zip(*sorted(utility_sums['UW'].items()))
+x_uw, y_uw = zip(*sorted(utility_sums['UW'].items()), strict=True)
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
-    x, y = zip(*sorted(utility_sums[method].items()))
+    x, y = zip(*sorted(utility_sums[method].items()), strict=True)
     SUE = ((np.array(y) - n_voters * n_elections / 2) /
            (np.array(y_uw) - n_voters * n_elections / 2))
     plt.plot(x, SUE*100, '-', label=method)

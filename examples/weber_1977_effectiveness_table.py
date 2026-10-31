@@ -80,10 +80,10 @@ plt.gca().set_prop_cycle(None)
 table = {}
 
 # Calculate Social Utility Efficiency from summed utilities
-x_uw, y_uw = zip(*sorted(utility_sums['UW'].items()))
+x_uw, y_uw = zip(*sorted(utility_sums['UW'].items()), strict=True)
 average_utility = n_voters * n_elections / 2
 for method in ('Standard', 'Vote-for-half', 'Borda'):
-    x, y = zip(*sorted(utility_sums[method].items()))
+    x, y = zip(*sorted(utility_sums[method].items()), strict=True)
     SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
     plt.plot(x, SUE*100, '-', label=method)
     table.update({method: SUE*100})

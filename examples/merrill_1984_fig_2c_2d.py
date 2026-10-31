@@ -128,7 +128,7 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
 
     for method in ('Black', 'Coombs', 'Borda', 'Approval', 'Hare', 'Runoff',
                    'Plurality'):
-        x, y = zip(*sorted(orig[method].items()))
+        x, y = zip(*sorted(orig[method].items()), strict=True)
         plt.plot(x, y, ':', lw=0.8)
 
     # Restart color cycle, so result colors match
@@ -137,10 +137,12 @@ for fig, disp, ymin, orig in (('2.c', 1.0, 50, merrill_fig_2c),
     table = []
 
     # Of those elections with CW, likelihood that method chooses CW
-    x_cw, y_cw = zip(*sorted(condorcet_winner_count['CW'].items()))
+    x_cw, y_cw = zip(
+        *sorted(condorcet_winner_count['CW'].items()), strict=True)
     for method in ('Black', 'Coombs', 'Borda', 'Approval', 'Hare', 'Runoff',
                    'Plurality'):
-        x, y = zip(*sorted(condorcet_winner_count[method].items()))
+        x, y = zip(
+            *sorted(condorcet_winner_count[method].items()), strict=True)
         CE = np.array(y)/y_cw
         plt.plot(x, CE*100, '-', label=method)
         table.append([method, *CE*100])
