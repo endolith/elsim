@@ -175,10 +175,17 @@ def test_cav_legit_winner_none(election):
     assert winner in set(range(n_cands)) | {None}
 
 
-@pytest.mark.parametrize("method", [approval, combined_approval])
-def test_empty_election_is_rejected(method):
+@pytest.mark.parametrize(
+    ("method", "message"),
+    [(approval,
+      'Approval election must have at least one ballot and candidate'),
+     (combined_approval,
+      'Combined approval election must have at least one ballot and '
+      'candidate')],
+)
+def test_empty_election_is_rejected(method, message):
     """An election with no ballots has no meaningful winner."""
-    with pytest.raises(ValueError, match='at least one ballot'):
+    with pytest.raises(ValueError, match=message):
         method(np.zeros((0, 2)), tiebreaker='order')
 
 
