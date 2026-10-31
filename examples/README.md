@@ -43,11 +43,11 @@ Source: [niemi_1968_table_1.py](niemi_1968_table_1.py)
 |    5 | 0.1599 | 0.1996 | 0.2146 | 0.2230 | 0.2288 | 0.2331 | 0.2347 | 0.2367 | 0.2387 | 0.2395 | 0.2406 | 0.2416 | 0.2421 | 0.2437 | 0.2480 |
 |    6 | 0.2023 | 0.2518 | 0.2707 | 0.2814 | 0.2884 | 0.2925 | 0.2948 | 0.2974 | 0.2993 | 0.3012 | 0.3030 | 0.3038 | 0.3036 | 0.3052 | 0.3110 |
 
-(This also covers the same values as Figure 6. of Klahr, D. (1966). [A Computer Simulation of the Paradox of Voting](https://ideas.repec.org/a/cup/apsrev/v60y1966i02p384-390_12.html). *American Political Science Review*, *60*(2), 388.)
+(This also covers the same values as Figure 6. of Klahr, D. (1966). [A Computer Simulation of the Paradox of Voting](https://doi.org/10.2307/1953365). *American Political Science Review*, *60*(2), 388.)
 
 Source: [niemi_1968_table_2.py](niemi_1968_table_2.py)
 
-## Weber 1977/1978
+## Weber 1978
 
 Weber, R. J. (1978). [Comparison of Public Choice Systems](https://cowles.yale.edu/publications/cfdp/cfdp-498). *Cowles Foundation Discussion Papers*.
 
@@ -279,7 +279,7 @@ Source: [merrill_1984_fig_4a_4b.py](merrill_1984_fig_4a_4b.py)
 
 Somewhat similar to:
 
-* Edith Elkind, Piotr Faliszewski, et al. (2019) [What Do Multiwinner Voting Rules Do?](https://arxiv.org/abs/1901.09217)
+* Edith Elkind, Piotr Faliszewski, et al. (2017) [What Do Multiwinner Voting Rules Do?](https://doi.org/10.1609/aaai.v31i1.10612)
 * Kiran Tomlinson, Johan Ugander, Jon Kleinberg (2023) [Moderation in instant runoff voting](https://arxiv.org/abs/2303.09734)
 
 ### By method
