@@ -1,9 +1,10 @@
 """
-Reproduce Vote-for-k effectiveness for different k.
+Reproduce Vote-for-k effectiveness for different k from pp. 69-70 of:
 
-Weber, Robert J. (1978). "Comparison of Public Choice Systems".
-Cowles Foundation Discussion Papers. Cowles Foundation for Research in
-Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
+Weber, R. J. (1977c). "Reproducing Voting Systems". Mimeographed,
+Yale University. Collected in R. J. Weber (1978), Comparison of Public
+Choice Systems, Cowles Foundation Discussion Paper No. 498, pp. 57-80.
+https://cowles.yale.edu/publications/cfdp/cfdp-498
 
 50k elections required for smooth lines.  Typical results with 1k voters:
 
