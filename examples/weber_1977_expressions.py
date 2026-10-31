@@ -1,15 +1,16 @@
 """
-Weber's effectiveness expressions, for comparison.
+Weber's effectiveness expressions, from pp. 67-76 of:
 
-Weber, Robert J. (1978). "Comparison of Public Choice Systems".
-Cowles Foundation Discussion Papers. Cowles Foundation for Research in
-Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
+Weber, R. J. (1977c). "Reproducing Voting Systems". Mimeographed,
+Yale University. Collected in R. J. Weber (1978), Comparison of Public
+Choice Systems, Cowles Foundation Discussion Paper No. 498, pp. 57-80.
+https://cowles.yale.edu/publications/cfdp/cfdp-498
 
 These all use the impartial culture / random society model and an infinite
 number of voters.
 
 When run, this reproduces the "The Effectiveness of Several Voting Systems"
-table from page 19:
+table from page 76:
 
 |    |   Standard |   Vote-for-half |   Best Vote-for-or-against-k |   Borda |
 |:---|-----------:|----------------:|-----------------------------:|--------:|
