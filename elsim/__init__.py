@@ -17,7 +17,7 @@ elections by combining their functions in the following order:
 """
 from elsim import elections, methods, strategies
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 __all__ = [
     'elections',
