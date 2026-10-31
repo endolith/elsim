@@ -8,6 +8,18 @@ _tiebreak_map = {'order': _order_tiebreak_keep,
                  None: _no_tiebreak}
 
 
+def _validate_ballots(election, dtype, allowed, message):
+    """Validate ballot values before casting to a small integer dtype."""
+    election = np.asarray(election)
+    if election.ndim != 2 or 0 in election.shape:
+        raise ValueError(
+            'Election must have at least one ballot and candidate'
+        )
+    if not np.all(np.isin(election, allowed)):
+        raise ValueError(message)
+    return election.astype(dtype)
+
+
 def approval(election, tiebreaker=None):
     """
     Find the winner of an election using approval voting.
@@ -55,18 +67,12 @@ def approval(election, tiebreaker=None):
     1
 
     """
-    election = np.asarray(election)
-    if election.ndim != 2 or 0 in election.shape:
-        raise ValueError(
-            'Approval election must have at least one ballot and candidate'
-        )
-
-    # Validate before casting: casting to uint8 first would silently truncate
-    # fractional ballots (for example 0.5 would become an approval).
-    if not np.all((election == 0) | (election == 1)):
-        raise ValueError('Approval ballots must contain only 0 and 1')
-
-    election = election.astype(np.uint8)
+    # Cast only after validation: casting to uint8 first would silently
+    # truncate fractional ballots (for example 0.5 would become an approval).
+    election = _validate_ballots(
+        election, np.uint8, (0, 1),
+        'Approval ballots must contain only 0 and 1',
+    )
 
     # Tally all approvals
     tallies = election.sum(axis=0)
@@ -128,20 +134,13 @@ def combined_approval(election, tiebreaker=None):
     0
 
     """
-    election = np.asarray(election)
-    if election.ndim != 2 or 0 in election.shape:
-        raise ValueError(
-            'Combined approval election must have at least one ballot and '
-            'candidate'
-        )
-
-    # Validate before casting: casting to int8 first would silently truncate
-    # fractional ballots (for example -1.5 would become a disapproval).
-    if not np.all((election == -1) | (election == 0) | (election == 1)):
-        raise ValueError('Combined approval ballots must contain only -1, 0, '
-                         'and 1')
-
-    election = election.astype(np.int8)
+    # Cast only after validation: casting to int8 first would silently
+    # truncate fractional ballots (for example -1.5 would become a
+    # disapproval).
+    election = _validate_ballots(
+        election, np.int8, (-1, 0, 1),
+        'Combined approval ballots must contain only -1, 0, and 1',
+    )
 
     # Tally all approvals
     tallies = election.sum(axis=0)
