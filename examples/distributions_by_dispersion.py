@@ -37,6 +37,45 @@ def human_format(num):
 method = 'FPTP'
 
 
+def _winner_position(v, c, n_cands):
+    """
+    Return the position of the candidate chosen by `method`.
+    """
+    if 'Random' not in method:
+        utilities = normed_dist_utilities(v, c)
+
+    if method in {'FPTP', 'Hare RCV', 'Condorcet RCV (Black)'}:
+        rankings = honest_rankings(utilities)
+
+    if method == 'Random Winner':  # Votes don't matter at all.
+        winner = random.sample(range(n_cands), 1)[0]
+
+    # Pick one voter and go with their choice.
+    if method == 'Random Ballot':
+        winning_voter = random.sample(range(n_voters), 1)[0]
+        dists = abs(v[winning_voter] - c)
+        winner = np.argmin(dists)
+
+    if method == 'FPTP':
+        winner = fptp(rankings, tiebreaker='random')
+
+    if method == 'Hare RCV':
+        winner = irv(rankings, tiebreaker='random')
+
+    if method == 'STAR':
+        ballots = honest_normed_scores(utilities)
+        winner = star(ballots, tiebreaker='random')
+
+    if method == 'Condorcet RCV (Black)':
+        winner = black(rankings, tiebreaker='random')
+
+    # (on normalized utilities though, so STAR can do better)
+    if method == 'Utility Winner':
+        winner = utility_winner(utilities, tiebreaker='random')
+
+    return c[winner][0]
+
+
 def simulate_batch():
     winners = defaultdict(list)
     for disp in disps_list:
@@ -48,39 +87,7 @@ def simulate_batch():
                 c = np.random.uniform(-u_width/2, +u_width/2, n_cands)
                 c = np.atleast_2d(c).T
 
-            if 'Random' not in method:
-                utilities = normed_dist_utilities(v, c)
-
-            if method in {'FPTP', 'Hare RCV', 'Condorcet RCV (Black)'}:
-                rankings = honest_rankings(utilities)
-
-            if method == 'Random Winner':  # Votes don't matter at all.
-                winner = random.sample(range(n_cands), 1)[0]
-
-            # Pick one voter and go with their choice.
-            if method == 'Random Ballot':
-                winning_voter = random.sample(range(n_voters), 1)[0]
-                dists = abs(v[winning_voter] - c)
-                winner = np.argmin(dists)
-
-            if method == 'FPTP':
-                winner = fptp(rankings, tiebreaker='random')
-
-            if method == 'Hare RCV':
-                winner = irv(rankings, tiebreaker='random')
-
-            if method == 'STAR':
-                ballots = honest_normed_scores(utilities)
-                winner = star(ballots, tiebreaker='random')
-
-            if method == 'Condorcet RCV (Black)':
-                winner = black(rankings, tiebreaker='random')
-
-            # (on normalized utilities though, so STAR can do better)
-            if method == 'Utility Winner':
-                winner = utility_winner(utilities, tiebreaker='random')
-
-            winners[disp].append(c[winner][0])
+            winners[disp].append(_winner_position(v, c, n_cands))
 
     return winners
 
