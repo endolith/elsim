@@ -1,11 +1,10 @@
 """
-Reproduce table: "The Effectiveness of Several Voting Systems".
-
-from p. 19 of "Reproducing Voting Systems".
+Reproduce the table "The Effectiveness of Several Voting Systems" from
+Part C, "Reproducing Voting Systems", p. 19, in:
 
 Weber, Robert J. (1978). "Comparison of Public Choice Systems".
-Cowles Foundation Discussion Papers. Cowles Foundation for Research in
-Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
+Cowles Foundation Discussion Paper No. 498. Yale University.
+https://cowles.yale.edu/publications/cfdp/cfdp-498
 
 Typical result with n_elections = 100_000:
 

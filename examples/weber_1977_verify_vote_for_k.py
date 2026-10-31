@@ -2,8 +2,8 @@
 Reproduce Vote-for-k effectiveness for different k.
 
 Weber, Robert J. (1978). "Comparison of Public Choice Systems".
-Cowles Foundation Discussion Papers. Cowles Foundation for Research in
-Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
+Cowles Foundation Discussion Paper No. 498. Yale University.
+https://cowles.yale.edu/publications/cfdp/cfdp-498
 
 50k elections required for smooth lines.  Typical results with 1k voters:
 

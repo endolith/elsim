@@ -1,9 +1,10 @@
 """
-Weber's effectiveness expressions, for comparison.
+Weber's effectiveness expressions, from Part C, "Reproducing Voting
+Systems", in:
 
 Weber, Robert J. (1978). "Comparison of Public Choice Systems".
-Cowles Foundation Discussion Papers. Cowles Foundation for Research in
-Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
+Cowles Foundation Discussion Paper No. 498. Yale University.
+https://cowles.yale.edu/publications/cfdp/cfdp-498
 
 These all use the impartial culture / random society model and an infinite
 number of voters.
