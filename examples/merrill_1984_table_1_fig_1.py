@@ -36,6 +36,8 @@ from elsim.methods import (approval, black, borda, condorcet, coombs, fptp,
                            irv, runoff, utility_winner)
 from elsim.strategies import approval_optimal, honest_rankings
 
+from plot_uncertainty import binomial_proportion_ci_errors_percent
+
 n_elections = 10_000  # Roughly 15 seconds on a 2019 6-core i7-9750H
 n_voters = 25
 n_cands_list = (2, 3, 4, 5, 7, 10)
@@ -111,12 +113,16 @@ table = []
 
 # Of those elections with CW, likelihood that method chooses CW
 x_cw, y_cw = zip(*sorted(condorcet_winner_count['CW'].items()))
+y_cw_a = np.asarray(y_cw)
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
     x, y = zip(*sorted(condorcet_winner_count[method].items()))
-    CE = np.array(y)/y_cw
-    plt.plot(x, CE*100, '-', label=method)
-    table.append([method, *np.array(y)/y_cw*100])
+    k = np.asarray(y)
+    CE = k / y_cw_a
+    el, eh = binomial_proportion_ci_errors_percent(k, y_cw_a)
+    plt.errorbar(x, CE * 100, yerr=[el, eh], fmt='-', label=method,
+                 capsize=2, elinewidth=0.8)
+    table.append([method, *CE * 100])
 
 # Likelihood that social utility maximizer is Condorcet Winner
 x, y = zip(*sorted(condorcet_winner_count['SU max'].items()))
@@ -128,6 +134,16 @@ table.append(['CW', *np.asarray(y_cw) / n_elections * 100])
 print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
 
 plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
+plt.figtext(
+    0.99,
+    0.01,
+    'Simulation error bars: 95% exact (Clopper–Pearson) CI for binomial '
+    'proportion\n(successes = elections method picks CW; trials = elections '
+    'with a CW)',
+    fontsize=7,
+    ha='right',
+    va='bottom',
+)
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
