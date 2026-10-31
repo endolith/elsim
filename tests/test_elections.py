@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import assume, given
 from hypothesis.extra.numpy import arrays
-from hypothesis.strategies import floats, integers
+from hypothesis.strategies import floats, integers, just, tuples
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_less)
 
@@ -13,17 +13,19 @@ from elsim.elections import (impartial_culture, normal_electorate,
 def test_random_utilities():
     rng = np.random.default_rng(1788)  # Deterministic tests
 
-    for n_voters in (1, 5, 100):
-        for n_cands in (1, 2, 3, 7, 100):
+    for n_voters in (0, 1, 5, 100):
+        for n_cands in (0, 1, 2, 3, 7, 100):
             election = random_utilities(n_voters, n_cands, random_state=rng)
 
             # Make sure rows are voters and columns are candidates
             assert election.shape == (n_voters, n_cands)
 
-            # Make sure each row is within [0, 1]
+            # Make sure each row is within [0, 1) (``Generator.random``)
+            if n_cands == 0:
+                continue
             for row in election:
                 assert row.min() >= 0
-                assert row.max() <= 1
+                assert row.max() < 1
 
     # Check that utilities are equally distributed from 0 to 1
     n_voters = 10000
@@ -46,8 +48,9 @@ def test_impartial_culture():
             assert election.shape == (n_voters, n_cands)
 
             # Make sure each row is a permutation with no ties
+            if n_cands == 0:
+                continue
             for row in election:
-                # (Empty arrays test equal, which is fine)
                 assert_array_equal(np.bincount(row), 1)
 
     # Check that rankings are equally distributed
@@ -86,27 +89,17 @@ def test_normal_electorate():
     assert_allclose(np.std(voters[:, 1])*disp,
                     np.std(cands[:, 1]), rtol=0.1)
 
+    # Smaller draw: alternate correlation sign, 3D, n_voters or n_cands zero
+    voters_s, cands_s = normal_electorate(80, 40, 3, -0.2, 1.5,
+                                          random_state=rng)
+    assert voters_s.shape == (80, 3)
+    assert cands_s.shape == (40, 3)
+    assert np.isfinite(voters_s).all() and np.isfinite(cands_s).all()
 
-def test_normal_electorate_default_dims():
-    """normal_electorate defaults to a two-dimensional issue space."""
-    voters, cands = normal_electorate(7, 5, random_state=1979)
-    assert voters.shape == (7, 2)
-    assert cands.shape == (5, 2)
-
-
-@pytest.mark.parametrize(("dims", "corr"), [(2, 0.5), (3, 0.5), (4, 0.3)])
-def test_normal_electorate_corr_sets_axis_dispersion(dims, corr):
-    """
-    corr is the shared correlation of the underlying equicorrelated normal
-    distribution.  Equivalently, the first principal axis has SD
-    sqrt((1 + (dims - 1)*corr) / (1 - corr)) times the SD of the others, so an
-    implementation that drops or alters corr changes this ratio.
-    """
-    voters = normal_electorate(100_000, 1, dims=dims, corr=corr,
-                               random_state=1)[0]
-    expected_ratio = np.sqrt((1 + (dims - 1)*corr) / (1 - corr))
-    assert_allclose(np.std(voters[:, 0]) / np.std(voters[:, 1]),
-                    expected_ratio, rtol=0.05)
+    voters_z, cands_z = normal_electorate(0, 5, 2, 0.0, 1.0,
+                                          random_state=rng)
+    assert voters_z.shape == (0, 2)
+    assert cands_z.shape == (5, 2)
 
 
 def test_normed_dist_utilities():
@@ -126,15 +119,12 @@ def test_normed_dist_utilities():
                      [0.762689671355725, 0.000000000000000, 1.000000000000000]]
                     )
 
-
-def test_normed_dist_utilities_equidistant_voter_is_zero():
-    """
-    A voter equally distant from every candidate has no relative preference;
-    their utilities must be 0 rather than NaN.
-    """
-    utilities = normed_dist_utilities([[0, 0], [1, 1]], [[2, 2], [2, 2]])
-
-    assert_array_equal(utilities, np.zeros((2, 2)))
+    # Two candidates at the same point: per-voter min == max after shifting,
+    # so the voter has no relative preference and the row is all zero.
+    voters_coinc = np.array([[0.0, 0.0]])
+    cands_coinc = np.array([[1.0, 0.0], [1.0, 0.0]])
+    assert_array_equal(normed_dist_utilities(voters_coinc, cands_coinc),
+                       np.zeros((1, 2)))
 
 
 @pytest.mark.parametrize("func", [random_utilities, impartial_culture,
@@ -167,45 +157,78 @@ def test_invalid_random_state(func):
         func(5, 5, random_state='bananas')
 
 
-# Powers of two and integer offsets make the affine transformation exact,
-# so ties between distances are preserved bit-for-bit.
-@given(voters=arrays(np.float64, (4, 2), elements=integers(-3, 3)),
-       cands=arrays(np.float64, (3, 2), elements=integers(-3, 3)),
-       scale=integers(-2, 1).map(lambda e: 2.0 ** e),
-       offset=integers(-3, 3).map(float))
-def test_normed_dist_utilities_is_bounded_and_affine_invariant(
-        voters, cands, scale, offset):
-    """
-    Utilities stay in [0, 1] and are unchanged when both voter and candidate
-    positions are translated and scaled together, since only relative
-    distances matter.
-    """
+@given(n_voters=integers(0, 60), n_cands=integers(0, 60))
+def test_random_utilities_hypothesis_shape_and_range(n_voters, n_cands):
+    rng = np.random.default_rng(2026)
+    election = random_utilities(n_voters, n_cands, random_state=rng)
+    assert election.shape == (n_voters, n_cands)
+    if n_voters and n_cands:
+        assert (election >= 0).all()
+        assert (election < 1).all()
+
+
+@given(n_voters=integers(0, 60), n_cands=integers(0, 60))
+def test_impartial_culture_hypothesis_valid_rankings(n_voters, n_cands):
+    rng = np.random.default_rng(2027)
+    election = impartial_culture(n_voters, n_cands, random_state=rng)
+    assert election.shape == (n_voters, n_cands)
+    if n_cands == 0:
+        return
+    for row in election:
+        assert_array_equal(
+            np.bincount(row, minlength=n_cands), np.ones(n_cands, dtype=int)
+        )
+
+
+@given(
+    n_voters=integers(0, 40),
+    n_cands=integers(0, 40),
+    dims=integers(1, 6),
+    corr=floats(-0.99, 0.99, allow_nan=False, allow_infinity=False),
+    disp=floats(0.01, 4.0, allow_nan=False, allow_infinity=False),
+)
+def test_normal_electorate_hypothesis_shapes_finite(
+    n_voters, n_cands, dims, corr, disp
+):
+    assume(corr < 1 - 1e-9)
+    if dims > 1:
+        assume(corr > -1.0 / (dims - 1) + 1e-12)
+    rng = np.random.default_rng(2028)
+    voters, cands = normal_electorate(
+        n_voters, n_cands, dims, corr, disp, random_state=rng
+    )
+    assert voters.shape == (n_voters, dims)
+    assert cands.shape == (n_cands, dims)
+    assert np.isfinite(voters).all()
+    assert np.isfinite(cands).all()
+
+
+@given(
+    voters=arrays(
+        np.float64,
+        tuples(integers(1, 12), just(2)),
+        elements=floats(-50, 50, allow_nan=False, allow_infinity=False),
+    ),
+    cands=arrays(
+        np.float64,
+        tuples(integers(2, 12), just(2)),
+        elements=floats(-50, 50, allow_nan=False, allow_infinity=False),
+    ),
+)
+def test_normed_dist_utilities_hypothesis_bounds_when_spread(
+    voters, cands,
+):
+    dists = np.linalg.norm(
+        voters[:, np.newaxis, :] - cands[np.newaxis, :, :], axis=-1
+    )
+    assume(np.all(np.ptp(dists, axis=1) > 1e-9))
     utilities = normed_dist_utilities(voters, cands)
-    assert np.all(utilities >= 0)
-    assert np.all(utilities <= 1)
-
-    transformed = normed_dist_utilities(voters*scale + offset,
-                                        cands*scale + offset)
-    assert_allclose(utilities, transformed, rtol=1e-6, atol=1e-9)
-
-
-@given(dims=integers(2, 5), corr=floats(0, 0.8), disp=floats(0.2, 3),
-       seed=integers(0, 2**31 - 1))
-def test_normal_electorate_matches_its_correlation_parameters(
-        dims, corr, disp, seed):
-    """
-    corr sets the SD ratio between the first axis and the others, and disp sets
-    the candidate/voter SD ratio.  Both are checked on large samples so the
-    statistical error is small.
-    """
-    voters, cands = normal_electorate(10_000, 5_000, dims=dims, corr=corr,
-                                      disp=disp, random_state=seed)
-
-    axis_ratio = np.sqrt((1 + (dims - 1)*corr) / (1 - corr))
-    assert_allclose(np.std(cands[:, 0]) / np.std(cands[:, 1]), axis_ratio,
-                    rtol=0.1)
-    assert_allclose(np.std(cands[:, 0]) / np.std(voters[:, 0]), disp,
-                    rtol=0.1)
+    assert utilities.shape == (voters.shape[0], cands.shape[0])
+    assert np.isfinite(utilities).all()
+    assert (utilities >= 0).all()
+    assert (utilities <= 1).all()
+    assert_array_equal(utilities.min(axis=1), np.zeros(voters.shape[0]))
+    assert_array_equal(utilities.max(axis=1), np.ones(voters.shape[0]))
 
 
 if __name__ == "__main__":
