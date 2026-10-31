@@ -1,0 +1,25 @@
+{
+  "title": "elsim: Election simulation and analysis",
+  "description": "Python library for simulating elections: generate voter-candidate utilities, convert them to ballots with strategic rules, and count them with different voting methods. Used to reproduce published voting-theory results.",
+  "creators": [
+    {
+      "name": "endolith"
+    }
+  ],
+  "license": "MIT",
+  "upload_type": "software",
+  "access_right": "open",
+  "keywords": [
+    "elections",
+    "voting systems",
+    "social choice",
+    "simulation"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/endolith/elsim",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}
