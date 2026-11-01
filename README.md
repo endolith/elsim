@@ -9,7 +9,7 @@ For example, it can be used to reproduce Figure 1 from [Merrill 1984](https://ww
 
 ![Graph of Condorcet Efficiencies for a Random Society for Plurality, Runoff, Hare, Approval, Borda, Coomsb, Black compared to Merrill's results](https://raw.githubusercontent.com/endolith/elsim/master/examples/results/Merrill_1984_Figure_1._25_voters%2C_10000_elections.png)
 
-Or the table of Effectiveness from [Weber 1977](https://elischolar.library.yale.edu/cowles-discussion-paper-series/732/):
+Or the table of Effectiveness from [Weber 1977 (collected 1978)](https://cowles.yale.edu/publications/cfdp/cfdp-498):
 
 |      | Standard | Vote-for-half | Borda |
 | ---: | -------: | ------------: | ----: |

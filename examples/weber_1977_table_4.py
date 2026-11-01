@@ -1,14 +1,13 @@
 """
-Reproduce Table 4 from p. 17 of Comparison of Voting Systems.
+Reproduce Table 4 from p. 22 of:
 
-The expected social utility of the elected candidate, under three voting
-systems.
+Weber, R. J. (1977a). "Comparison of Voting Systems". Mimeographed,
+Yale University. Collected in R. J. Weber (1978), Comparison of Public
+Choice Systems, Cowles Foundation Discussion Paper No. 498, pp. 5-30.
+https://cowles.yale.edu/publications/cfdp/cfdp-498
 
-from
-
-Weber, Robert J. (1978). "Comparison of Public Choice Systems".
-Cowles Foundation Discussion Papers. Cowles Foundation for Research in
-Economics. No. 498. https://cowles.yale.edu/publications/cfdp/cfdp-498
+The table gives the expected social utility of the elected candidate under
+three voting systems.
 
 Typical result with n_elections = 1_000_000:
 
