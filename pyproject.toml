@@ -42,6 +42,7 @@ test = [
     "pytest-cov",
     "hypothesis",
     "ruff",
+    "joblib",
 ]
 examples = [
     "contourpy>=1.3",

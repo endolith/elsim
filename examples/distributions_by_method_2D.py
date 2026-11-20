@@ -22,22 +22,20 @@ from
 
 """
 import os
-import pickle
 from collections import defaultdict
+from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
-# from colorcet import fire
-from joblib import Parallel, delayed
 
+# from colorcet import fire
 from elsim.elections import normal_electorate, normed_dist_utilities
-from elsim.methods import (approval, black, borda, coombs, fptp, irv, runoff,
-                           star)
-from elsim.strategies import (approval_optimal, honest_normed_scores,
-                              honest_rankings, vote_for_k)
+from elsim.methods import approval, black, borda, coombs, fptp, irv, runoff, star
+from elsim.strategies import approval_optimal, honest_normed_scores, honest_rankings, vote_for_k
+from elsim.studies import JoblibBackend
 
 try:
-    import ehtplot.color  # noqa: F401  # Creates afmhot_u colormap
+    import ehtplot.color  # noqa: F401  Creates afmhot_u colormap
 except ValueError:  # https://github.com/liamedeiros/ehtplot/pull/6
     pass
 
@@ -158,18 +156,26 @@ if cand_dist == 'normal':
     title += ', both Gaussian'
 title += f', {disp:.1f} relative dispersion'
 
-# Load from .pkl file if it exists
-pkl_filename = title + '.pkl'
-if os.path.exists(pkl_filename):
-    print('Loading pickled simulation results')
-    with open(pkl_filename, "rb") as file:
-        aggregated_histograms, standard_deviations = pickle.load(file)
+# Load from .npz cache if it exists
+npz_filename = title + '.npz'
+if os.path.exists(npz_filename):
+    with np.load(npz_filename, allow_pickle=False) as cache:
+        aggregated_histograms = {
+            name.removeprefix('hist_'): cache[name]
+            for name in cache.files
+            if name.startswith('hist_')
+        }
+        standard_deviations = {
+            name.removeprefix('std_'): cache[name]
+            for name in cache.files
+            if name.startswith('std_')
+        }
 else:
     print('Running simulations')
-    jobs = [delayed(simulate_batch)(n_cands)] * n_batches
-    print(f'{len(jobs)} tasks total:')
-    results = Parallel(n_jobs=-3, verbose=5)(jobs)
-    del jobs
+    backend = JoblibBackend(n_jobs=-3, verbose=5)
+    worker = partial(simulate_batch, n_cands)
+    print(f'{n_batches} tasks total:')
+    results = backend.map_repeat(worker, n_batches)
 
     # Get keys from the histograms of the first result
     keys = results[0][0].keys()
@@ -195,17 +201,20 @@ else:
         std = np.sqrt(aggregated_variances[key] / n_batches)
         standard_deviations[key] = std
 
-    # Save the generated data to .pkl file
-    with open(pkl_filename, "wb") as file:
-        pickle.dump((aggregated_histograms, standard_deviations), file)
+    # Save the generated data to .npz cache
+    np.savez_compressed(
+        npz_filename,
+        **{f'hist_{key}': value
+           for key, value in aggregated_histograms.items()},
+        **{f'std_{key}': value
+           for key, value in standard_deviations.items()},
+    )
 
 
 # %% Measure distributions
 
 for method, std in standard_deviations.items():
-    print(f"{method}:")
-    print(f"Winner distribution std: {std[0]:.3f}")
-    print()
+    pass
 
 # %% Plotting
 
