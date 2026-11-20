@@ -17,8 +17,10 @@ or a single-winner version of Figure 3
 
 from
 
-    Edith Elkind, et al. (2019) What Do Multiwinner Voting Rules Do?
-    https://arxiv.org/abs/1901.09217
+    Edith Elkind, Piotr Faliszewski, Jean-François Laslier, Piotr Skowron,
+    Arkadii Slinko, Nimrod Talmon (2017) What Do Multiwinner Voting Rules
+    Do? An Experiment Over the Two-Dimensional Euclidean Domain. AAAI 2017.
+    :doi:`10.1609/aaai.v31i1.10612`
 
 """
 import os

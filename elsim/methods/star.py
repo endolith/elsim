@@ -207,7 +207,7 @@ def star(election, tiebreaker=None):
     ----------
     .. [1] :doi:`10.1007/s10602-022-09389-3`
     .. [2] :wikipedia:`STAR voting`
-    .. [3] https://www.starvoting.us/ties
+    .. [3] https://www.starvoting.org/condorcet_tiebreaker
 
     Examples
     --------
