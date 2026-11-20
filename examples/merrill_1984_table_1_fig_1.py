@@ -24,11 +24,11 @@ Typical result:
 | SU max    | 100.0 |  84.1 |  79.6 |  78.4 |  77.3 |  77.5 |
 | CW        | 100.0 |  91.7 |  83.1 |  75.6 |  64.3 |  52.9 |
 """
-import time
 from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import random_utilities
@@ -40,6 +40,11 @@ n_elections = 10_000  # Roughly 15 seconds on a 2019 6-core i7-9750H
 n_voters = 25
 n_cands_list = (2, 3, 4, 5, 7, 10)
 
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 100
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
+
 ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
                   'Borda': borda, 'Coombs': coombs, 'Black': black}
 
@@ -47,42 +52,57 @@ rated_methods = {'SU max': utility_winner,
                  'Approval': lambda utilities, tiebreaker:
                      approval(approval_optimal(utilities), tiebreaker)}
 
+
+def simulate_batch():
+    """Run one batch of elections and return the partial tallies."""
+    condorcet_winner_count = {key: Counter() for key in (
+        ranked_methods.keys() | rated_methods.keys() | {'CW'})}
+
+    for _iteration in range(batch_size):
+        for n_cands in n_cands_list:
+            utilities = random_utilities(n_voters, n_cands)
+
+            """
+            "Simulated utilities were normalized by range, that is, each
+            voter's set of utilities were linearly expanded so that the highest
+            and lowest utilities for each voter were 1 and 0, respectively."
+
+            This is necessary for the SU Maximizer results to match Merrill's.
+            """
+            utilities -= utilities.min(1)[:, np.newaxis]
+            utilities /= utilities.max(1)[:, np.newaxis]
+
+            rankings = honest_rankings(utilities)
+
+            # If there is a Condorcet winner, analyze election, otherwise skip
+            # it
+            CW = condorcet(rankings)
+            if CW is not None:
+                condorcet_winner_count['CW'][n_cands] += 1
+
+                for name, method in ranked_methods.items():
+                    if method(rankings, tiebreaker='random') == CW:
+                        condorcet_winner_count[name][n_cands] += 1
+
+                for name, method in rated_methods.items():
+                    if method(utilities, tiebreaker='random') == CW:
+                        condorcet_winner_count[name][n_cands] += 1
+
+    return condorcet_winner_count
+
+
+
+jobs = [delayed(simulate_batch)()] * n_batches
+print(f'{len(jobs)} tasks total:')
+results = Parallel(n_jobs=-3, verbose=5, backend='loky')(jobs)
+
+# Aggregate results
 condorcet_winner_count = {key: Counter() for key in (
     ranked_methods.keys() | rated_methods.keys() | {'CW'})}
+for result in results:
+    for method, counter in result.items():
+        condorcet_winner_count[method].update(counter)
 
-start_time = time.monotonic()
-
-for _iteration in range(n_elections):
-    for n_cands in n_cands_list:
-        utilities = random_utilities(n_voters, n_cands)
-
-        """
-        "Simulated utilities were normalized by range, that is, each voter's
-        set of utilities were linearly expanded so that the highest and lowest
-        utilities for each voter were 1 and 0, respectively."
-
-        This is necessary for the SU Maximizer results to match Merrill's.
-        """
-        utilities -= utilities.min(1)[:, np.newaxis]
-        utilities /= utilities.max(1)[:, np.newaxis]
-
-        rankings = honest_rankings(utilities)
-
-        # If there is a Condorcet winner, analyze election, otherwise skip it
-        CW = condorcet(rankings)
-        if CW is not None:
-            condorcet_winner_count['CW'][n_cands] += 1
-
-            for name, method in ranked_methods.items():
-                if method(rankings, tiebreaker='random') == CW:
-                    condorcet_winner_count[name][n_cands] += 1
-
-            for name, method in rated_methods.items():
-                if method(utilities, tiebreaker='random') == CW:
-                    condorcet_winner_count[name][n_cands] += 1
-
-elapsed_time = time.monotonic() - start_time
-print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
 # Reference values from Merrill's published Table 1, used to plot his results
 # as dotted lines for comparison.  This script reproduces them within ~2 pp,

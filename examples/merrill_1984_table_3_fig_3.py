@@ -22,11 +22,11 @@ Typical result:
 | Coombs    | 100.0 | 90.2 | 86.8 | 85.2 | 84.0 | 82.9 |
 | Black     | 100.0 | 92.9 | 92.0 | 92.1 | 93.2 | 94.6 |
 """
-import time
 from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from tabulate import tabulate
 
 from elsim.elections import random_utilities
@@ -38,46 +38,64 @@ n_elections = 10_000  # Roughly 30 seconds on a 2019 6-core i7-9750H
 n_voters = 25
 n_cands_list = (2, 3, 4, 5, 7, 10)
 
+# Simulate more than just one election per worker to improve efficiency
+batch_size = 100
+n_batches = n_elections // batch_size
+assert n_batches * batch_size == n_elections
+
 ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
                   'Borda': borda, 'Coombs': coombs, 'Black': black}
 
 rated_methods = {'Approval': lambda utilities, tiebreaker:
                  approval(approval_optimal(utilities), tiebreaker)}
 
+
+def simulate_batch():
+    """Run one batch of elections and return the partial tallies."""
+    utility_sums = {key: Counter() for key in (ranked_methods.keys() |
+                                               rated_methods.keys() | {'UW'})}
+
+    for _iteration in range(batch_size):
+        for n_cands in n_cands_list:
+            utilities = random_utilities(n_voters, n_cands)
+
+            """
+            "Simulated utilities were normalized by range, that is, each
+            voter's set of utilities were linearly expanded so that the highest
+            and lowest utilities for each voter were 1 and 0, respectively."
+            """
+            # TODO: Try the Standard Score normalization too?
+            utilities -= utilities.min(1)[:, np.newaxis]
+            utilities /= utilities.max(1)[:, np.newaxis]
+
+            # Find the social utility winner and accumulate utilities
+            UW = utility_winner(utilities)
+            utility_sums['UW'][n_cands] += utilities.sum(axis=0)[UW]
+
+            for name, method in rated_methods.items():
+                winner = method(utilities, tiebreaker='random')
+                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+
+            rankings = honest_rankings(utilities)
+            for name, method in ranked_methods.items():
+                winner = method(rankings, tiebreaker='random')
+                utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
+
+    return utility_sums
+
+
+
+jobs = [delayed(simulate_batch)()] * n_batches
+print(f'{len(jobs)} tasks total:')
+results = Parallel(n_jobs=-3, verbose=5, backend='loky')(jobs)
+
+# Aggregate results
 utility_sums = {key: Counter() for key in (ranked_methods.keys() |
                                            rated_methods.keys() | {'UW'})}
+for result in results:
+    for method, counter in result.items():
+        utility_sums[method].update(counter)
 
-start_time = time.monotonic()
-
-for _iteration in range(n_elections):
-    for n_cands in n_cands_list:
-        utilities = random_utilities(n_voters, n_cands)
-
-        """
-        "Simulated utilities were normalized by range, that is, each voter's
-        set of utilities were linearly expanded so that the highest and lowest
-        utilities for each voter were 1 and 0, respectively."
-        """
-        # TODO: Try the Standard Score normalization too?
-        utilities -= utilities.min(1)[:, np.newaxis]
-        utilities /= utilities.max(1)[:, np.newaxis]
-
-        # Find the social utility winner and accumulate utilities
-        UW = utility_winner(utilities)
-        utility_sums['UW'][n_cands] += utilities.sum(axis=0)[UW]
-
-        for name, method in rated_methods.items():
-            winner = method(utilities, tiebreaker='random')
-            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
-
-        rankings = honest_rankings(utilities)
-        for name, method in ranked_methods.items():
-            winner = method(rankings, tiebreaker='random')
-            utility_sums[name][n_cands] += utilities.sum(axis=0)[winner]
-
-
-elapsed_time = time.monotonic() - start_time
-print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
 
 # Reference values from Merrill's published Table 3, used to plot his results
 # as dotted lines for comparison.  This script reproduces them within ~2 pp,
