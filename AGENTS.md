@@ -39,15 +39,16 @@ Three-step pipeline: `elections` → `strategies` → `methods`.
 - `elsim/elections.py` — generates voter-candidate utility/ranking matrices (spatial models, impartial culture, etc.)
 - `elsim/strategies.py` — converts utilities to ballots (honest rankings, scores, approval strategies)
 - `elsim/methods/` — one file per voting method (IRV, Borda, STAR, etc.), each exporting a function named after the method (e.g. `irv()`, `borda()`, `star()`). Winner-only functions return `int | None` (`None` on unresolved ties).
+- `elsim/studies/` — public orchestration layer for repeated simulations: scenario grids/condition rows, electorate models, method maps, metrics, candidate-set grouping, and optional parallelism.
 
 Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers, tally primitives, tiebreak logic). Not part of the public API.
 
 ## Boundaries
 
-- **Never** add utility functions, plotting helpers, or analysis helpers to the public interface. `elsim/methods/__init__.py` exports voting-method functions only.
+- `elsim.studies` is the public home for analysis/orchestration helpers. Do not add those helpers to `elsim.elections`, `elsim.strategies`, or `elsim.methods`; `elsim/methods/__init__.py` exports voting-method functions only. Plotting stays in examples.
 - **Never** import example-script utilities from the library. Example scripts may have their own local utility modules; the library does not depend on them.
 - **Never** hand-edit generated artifacts: `docs/_autosummary/`, `htmlcov/`, `examples/results/`, coverage output. The Sphinx site builds from README + docstrings; edit those sources instead.
-- **Ask first** before adding dependencies. Runtime deps are NumPy and SciPy only; Numba must stay optional (it doesn't support every platform).
+- **Ask first** before adding dependencies. Runtime deps are NumPy and SciPy only; Numba and joblib must stay optional (Numba doesn't support every platform; joblib is only needed for parallel studies).
 
 ## Key conventions
 
@@ -56,6 +57,7 @@ Private internal helpers live in `elsim/methods/_common.py` (Numba JIT wrappers,
 - **Numba:** Soft dependency. Performance paths use `@njit(cache=True, nogil=True)`. If Numba is absent, a no-op `njit` decorator is used. Check `elsim.methods._common.numba_enabled` for the flag.
 - **Random state:** All public functions accept `random_state=None|int|Generator` and use `np.random.default_rng()`.
 - **Unpacking:** Prefer explicit indexes (`result[0]`, `result[-1]`) over throwaway underscore variables for unused tuple values.
+- **Monte Carlo examples:** declare scenarios with `elsim.studies.grid`/`conditions`, method maps, and a `Study`; do not hand-roll election loops, batching, or joblib in example scripts. Use `n_jobs` on `Study` for parallelism.
 - **Tiebreakers:** Most methods accept `tiebreaker=None` (returns `None` on ties), `'random'`, or `'order'`.
 - **Data types:** Candidates are 0-indexed integer IDs. Ballots are numpy arrays (`uint8` where possible). Rows = voters.
 - **Line length:** 79 characters (PEP8).

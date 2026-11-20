@@ -25,16 +25,14 @@ Typical result:
 | CW        | 100.0 |  91.7 |  83.1 |  75.6 |  64.3 |  52.9 |
 """
 import time
-from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
 
-from elsim.elections import random_utilities
-from elsim.methods import (approval, black, borda, condorcet, coombs, fptp,
-                           irv, runoff, utility_winner)
-from elsim.strategies import approval_optimal, honest_rankings
+from elsim.methods import black, borda, coombs, fptp, irv, runoff
+from elsim.studies import (Study, approval_at_optimal, grid, random_society,
+                           utility_winner_at)
 
 n_elections = 10_000  # Roughly 15 seconds on a 2019 6-core i7-9750H
 n_voters = 25
@@ -43,43 +41,23 @@ n_cands_list = (2, 3, 4, 5, 7, 10)
 ranked_methods = {'Plurality': fptp, 'Runoff': runoff, 'Hare': irv,
                   'Borda': borda, 'Coombs': coombs, 'Black': black}
 
-rated_methods = {'SU max': utility_winner,
-                 'Approval': lambda utilities, tiebreaker:
-                     approval(approval_optimal(utilities), tiebreaker)}
-
-condorcet_winner_count = {key: Counter() for key in (
-    ranked_methods.keys() | rated_methods.keys() | {'CW'})}
+rated_methods = {'SU max': utility_winner_at,
+                 'Approval': approval_at_optimal}
 
 start_time = time.monotonic()
 
-for _iteration in range(n_elections):
-    for n_cands in n_cands_list:
-        utilities = random_utilities(n_voters, n_cands)
-
-        """
-        "Simulated utilities were normalized by range, that is, each voter's
-        set of utilities were linearly expanded so that the highest and lowest
-        utilities for each voter were 1 and 0, respectively."
-
-        This is necessary for the SU Maximizer results to match Merrill's.
-        """
-        utilities -= utilities.min(1)[:, np.newaxis]
-        utilities /= utilities.max(1)[:, np.newaxis]
-
-        rankings = honest_rankings(utilities)
-
-        # If there is a Condorcet winner, analyze election, otherwise skip it
-        CW = condorcet(rankings)
-        if CW is not None:
-            condorcet_winner_count['CW'][n_cands] += 1
-
-            for name, method in ranked_methods.items():
-                if method(rankings, tiebreaker='random') == CW:
-                    condorcet_winner_count[name][n_cands] += 1
-
-            for name, method in rated_methods.items():
-                if method(utilities, tiebreaker='random') == CW:
-                    condorcet_winner_count[name][n_cands] += 1
+study = Study(
+    scenarios=grid(n_cands=n_cands_list),
+    electorate=random_society(n_voters=n_voters),
+    n_elections=n_elections,
+    ranked_methods=ranked_methods,
+    rated_methods=rated_methods,
+    metric='condorcet',
+    normalization='range',
+    random_state=1984,
+    n_jobs=1,
+)
+result = study.run()
 
 elapsed_time = time.monotonic() - start_time
 print('Elapsed:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)), '\n')
@@ -97,33 +75,30 @@ merrill_table_1 = {
     'CW':        {2: 100.0, 3:  91.6, 4:  83.4, 5:  75.8, 7:  64.3, 10:  52.5},
 }
 
+x = np.array([scenario['n_cands'] for scenario in result.scenarios])
+rows = {row[0]: np.array(row[1:])
+        for row in result.table(
+            methods=['Plurality', 'Runoff', 'Hare', 'Approval', 'Borda',
+                     'Coombs', 'Black', 'SU max', 'CW'])}
+
 plt.figure(f'Figure 1. {n_voters} voters, {n_elections} elections')
 plt.title('Figure 1: Condorcet Efficiencies for a Random Society')
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
-    x, y = zip(*sorted(merrill_table_1[method].items()))
-    plt.plot(x, y, ':', lw=0.8)
+    mx, my = zip(*sorted(merrill_table_1[method].items()),
+                strict=True)
+    plt.plot(mx, my, ':', lw=0.8)
 
 # Restart color cycle, so result colors match
 plt.gca().set_prop_cycle(None)
 
 table = []
-
-# Of those elections with CW, likelihood that method chooses CW
-x_cw, y_cw = zip(*sorted(condorcet_winner_count['CW'].items()))
 for method in ('Plurality', 'Runoff', 'Hare', 'Approval', 'Borda', 'Coombs',
                'Black'):
-    x, y = zip(*sorted(condorcet_winner_count[method].items()))
-    CE = np.array(y)/y_cw
-    plt.plot(x, CE*100, '-', label=method)
-    table.append([method, *np.array(y)/y_cw*100])
-
-# Likelihood that social utility maximizer is Condorcet Winner
-x, y = zip(*sorted(condorcet_winner_count['SU max'].items()))
-table.append(['SU max', *np.array(y)/y_cw*100])
-
-# Likelihood of Condorcet Winner (normalized by n elections)
-table.append(['CW', *np.asarray(y_cw) / n_elections * 100])
+    plt.plot(x, rows[method], '-', label=method)
+    table.append([method, *rows[method]])
+table.append(['SU max', *rows['SU max']])
+table.append(['CW', *rows['CW']])
 
 print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
 
