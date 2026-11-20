@@ -8,12 +8,14 @@ from test_condorcet import complete_ranked_ballots
 
 from elsim.methods import (approval, black, borda, combined_approval,
                            condorcet, coombs, fptp, irv, runoff, score,
+                           star, three_two_one,
                            utility_winner)
 
 
 @pytest.mark.parametrize("method", [black, borda, fptp, runoff, irv, coombs,
                                     approval, combined_approval,
-                                    utility_winner, score])
+                                    utility_winner, score, star,
+                                    three_two_one])
 def test_invalid_tiebreaker(method):
     election = [[0, 1],
                 [1, 0]]
