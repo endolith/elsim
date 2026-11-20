@@ -87,6 +87,8 @@ merrill_fig_4b = {
     'Plurality': {2: 100.0, 3: 41.1, 4: 27.0, 5: -1.0, 7: -9},
 }
 
+table = {}
+
 for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
                               ('4.b', 0.5, 0, merrill_fig_4b)):
 
@@ -133,7 +135,7 @@ for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
     # Restart color cycle, so result colors match
     plt.gca().set_prop_cycle(None)
 
-    table = []
+    table[fig] = []
 
     # Calculate Social Utility Efficiency from summed utilities
     x_uw, y_uw = zip(*sorted(utility_sums['SU max'].items()))
@@ -143,9 +145,10 @@ for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
         x, y = zip(*sorted(utility_sums[method].items()))
         SUE = (np.array(y) - y_rw) / (np.array(y_uw) - y_rw)
         plt.plot(x, SUE*100, '-', label=method)
-        table.append([method, *SUE*100])
+        table[fig].append([method, *SUE*100])
 
-    print(tabulate(table, ["Method", *x], tablefmt="pipe", floatfmt='.1f'))
+    print(tabulate(table[fig], ["Method", *x], tablefmt="pipe",
+                   floatfmt='.1f'))
     print()
 
     plt.plot([], [], 'k:', lw=0.8, label='Merrill')  # Dummy plot for label
@@ -155,3 +158,32 @@ for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
     plt.ylim(ymin, 102)
     plt.xlim(1.8, 7.2)
     plt.show()
+
+# Regression reference from the "Results with 500_000 elections" tables in the
+# docstring, ordered by n_cands_list.  These sims do not reproduce Merrill's
+# published figures exactly (discrepancies up to ~7%, see issue #88), so this
+# is only a regression guard against breaking the current close-enough output
+# until that discrepancy is fixed.
+reference_table = {
+    '4.a': {
+        'Black': (100.0, 97.2, 97.1, 97.3, 97.6, 97.8),
+        'Coombs': (100.0, 97.1, 96.8, 97.0, 97.2, 97.4),
+        'Borda': (100.0, 98.7, 98.2, 97.9, 97.7, 97.6),
+        'Approval': (100.0, 98.7, 97.3, 96.2, 95.6, 95.2),
+        'Hare': (100.0, 94.2, 92.6, 91.7, 91.0, 90.3),
+        'Runoff': (100.0, 94.2, 92.0, 90.4, 88.9, 87.4),
+        'Plurality': (100.0, 84.7, 77.1, 72.1, 68.1, 64.8),
+    },
+    '4.b': {
+        'Black': (100.0, 95.5, 95.2, 95.5, 95.8, 96.2),
+        'Coombs': (100.0, 94.9, 94.1, 94.0, 94.0, 94.1),
+        'Borda': (100.0, 97.9, 97.1, 96.6, 96.4, 96.3),
+        'Approval': (100.0, 98.6, 96.7, 95.6, 94.9, 94.5),
+        'Hare': (100.0, 70.2, 55.9, 46.7, 39.7, 34.6),
+        'Runoff': (100.0, 70.2, 51.7, 36.9, 24.3, 13.5),
+        'Plurality': (100.0, 50.1, 23.7, 4.3, -11.8, -25.1),
+    },
+}
+
+# Absolute tolerance (percentage points) for test_examples.py
+tolerance = 5.0
