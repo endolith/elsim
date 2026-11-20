@@ -40,7 +40,7 @@ Typical results with 100k voters, 100k elections:
 |  9 | 51.8 |  68.5 |  77.8 |  82.0 |   82.0 |
 | 10 | 49.7 |  66.4 |  75.9 |  81.5 |   83.0 |
 """
-from collections import Counter, defaultdict
+from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -52,6 +52,8 @@ from elsim.methods import approval, fptp, utility_winner
 from elsim.strategies import honest_rankings, vote_for_k
 from weber_1977_expressions import (eff_standard, eff_vote_for_half,
                                     eff_vote_for_k)
+
+from plot_uncertainty import sue_ratio_curve_points_and_errors
 
 n_elections = 10_000  # Roughly 60 seconds on a 2019 6-core i7-9750H
 n_voters = 1_000
@@ -73,8 +75,9 @@ rated_methods = {'Vote-for-1': lambda utilities, tiebreaker:
                  approval(vote_for_k(utilities, -1), tiebreaker),
                  }
 
-utility_sums = {key: Counter() for key in (
-    ranked_methods.keys() | rated_methods.keys() | {'UW'})}
+method_keys = ['UW'] + list(ranked_methods.keys()) + list(rated_methods.keys())
+idx = {int(nc): i for i, nc in enumerate(n_cands_list)}
+nc_ct = len(n_cands_list)
 
 
 def simulate_election():
@@ -107,10 +110,19 @@ print(f'Doing {n_elections:,} elections (tasks), {n_voters:,} voters, '
 results = Parallel(n_jobs=-3, verbose=5)(delayed(simulate_election)()
                                          for i in range(n_elections))
 
-for result in results:
-    for method, d in result.items():
-        for n_cands, value in d.items():
-            utility_sums[method][n_cands] += value
+W_elec = {
+    m: np.full((nc_ct, n_elections), np.nan, dtype=float)
+    for m in method_keys
+}
+
+for ei, res in enumerate(results):
+    for m in method_keys:
+        if m not in res:
+            continue
+        for nc, value in res[m].items():
+            j = idx[int(nc)]
+            if np.isfinite(value):
+                W_elec[m][j, ei] = value - n_voters / 2
 
 plt.figure(f'Effectiveness, {n_voters} voters, {n_elections} elections')
 plt.title('The Effectiveness of Several Voting Systems')
@@ -130,20 +142,29 @@ plt.gca().set_prop_cycle(None)
 
 table = {}
 
-# Calculate Social Utility Efficiency from summed utilities
-x_uw, y_uw = zip(*sorted(utility_sums['UW'].items()))
-average_utility = n_voters * n_elections / 2
+rng = np.random.default_rng(0)
+xp = [int(x) for x in n_cands_list]
+
 for method in ('Standard', 'Vote-for-1', 'Vote-for-2', 'Vote-for-3',
                'Vote-for-4', 'Vote-for-half', 'Vote-for-(n-1)'):
-    x, y = zip(*sorted(utility_sums[method].items()))
-    SUE = (np.array(y) - average_utility)/(np.array(y_uw) - average_utility)
-    plt.plot(x, SUE*100, '-', label=method)
-    table.update({method.split('-')[-1]: SUE*100})
+    y, el, eh = sue_ratio_curve_points_and_errors(
+        W_elec[method], W_elec['UW'], rng=rng)
+    plt.errorbar(xp, y, yerr=[el, eh], fmt='-', label=method)
+    table.update({method.split('-')[-1]: y})
 
 print(tabulate(table, 'keys', showindex=[str(x) for x in n_cands_list],
                tablefmt="pipe", floatfmt='.1f'))
 
 plt.plot([], [], 'k:', lw=0.8, label='Weber')  # Dummy plot for label
+plt.figtext(
+    0.99,
+    0.01,
+    'Simulation error bars: 95% percentile bootstrap CI for the plotted '
+    'SUE ratio (paired task resampling).',
+    fontsize=7,
+    ha='right',
+    va='bottom',
+)
 plt.legend()
 plt.grid(True, color='0.7', linestyle='-', which='major', axis='both')
 plt.grid(True, color='0.9', linestyle='-', which='minor', axis='both')
