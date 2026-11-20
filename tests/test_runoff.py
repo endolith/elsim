@@ -6,6 +6,7 @@ from hypothesis import given
 from hypothesis.strategies import integers, lists, permutations
 
 from elsim.methods import runoff
+from elsim.methods._common import _inc_rank_idx, _tally_at_rank_idx
 
 
 def collect_random_results(method, election):
@@ -20,6 +21,41 @@ def collect_random_results(method, election):
         assert isinstance(winner, int)
         winners.add(winner)
     return winners
+
+
+def test_docstring_example():
+    """Contingent vote example from runoff() docstring."""
+    A, B, C = 0, 1, 2
+    election = np.array([[A, C, B],
+                         [A, C, B],
+                         [B, C, A],
+                         [B, C, A],
+                         [C, A, B]])
+    assert runoff(election) == A
+
+
+def test_head_to_head_tally_via_irv_helpers():
+    """
+    Second-round tally skips eliminated candidates then counts top preference
+    among the two finalists (same path as IRV).
+    """
+    A, B, C = 0, 1, 2
+    election = np.array([[A, C, B],
+                         [A, C, B],
+                         [B, C, A],
+                         [B, C, A],
+                         [C, A, B]])
+    n_voters, n_cands = election.shape
+    voter_top_rank_idx = np.zeros(n_voters, dtype=np.uint8)
+    cand_tallies = np.empty(n_cands, dtype=np.uint)
+    eliminated_mask = np.ones(n_cands, dtype=bool)
+    eliminated_mask[A] = False
+    eliminated_mask[B] = False
+    _inc_rank_idx(election, voter_top_rank_idx, eliminated_mask)
+    _tally_at_rank_idx(cand_tallies, election, voter_top_rank_idx)
+    assert cand_tallies[A] == 3
+    assert cand_tallies[B] == 2
+    assert cand_tallies[C] == 0
 
 
 def test_one_round():
@@ -190,6 +226,32 @@ def complete_ranked_ballots(min_cands=3, max_cands=256, min_voters=1,
 def test_legit_winner_order(election, tiebreaker):
     n_cands = np.shape(election)[1]
     assert runoff(election, tiebreaker) in range(n_cands)
+
+
+def test_runoff_handles_rank_positions_above_255():
+    """Rank cursors must not overflow when finalists appear late on a ballot."""
+    n_cands = 258
+    tail = list(range(3, n_cands))
+    election = np.array([
+        [0, 2, 1, *tail],
+        [1, 2, 0, *tail],
+        [2, *tail, 0, 1],
+    ])
+
+    assert runoff(election, tiebreaker='order') == 0
+
+
+def test_runoff_accepts_non_native_integer_byte_order():
+    """Valid ballots with a non-native integer dtype must reach Numba safely."""
+    election = np.array([
+        [0, 2, 1],
+        [0, 2, 1],
+        [1, 2, 0],
+        [1, 2, 0],
+        [2, 0, 1],
+    ], dtype='>i8')
+
+    assert runoff(election, tiebreaker='order') == 0
 
 
 @given(election=complete_ranked_ballots(min_cands=1, max_cands=25,
