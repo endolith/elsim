@@ -18,13 +18,16 @@ Typical result with 100_000 elections:
 | Corr      |   0.5 |   0.5 |   0.0 |   0.0 |   0.5 |   0.5 |   0.0 |   0.0 |
 | Dims      |     2 |     4 |     2 |     4 |     2 |     4 |     2 |     4 |
 |:----------|------:|------:|------:|------:|------:|------:|------:|------:|
-| Plurality |  67.1 |  75.1 |  76.6 |  90.3 |   3.0 |   7.1 |  23.2 |  49.6 |
-| Runoff    |  88.3 |  92.6 |  89.6 |  96.3 |  35.0 |  43.4 |  51.4 |  73.3 |
-| Hare      |  89.8 |  93.0 |  92.7 |  97.5 |  42.5 |  55.9 |  55.0 |  81.4 |
-| Approval  |  95.7 |  97.0 |  96.6 |  98.3 |  95.3 |  96.4 |  95.1 |  97.5 |
-| Borda     |  97.6 |  98.2 |  98.0 |  99.3 |  96.1 |  97.4 |  96.9 |  98.6 |
-| Coombs    |  96.0 |  96.7 |  97.1 |  98.1 |  92.8 |  93.3 |  94.1 |  95.6 |
-| Black     |  96.6 |  97.2 |  97.6 |  98.7 |  94.9 |  95.9 |  96.1 |  97.6 |
+| Plurality |  68.1 |  75.9 |  77.5 |  90.8 |   3.4 |   7.4 |  24.4 |  50.7 |
+| Runoff    |  88.8 |  92.9 |  90.0 |  96.6 |  36.2 |  44.4 |  52.7 |  74.1 |
+| Hare      |  90.2 |  93.3 |  93.0 |  97.7 |  43.2 |  56.6 |  55.8 |  81.9 |
+| Approval  |  95.7 |  97.0 |  96.5 |  98.2 |  95.3 |  96.5 |  95.0 |  97.4 |
+| Borda     |  97.6 |  98.3 |  97.8 |  99.3 |  96.2 |  97.5 |  96.8 |  98.6 |
+| Coombs    |  96.3 |  97.0 |  97.3 |  98.2 |  93.4 |  93.8 |  94.5 |  95.8 |
+| Black     |  97.0 |  97.5 |  97.8 |  98.8 |  95.5 |  96.3 |  96.5 |  97.9 |
+
+Each voter's range-normalized utilities are then standardized to mean 0 and
+standard deviation 1, matching Merrill's spatial-model procedure.
 
 The paper describes 200 candidate sets, each combined with five electorates,
 but it does not state whether the reported SUE is the mean of the 200 per-set
@@ -97,10 +100,12 @@ for disp, corr, D in conditions:
             v, _ = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp, random_state=rng)
 
-            # Simulated utilities were normalized by range, i.e. each
-            # voter's utilities were linearly expanded so that their highest
-            # and lowest utilities were 1 and 0.
+            # Normalize candidate distances to utilities, then standardize
+            # each voter's utilities to mean 0 and standard deviation 1, as
+            # Merrill did for the spatial-model simulations.
             utilities = normed_dist_utilities(v, c)
+            utilities = ((utilities - utilities.mean(axis=1, keepdims=True))
+                         / utilities.std(axis=1, keepdims=True))
             rankings = honest_rankings(utilities)
             utility_sum = utilities.sum(axis=0)
 
