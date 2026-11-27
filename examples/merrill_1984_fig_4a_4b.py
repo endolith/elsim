@@ -16,25 +16,28 @@ Results with 500_000 elections:
 
 | Method    |     2 |    3 |    4 |    5 |    6 |    7 |
 |:----------|------:|-----:|-----:|-----:|-----:|-----:|
-| Black     | 100.0 | 97.2 | 97.1 | 97.3 | 97.6 | 97.8 |
-| Coombs    | 100.0 | 97.1 | 96.8 | 97.0 | 97.2 | 97.4 |
-| Borda     | 100.0 | 98.7 | 98.2 | 97.9 | 97.7 | 97.6 |
-| Approval  | 100.0 | 98.7 | 97.3 | 96.2 | 95.6 | 95.2 |
-| Hare      | 100.0 | 94.2 | 92.6 | 91.7 | 91.0 | 90.3 |
-| Runoff    | 100.0 | 94.2 | 92.0 | 90.4 | 88.9 | 87.4 |
-| Plurality | 100.0 | 84.7 | 77.1 | 72.1 | 68.1 | 64.8 |
+| Black     | 100.0 | 97.2 | 97.1 | 97.6 | 97.7 | 98.0 |
+| Coombs    | 100.0 | 97.2 | 96.9 | 97.2 | 97.3 | 97.4 |
+| Borda     | 100.0 | 98.7 | 98.2 | 97.8 | 97.7 | 97.5 |
+| Approval  | 100.0 | 98.7 | 97.3 | 96.1 | 95.5 | 95.1 |
+| Hare      | 100.0 | 94.2 | 92.6 | 92.3 | 91.2 | 90.4 |
+| Runoff    | 100.0 | 94.2 | 92.3 | 90.9 | 89.2 | 88.0 |
+| Plurality | 100.0 | 84.5 | 77.8 | 72.8 | 68.7 | 65.1 |
 
 4.b
 
 | Method    |     2 |    3 |    4 |    5 |     6 |     7 |
 |:----------|------:|-----:|-----:|-----:|------:|------:|
-| Black     | 100.0 | 95.5 | 95.2 | 95.5 |  95.8 |  96.2 |
-| Coombs    | 100.0 | 94.9 | 94.1 | 94.0 |  94.0 |  94.1 |
-| Borda     | 100.0 | 97.9 | 97.1 | 96.6 |  96.4 |  96.3 |
-| Approval  | 100.0 | 98.6 | 96.7 | 95.6 |  94.9 |  94.5 |
-| Hare      | 100.0 | 70.2 | 55.9 | 46.7 |  39.7 |  34.6 |
-| Runoff    | 100.0 | 70.2 | 51.7 | 36.9 |  24.3 |  13.5 |
-| Plurality | 100.0 | 50.1 | 23.7 |  4.3 | -11.8 | -25.1 |
+| Black     | 100.0 | 95.6 | 95.4 | 96.0 |  96.2 |  96.5 |
+| Coombs    | 100.0 | 95.1 | 94.4 | 94.4 |  94.3 |  94.2 |
+| Borda     | 100.0 | 97.9 | 97.1 | 96.9 |  96.5 |  96.4 |
+| Approval  | 100.0 | 98.7 | 96.7 | 95.9 |  94.8 |  94.4 |
+| Hare      | 100.0 | 70.2 | 55.6 | 48.2 |  39.7 |  34.4 |
+| Runoff    | 100.0 | 70.2 | 51.7 | 38.1 |  24.7 |  14.2 |
+| Plurality | 100.0 | 50.0 | 23.2 |  5.9 | -13.1 | -26.9 |
+
+Each voter's range-normalized utilities are standardized to mean 0 and
+standard deviation 1, matching Merrill's spatial-model procedure.
 
 The general trend is similar to Merrill's, but there are significant
 discrepancies.  It is smoother, so maybe the original just had lower number of
@@ -100,6 +103,10 @@ for fig, disp, ymin, orig in (('4.a', 1.0, 55, merrill_fig_4a),
             v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                      disp=disp)
             utilities = normed_dist_utilities(v, c)
+            # Merrill's spatial-model simulations standardized each voter's
+            # utilities to mean 0 and standard deviation 1.
+            utilities = ((utilities - utilities.mean(axis=1, keepdims=True))
+                         / utilities.std(axis=1, keepdims=True))
             rankings = honest_rankings(utilities)
 
             # Pick a random winner and accumulate utilities

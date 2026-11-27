@@ -18,13 +18,16 @@ Typical result with 100_000 elections:
 | Corr      |   0.5 |   0.5 |   0.0 |   0.0 |   0.5 |   0.5 |   0.0 |   0.0 |
 | Dims      |     2 |     4 |     2 |     4 |     2 |     4 |     2 |     4 |
 |:----------|------:|------:|------:|------:|------:|------:|------:|------:|
-| Plurality |  72.1 |  79.1 |  80.4 |  92.4 |   4.0 |   6.3 |  25.2 |  52.9 |
-| Runoff    |  90.5 |  94.2 |  92.0 |  97.5 |  36.6 |  43.6 |  53.3 |  75.3 |
-| Hare      |  91.7 |  94.7 |  94.3 |  98.4 |  46.4 |  57.7 |  58.7 |  83.6 |
-| Approval  |  96.2 |  97.0 |  96.8 |  98.5 |  95.6 |  96.8 |  95.8 |  98.0 |
-| Borda     |  97.8 |  98.6 |  98.3 |  99.4 |  96.6 |  97.7 |  97.4 |  99.0 |
-| Coombs    |  97.0 |  97.5 |  97.7 |  98.7 |  94.0 |  94.3 |  95.0 |  96.7 |
-| Black     |  97.3 |  97.8 |  98.0 |  99.0 |  95.5 |  96.1 |  96.5 |  98.0 |
+| Plurality |  73.3 |  79.3 |  81.0 |  92.7 |   4.5 |   7.8 |  27.3 |  54.5 |
+| Runoff    |  90.9 |  94.4 |  92.3 |  97.8 |  38.3 |  45.5 |  55.2 |  76.3 |
+| Hare      |  92.2 |  94.6 |  94.6 |  98.6 |  47.9 |  59.1 |  59.9 |  84.7 |
+| Approval  |  96.1 |  96.9 |  96.7 |  98.5 |  95.7 |  96.9 |  95.9 |  97.9 |
+| Borda     |  97.9 |  98.7 |  98.3 |  99.4 |  96.7 |  97.9 |  97.3 |  98.9 |
+| Coombs    |  97.2 |  97.6 |  97.9 |  98.8 |  94.6 |  94.9 |  95.5 |  97.0 |
+| Black     |  97.5 |  98.1 |  98.3 |  99.1 |  96.1 |  96.7 |  97.0 |  98.3 |
+
+Each voter's range-normalized utilities are then standardized to mean 0 and
+standard deviation 1, matching Merrill's spatial-model procedure.
 
 Many of these values match the paper closely, but some are consistently off by
 up to 9%.
@@ -76,17 +79,14 @@ for disp, corr, D in conditions:
         v, c = normal_electorate(n_voters, n_cands, dims=D, corr=corr,
                                  disp=disp)
 
-        """
-        "Simulated utilities were normalized by range, that is, each voter's
-        set of utilities were linearly expanded so that the highest and lowest
-        utilities for each voter were 1 and 0, respectively."
-
-        TODO: standard scores vs normalized don't matter for the ranked systems
-        and don't affect approval much
-
-        but this is necessary for the SU Maximizer results to match Merrill's.
-        """
+        # "Simulated utilities were normalized by range, that is, each
+        # voter's set of utilities were linearly expanded so that the highest
+        # and lowest utilities for each voter were 1 and 0, respectively."
+        # Then standardize each voter's utilities to mean 0 and standard
+        # deviation 1, as Merrill did for the spatial-model simulations.
         utilities = normed_dist_utilities(v, c)
+        utilities = ((utilities - utilities.mean(axis=1, keepdims=True))
+                     / utilities.std(axis=1, keepdims=True))
         rankings = honest_rankings(utilities)
 
         # Pick a random winner and accumulate utilities
